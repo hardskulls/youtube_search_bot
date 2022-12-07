@@ -1,0 +1,44 @@
+[package]
+name = "bot_lib"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#==[ Local ]==
+conv_to_report = { path = "../conv_to_report" }
+
+# ==[ Main ]==
+teloxide = { version = "0.11.2", features = ["macros"] }
+google-youtube3 = "4.0.1"
+
+#==[ NetWork Helpers ]==
+axum = { version = "0.6.0", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
+url = { version = "2.3.1", features = [] }
+reqwest = { version = "0.11.13", features = ["blocking", "json", "multipart"] }
+hyper = { version = "0.14.23", features = ["client", "http1", "http2", "runtime"] }
+hyper-rustls = { version = "0.23.1", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
+#yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
+
+#==[ DB ]==
+redis = { version = "0.22.1", features = ["tokio-comp"] }
+#redis-derive = { version = "0.1.6", features = [] }
+
+#==[ Errors ]==
+thiserror = "1.0.37"
+error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
+eyre = { version = "0.6.8", features = [] }
+
+#==[ Serialization ]==
+#derive_tools = { version = "0.1.5", features = ["default"] }
+#enum_variants = "1.0.0"
+parse-display = { version = "0.6.0", features = ["std"] }
+to_debug = "0.1.0"
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = { version = "1.0.87", features = ["std"] }
+
+[dev-dependencies]
+tokio = { version = "1.21.2", features = ["macros"] }
+
+

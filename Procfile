@@ -1,0 +1,1 @@
+web: ./target/release/guess_dice_bot
