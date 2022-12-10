@@ -1,4 +1,5 @@
 use google_youtube3::api::Subscription;
+use google_youtube3::oauth2::read_application_secret;
 use google_youtube3::YouTube;
 use hyper::client::HttpConnector;
 use hyper_rustls::HttpsConnector;
@@ -51,7 +52,7 @@ pub(crate) fn parse_number(text: &str, either: Either<&SearchConfigData, &ListCo
 pub(crate) async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &DialogueData, text_to_look_for: &str, result_lim: u32, search_mode: &SearchMode)
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
-    bot.send_message(msg.chat.id, format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url()?, "Log In"))
+    bot.send_message(msg.chat.id, format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url().await?, "Log In"))
         .parse_mode(ParseMode::Html).await?;
 
     let hub = youtube_service("client_secret_web_client_for_youtube_search_bot.json").await?;
@@ -72,15 +73,17 @@ pub(crate) async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &Dia
     Ok(("Finished! ✔".to_owned(), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
 }
 
-fn default_auth_url() -> Result<Url, ParseError>
+async fn default_auth_url() -> eyre::Result<Url>
 {
-    let scopes = &[SCOPE_YOUTUBE, SCOPE_YOUTUBE_READONLY];
+    let secret = read_application_secret("client_secret_web_client_for_youtube_search_bot.json").await?;
+    let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());
+    let (scope, response_type) = (&[SCOPE_YOUTUBE, SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);
     let optional_params = &[("ACCESS_TYPE".to_owned().to_lowercase(), ACCESS_TYPE)];
-    let (client_id, redirect_uri, response_type) = (CLIENT_ID, REDIRECT_URI, RESPONSE_TYPE);
-    make_auth_url(client_id, redirect_uri, response_type, scopes, optional_params)
+    let url = make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?;
+    Ok(url)
 }
 
-pub(crate) async fn get_subs_list<'a, 'b>
+pub(crate) async fn get_subs_list
 (
     youtube_hub: &YouTubeService,
     subs_list: google_youtube3::api::SubscriptionListResponse,
@@ -89,8 +92,6 @@ pub(crate) async fn get_subs_list<'a, 'b>
     text_to_look_for: &str
 )
     -> eyre::Result<()>
-    where
-        'b: 'a
 {
     if let Some(items) = subs_list.items
     { find_matches(search_mode, store_in, items, text_to_look_for); }

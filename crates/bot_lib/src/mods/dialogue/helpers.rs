@@ -81,7 +81,7 @@ pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
 {
     let msg_text = text_to_send.into();
     // log::info!("[:: LOG ::]  :  [:: 'update_optionally_and_send_message' executed ::]");
-    let print = (&opt_dialogue_data.is_some(), &opt_keyboard.is_some(), &msg_text);
+    // let print = (&opt_dialogue_data.is_some(), &opt_keyboard.is_some(), &msg_text);
     // log::info!("[:: LOG DATA ::]  :  [:: INPUT of 'update_optionally_and_send_message' is: {:#?} ::]", print);
     match (opt_keyboard, opt_dialogue, opt_dialogue_data)
     {
