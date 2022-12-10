@@ -54,7 +54,7 @@ pub(crate) async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &Dia
     bot.send_message(msg.chat.id, format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url()?, "Log In"))
         .parse_mode(ParseMode::Html).await?;
 
-    let hub = youtube_service("C:/Users/Bender/Documents/Code/MyCode/Current/youtube_search_bot/crates/secret.json").await?;
+    let hub = youtube_service("client_secret_web_client_for_youtube_search_bot.json").await?;
     let (_, subs_list_resp): (_, google_youtube3::api::SubscriptionListResponse) = search_subs(&hub, 50).await?;
 
     let capacity = subs_list_resp.page_info.as_ref().unwrap().total_results.as_ref().unwrap_or(&20);
