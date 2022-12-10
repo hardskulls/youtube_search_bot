@@ -2,7 +2,9 @@
 
 ### Project Environment Variables:
 
-+ `RUST_LOG` ( optional ) - enables logs (has 5 levels to it)
-+ `TELOXIDE_TOKEN` - telegram bot token
-+ `HOST` - url address of the server
-+ `PORT` - port to listen to
++ `RUST_LOG` Enables logs.
++ `TELEGRAM_BOT_TOKEN` Telegram bot token.
++ `HOST` Url address of the server.
++ `PORT` Port to listen to.
+
+
