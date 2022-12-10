@@ -19,10 +19,10 @@ pub(crate) enum SearchMode
     Description,
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum SearchCommandKB
 {
-    #[display("{} 🔎")] #[display(style = "Title Case")]
+    #[display("{} 🔎")] #[display(style = "Title Case")] #[default]
     SearchConfig,
     #[display(style = "Title Case")] #[display("{} 📤")]
     ResultLimit,
@@ -65,10 +65,10 @@ pub(crate) enum ListTarget
     PlayList,
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum ListCommandKB
 {
-    #[display("{} 🧾")] #[display(style = "Title Case")]
+    #[display("{} 🧾")] #[display(style = "Title Case")] #[default]
     ListConfig,
     #[display(style = "Title Case")] #[display("{} 📤")]
     ResultLimit,
@@ -86,9 +86,14 @@ pub(crate) enum ListCommandKB
     SortContent(SortMode),
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum KeyBoard
-{ SearchCommand(SearchCommandKB), ListCommand(ListCommandKB), }
+{
+    #[display("{0}")]
+    SearchCommand(SearchCommandKB),
+    #[display("{0}")]
+    ListCommand(ListCommandKB),
+}
 
 
 #[cfg(test)]

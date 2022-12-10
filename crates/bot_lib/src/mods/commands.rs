@@ -6,11 +6,12 @@ use teloxide::
     types::InlineKeyboardMarkup,
     utils::command::BotCommands
 };
+use teloxide::payloads::SendMessageSetters;
 
 use SearchCommandKB::SearchConfig;
 
-use crate::mods::dialogue::types::{State, TheDialogue};
-use crate::mods::dialogue::helpers::update_state_and_send_message;
+use crate::mods::dialogue::types::{MessageWithKB, State, TheDialogue};
+
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData};
 use crate::mods::inline_keyboards::funcs::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB;
@@ -21,7 +22,7 @@ pub enum Command
 {
     #[command(description = "Start Bot")]
     Start,
-    #[command(description = "Show Game Status")]
+    #[command(description = "Show Bot Status")]
     Info,
     #[command(description = "Search Something")]
     Search,
@@ -34,8 +35,8 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
     let (message_text, opt_keyboard, opt_dialogue_data): (_, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
         match cmd
         {
-            Command::Start => ("Bot started, send something ⌨".to_owned(), None, None),
-            Command::Info => ("This Bot lets you search stuff on your YouTube channel 🔎".to_owned(), None, None),
+            Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".to_owned(), None, None),
+            Command::Info => ("This Bot lets you search stuff on your YouTube channel 🔎 \n Use /search or /list commands 🚀".to_owned(), None, None),
             Command::Search =>
                 {
                     let state = State::SearchCommandActive(SearchConfigData { ..Default::default() });
@@ -47,7 +48,22 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
                     (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
         };
-    update_state_and_send_message(Some(dialogue), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await?;
+    let message_to_send = bot.send_message(msg.chat.id, &message_text);
+    if let (Some(d_data), Some(kb)) = (opt_dialogue_data, opt_keyboard)
+    {
+        // log::info!("[:: LOG ::]  :  [:: 'handle_commands' executed, sending keyboard | path 1/2 ::]");
+        let sent_msg = message_to_send.reply_markup(kb).await?;
+        // log::info!("[:: LOG DATA ::]  :  [:: INPUT of 'handle_commands' is: {:#?} ::]", (&sent_msg.text(), &sent_msg.kind, &sent_msg.reply_markup()));
+        dialogue.update(DialogueData { message_with_kb: MessageWithKB { opt_message: sent_msg.into() }, ..d_data })
+            .await
+            .map_err(|e| eyre::anyhow!(e))?;
+    }
+    else
+    {
+        // log::info!("[:: LOG ::]  :  [:: 'handle_commands' executed, sending keyboard | path 2/2 ::]");
+        message_to_send.await?;
+    }
+    // update_state_and_send_message(Some(dialogue), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await?;
     Ok(())
 }
 

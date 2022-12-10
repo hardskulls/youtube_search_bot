@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardButtonKind, InlineKeyboardMarkup};
 
-use crate::mods::inline_keyboards::types::{ListCommandKB, SearchMode, SearchCommandKB, SearchTarget, SortMode, ListFilter, ListTarget};
+use crate::mods::inline_keyboards::types::{ListCommandKB, SearchMode, SearchCommandKB, SearchTarget, SortMode, ListFilter, ListTarget, KeyBoard};
 
 
 // fn keyboard_new_row(n: usize) -> Vec<InlineKeyboardButton>
@@ -18,19 +18,17 @@ fn callback_data<D: Serialize>(callback_data: D) -> InlineKeyboardButtonKind
     InlineKeyboardButtonKind::CallbackData(unique_string_identifier)
 }
 
-pub fn inline_button<S: Into<String>, D: Serialize>(text: S, data: D) -> InlineKeyboardButton
+pub(crate) fn inline_button<S: Into<String>>(text: S, data: KeyBoard) -> InlineKeyboardButton
 {
-    let callback_string_data = data;
-    InlineKeyboardButton { text: text.into(), kind: callback_data(callback_string_data) }
+    InlineKeyboardButton::new(text.into(), callback_data(data))
 }
 
-
-pub trait SaveState
+pub(crate) fn button(kb: KeyBoard) -> InlineKeyboardButton
 {
-    // fn save_state(&self) -> Op
+    InlineKeyboardButton::new(kb.button_text(), callback_data(kb))
 }
 
-
+/// Creates `InlineKeyboardMarkup`.
 pub trait CreateKB
 { fn create_kb(&self) -> Option<InlineKeyboardMarkup>; }
 
@@ -42,31 +40,23 @@ impl CreateKB for SearchCommandKB
         {
             SearchCommandKB::ResultLimit => None,
             SearchCommandKB::Target =>
-                {
-                    let (sub, plist) =
-                        (SearchCommandKB::TargetContent(SearchTarget::Subscription), SearchCommandKB::TargetContent(SearchTarget::PlayList));
-                    InlineKeyboardMarkup::default()
-                        .append_to_row(0, inline_button(sub.button_text(), sub))
-                        .append_to_row(0, inline_button(plist.button_text(), plist))
-                        .append_to_row(1, inline_button("Cancel ❌", SearchCommandKB::SearchConfig))
-                        .into()
-                },
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::TargetContent(SearchTarget::Subscription))))
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::TargetContent(SearchTarget::PlayList))))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
+                    .into(),
             SearchCommandKB::SearchBy =>
-                {
-                    let (title, descr) =
-                        (SearchCommandKB::SearchByContent(SearchMode::Title), SearchCommandKB::SearchByContent(SearchMode::Description));
-                    InlineKeyboardMarkup::default()
-                        .append_to_row(0, inline_button(title.button_text(), title))
-                        .append_to_row(0, inline_button(descr.button_text(), descr))
-                        .append_to_row(1, inline_button("Cancel ❌", SearchCommandKB::SearchConfig))
-                        .into()
-                },
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::SearchByContent(SearchMode::Title))))
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::SearchByContent(SearchMode::Description))))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
+                    .into(),
             _ =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, inline_button(SearchCommandKB::ResultLimit.button_text(), SearchCommandKB::ResultLimit))
-                    .append_to_row(0, inline_button(SearchCommandKB::Target.button_text(), SearchCommandKB::Target))
-                    .append_to_row(0, inline_button(SearchCommandKB::SearchBy.button_text(), SearchCommandKB::SearchBy))
-                    .append_to_row(1, inline_button("Cancel ❌", SearchCommandKB::SearchConfig))
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::ResultLimit)))
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::Target)))
+                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::SearchBy)))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
                     .into(),
         }
     }
@@ -80,48 +70,37 @@ impl CreateKB for ListCommandKB
         {
             ListCommandKB::ResultLimit => None,
             ListCommandKB::Target =>
-                {
-                    let (sub, plist) =
-                        (ListCommandKB::TargetContent(ListTarget::Subscription), ListCommandKB::TargetContent(ListTarget::PlayList));
-                    InlineKeyboardMarkup::default()
-                        .append_to_row(0, inline_button(sub.button_text(), sub))
-                        .append_to_row(0, inline_button(plist.button_text(), plist))
-                        .append_to_row(1, inline_button("Cancel ❌", ListCommandKB::ListConfig))
-                        .into()
-                },
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::TargetContent(ListTarget::Subscription))))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::TargetContent(ListTarget::PlayList))))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
+                    .into(),
             ListCommandKB::Filter =>
-                {
-                    let (hey, ho) =
-                        (ListCommandKB::FilterContent(ListFilter::Hey), ListCommandKB::FilterContent(ListFilter::Ho));
-                    InlineKeyboardMarkup::default()
-                        .append_to_row(0, inline_button(hey.button_text(), hey))
-                        .append_to_row(0, inline_button(ho.button_text(), ho))
-                        .append_to_row(1, inline_button("Cancel ❌", ListCommandKB::ListConfig))
-                        .into()
-                },
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::FilterContent(ListFilter::Hey))))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::FilterContent(ListFilter::Ho))))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
+                    .into(),
             ListCommandKB::SortBy =>
-                {
-                    let (sort_by_date, sort_by_alphabet) =
-                        (ListCommandKB::SortContent(SortMode::Date), ListCommandKB::SortContent(SortMode::Alphabet));
-                    InlineKeyboardMarkup::default()
-                        .append_to_row(0, inline_button(sort_by_date.button_text(), sort_by_date))
-                        .append_to_row(0, inline_button(sort_by_alphabet.button_text(), sort_by_alphabet))
-                        .append_to_row(1, inline_button("Cancel ❌", ListCommandKB::ListConfig))
-                        .into()
-                },
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::SortContent(SortMode::Date))))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::SortContent(SortMode::Alphabet))))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
+                    .into(),
             _ =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, inline_button(ListCommandKB::ResultLimit.button_text(), ListCommandKB::ResultLimit))
-                    .append_to_row(0, inline_button(ListCommandKB::Target.button_text(), ListCommandKB::Target))
-                    .append_to_row(0, inline_button(ListCommandKB::SortBy.button_text(), ListCommandKB::SortBy))
-                    .append_to_row(0, inline_button(ListCommandKB::Filter.button_text(), ListCommandKB::Filter))
-                    .append_to_row(1, inline_button("Cancel ❌", ListCommandKB::ListConfig))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::ResultLimit)))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::Target)))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::SortBy)))
+                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::Filter)))
+                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
                     .into()
         }
     }
 }
 
 
+/// Text to show in message with inline keyboard.
 pub trait KeyboardText
 { fn keyboard_text(&self) -> String; }
 
@@ -157,6 +136,14 @@ impl KeyboardText for ListCommandKB
 
 pub trait ButtonText
 { fn button_text(&self) -> String; }
+
+
+impl ButtonText for KeyBoard
+{
+    fn button_text(&self) -> String
+    { self.to_string() }
+}
+
 
 impl ButtonText for SearchCommandKB
 {

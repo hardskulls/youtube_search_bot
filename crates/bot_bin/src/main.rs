@@ -10,16 +10,17 @@ use teloxide::
     dptree,
     error_handlers::LoggingErrorHandler,
     requests::Requester,
-    types::{Message, Update},
+    types::{Update},
     utils::command::BotCommands
 };
+use teloxide::types::{CallbackQuery, Message};
 
 use bot_lib::
 {
     commands::funcs::{handle_commands, handle_unknown_command, is_other_command},
     commands::types::Command,
-    dialogue::funcs::{handle_callback_data, handle_start_state, handle_text},
-    dialogue::types::{DialogueData, State},
+    dialogue::funcs::{handle_callback_data, handle_text},
+    dialogue::types::{DialogueData},
     errors::types::NetworkError
 };
 
@@ -56,13 +57,28 @@ async fn main() -> eyre::Result<()>
     bot.delete_webhook().await?;
     bot.set_my_commands(Command::bot_commands()).await?;
 
-    let handler =
+    let message_handler =
         Update::filter_message()
             .enter_dialogue::<Message, ErasedStorage<DialogueData>, DialogueData>()
             .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
             .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
-            .branch(dptree::case![State::Starting].endpoint(handle_start_state))
-            .branch(dptree::case![DialogueData { state, last_callback }].endpoint(handle_text).endpoint(handle_callback_data));
+            .branch(dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text));
+    let callback_handler =
+        Update::filter_callback_query()
+            .enter_dialogue::<CallbackQuery, ErasedStorage<DialogueData>, DialogueData>()
+            .endpoint(handle_callback_data);
+    let handler =
+        dptree::entry()
+            .branch(message_handler)
+            .branch(callback_handler);
+    // let handler =
+    //     Update::filter_message()
+    //         .enter_dialogue::<Message, ErasedStorage<DialogueData>, DialogueData>()
+    //         .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
+    //         .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
+    //         .branch(dptree::case![DialogueData { state, last_callback }].endpoint(handle_callback_data).endpoint(handle_text))
+    //         // .branch(dptree::case![DialogueData { state, last_callback }].endpoint(handle_callback_data))
+    //     ;
 
     // Must be after `bot.delete_webhook()`.
     let update_listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, url)).await?;

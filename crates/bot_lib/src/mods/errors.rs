@@ -56,6 +56,10 @@ pub struct SerializeError;
 #[error("[ {:?} ] : ( Deserialization failed )", Self)]
 pub struct DeserializeError;
 
+#[derive(Error, Debug, Clone)]
+#[error("[ {:?} ] : ( No `MessageWithKB`, or its inner `Option<Message>` is `None`. )", Self)]
+pub struct NoMessageWithKB;
+
 
 pub async fn notify_user_on_err<'a, F, X, OK, ERR, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
     -> error_stack::Result<OK, ERR>

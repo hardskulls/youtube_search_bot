@@ -10,7 +10,7 @@ edition = "2021"
 conv_to_report = { path = "../conv_to_report" }
 
 # ==[ Main ]==
-teloxide = { version = "0.11.2", features = ["macros"] }
+teloxide = { version = "0.11.3", features = ["macros"] }
 google-youtube3 = "4.0.1"
 
 #==[ NetWork Helpers ]==
@@ -30,10 +30,13 @@ thiserror = "1.0.37"
 error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
 
+#====[ Errors ]====
+log = "0.4.17"
+
 #==[ Serialization ]==
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
-parse-display = { version = "0.6.0", features = ["std"] }
+parse-display = { version = "0.7.0", features = ["std"] }
 to_debug = "0.1.0"
 serde = { version = "1.0.147", features = ["derive"] }
 serde_json = { version = "1.0.87", features = ["std"] }

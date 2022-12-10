@@ -1,4 +1,4 @@
-use google_youtube3::api::{Subscription, SubscriptionListResponse};
+use google_youtube3::api::Subscription;
 use google_youtube3::YouTube;
 use hyper::client::HttpConnector;
 use hyper_rustls::HttpsConnector;
@@ -11,19 +11,10 @@ use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
 use teloxide::types::ParseMode;
 use url::{ParseError, Url};
+use crate::dialogue::types::{ListConfigData, SearchConfigData};
+use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
 
-use KeyBoard::{ListCommand, SearchCommand};
-use State::{ListCommandActive, SearchCommandActive};
-
-use crate::mods::
-{
-    dialogue::helpers::{edit_keyboard, get_callback_data, get_dialogue_data, get_text},
-    dialogue::helpers::update_state_and_send_message,
-    dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State, TheDialogue},
-    errors::EndpointErrors,
-    inline_keyboards::funcs::{CreateKB, KeyboardText},
-    inline_keyboards::types::{KeyBoard, ListCommandKB, SearchCommandKB},
-};
+use crate::mods::dialogue::types::{DialogueData, Either, State};
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{search_subs, youtube_service};
 use crate::mods::youtube::helpers::make_auth_url;
@@ -31,67 +22,46 @@ use crate::mods::youtube::types::{ACCESS_TYPE, CLIENT_ID, REDIRECT_URI, RESPONSE
 
 pub(crate) type YouTubeService = YouTube<HttpsConnector<HttpConnector>>;
 
-pub async fn handle_start_state(bot: Bot, msg: Message) -> eyre::Result<()>
+// pub async fn handle_start_state(bot: Bot, msg: Message) -> eyre::Result<()>
+// {
+//     bot.send_message(msg.chat.id, "Bot is running! 🚀 \nSend /start_game command to start a game 🕹").await?;
+//     Ok(())
+// }
+
+pub(crate) fn parse_number(text: &str, either: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
+    -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {
-    bot.send_message(msg.chat.id, "Bot is running! 🚀 \nSend /start_game command to start a game 🕹").await?;
-    Ok(())
+    match text.parse::<u32>()
+    {
+        Ok(num) if num > 1 =>
+            {
+                let result_limit = num.into();
+                let state =
+                    match either
+                    {
+                        Either::Left(search_config) => SearchCommandActive(SearchConfigData { result_limit, ..search_config.clone() }),
+                        Either::Right(list_config) => ListCommandActive(ListConfigData { result_limit, ..list_config.clone() })
+                    };
+                ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
+            }
+        _ => ("Send a number greater than 0".to_owned(), None, None)
+    }
 }
 
-pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> eyre::Result<()>
-{
-    let dialogue_data = get_dialogue_data(&dialogue).await?;
-    let callback = dialogue_data.last_callback.as_ref().ok_or(EndpointErrors::GameError)?.clone();
-    let keyboard: KeyBoard = serde_json::from_str(&get_callback_data(&callback).await?)?;
-    let text = get_text(&msg).await?;
-    let (message_text, opt_keyboard, opt_dialogue_data): (String, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
-        match (dialogue_data.state.as_ref(), keyboard)
-        {
-            (State::Starting, ..) => ("Set your search config first ".to_owned(), None, None),
-            (SearchCommandActive(search_config), SearchCommand(SearchCommandKB::ResultLimit)) =>
-                match text.parse::<u32>()
-                {
-                    Ok(num) if num > 1 =>
-                        {
-                            let state = SearchCommandActive(SearchConfigData { result_limit: Some(num), ..search_config.clone() });
-                            let (kb, callback) = (SearchCommandKB::SearchConfig, dialogue_data.last_callback.as_ref().unwrap());
-                            edit_keyboard(&bot, kb.keyboard_text(), kb.create_kb(), callback).await?;
-                            ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
-                        }
-                    _ => ("Send a number greater than 0". to_owned(), None, None)
-                },
-            (ListCommandActive(list_config), ListCommand(ListCommandKB::ResultLimit)) =>
-                match text.parse::<u32>()
-                {
-                    Ok(num) if num > 1 =>
-                        {
-                            let state = ListCommandActive(ListConfigData { result_limit: Some(num), ..list_config.clone() });
-                            let (kb, callback) = (ListCommandKB::ListConfig, dialogue_data.last_callback.as_ref().unwrap());
-                            edit_keyboard(&bot, kb.keyboard_text(), kb.create_kb(), callback).await?;
-                            ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
-                        }
-                    _ => ("Send a number greater than 0". to_owned(), None, None)
-                }
-            (SearchCommandActive(SearchConfigData { search_by: Some(s), target: Some(_), result_limit: Some(r) }), _) =>
-                execute_search(&bot, &msg, &dialogue_data, text, *r, s).await?,
-            (ListCommandActive(ListConfigData { sort_by: Some(_), target: Some(_), filter: Some(_), result_limit: Some(r) }), _) =>
-                execute_search(&bot, &msg, &dialogue_data, text, *r, &SearchMode::Title).await?,
-            _ => ("Oops!".to_owned(), None, None)
-        };
-    update_state_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await?;
-    Ok(())
-}
-
-async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &DialogueData, text_to_search: &str, result_lim: u32, search_mode: &SearchMode)
+pub(crate) async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &DialogueData, text_to_look_for: &str, result_lim: u32, search_mode: &SearchMode)
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
-    let url = default_auth_url()?;
-    bot.send_message(msg.chat.id, format!("Use this link to log in <a href=\"{}\">{}</a>", url, "Log In"))
+    bot.send_message(msg.chat.id, format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url()?, "Log In"))
         .parse_mode(ParseMode::Html).await?;
-    let hub = youtube_service("youtube_search_bot/crates/secret.json").await?;
-    let first_response = search_subs(&hub, 50).await?;
-    let mut res = vec![];
-    let _ = get_subs_list(&hub, first_response.1, search_mode, &mut res, text_to_search).await;
-    for s in res.iter().take(result_lim as _)
+
+    let hub = youtube_service("C:/Users/Bender/Documents/Code/MyCode/Current/youtube_search_bot/crates/secret.json").await?;
+    let (_, subs_list_resp): (_, google_youtube3::api::SubscriptionListResponse) = search_subs(&hub, 50).await?;
+
+    let capacity = subs_list_resp.page_info.as_ref().unwrap().total_results.as_ref().unwrap_or(&20);
+    let mut subscription_list = Vec::with_capacity(*capacity as _);
+
+    let _ = get_subs_list(&hub, subs_list_resp, search_mode, &mut subscription_list, text_to_look_for).await;
+    for s in subscription_list.iter().take(result_lim as _)
     {
         let snip = s.snippet.as_ref().unwrap();
         let (title, descr, chan_id) =
@@ -110,19 +80,20 @@ fn default_auth_url() -> Result<Url, ParseError>
     make_auth_url(client_id, redirect_uri, response_type, scopes, optional_params)
 }
 
-async fn get_subs_list<'a, 'b>
+pub(crate) async fn get_subs_list<'a, 'b>
 (
     youtube_hub: &YouTubeService,
-    subs_list: SubscriptionListResponse,
+    subs_list: google_youtube3::api::SubscriptionListResponse,
     search_mode: &SearchMode,
     store_in: &mut Vec<Subscription>,
-    text_to_search: &str
+    text_to_look_for: &str
 )
     -> eyre::Result<()>
-where 'b: 'a
+    where
+        'b: 'a
 {
     if let Some(items) = subs_list.items
-    { find_matches(search_mode, store_in, items, text_to_search); }
+    { find_matches(search_mode, store_in, items, text_to_look_for); }
     let mut next_page_token = subs_list.next_page_token.clone();
     while let Some(page) = next_page_token
     {
@@ -135,14 +106,14 @@ where 'b: 'a
                 .await?;
         next_page_token = subscription_list_resp.next_page_token.clone();
         if let Some(items) = subscription_list_resp.items
-        { find_matches(search_mode, store_in, items, text_to_search); }
+        { find_matches(search_mode, store_in, items, text_to_look_for); }
     }
     Ok(())
 }
 
-fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text: &str)
+fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)
 {
-    let text_to_search = text.to_lowercase();
+    let text_to_search = text_to_look_for.to_lowercase();
     for sub in search_in
     {
         let snip = sub.snippet.as_ref().unwrap();
