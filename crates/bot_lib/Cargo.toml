@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 #==[ Local ]==
-conv_to_report = { path = "../conv_to_report" }
+#conv_to_report = { path = "../conv_to_report" }
 
 # ==[ Main ]==
 teloxide = { version = "0.11.3", features = ["macros"] }
@@ -27,7 +27,7 @@ redis = { version = "0.22.1", features = ["tokio-comp"] }
 
 #==[ Errors ]==
 thiserror = "1.0.37"
-error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
+#error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
 
 #====[ Errors ]====

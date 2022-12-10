@@ -29,4 +29,6 @@ pub mod errors
     pub mod types { pub use crate::mods::errors::*; }
 }
 
+pub(crate) type StdResult<T, E> = Result<T, E>;
+
 

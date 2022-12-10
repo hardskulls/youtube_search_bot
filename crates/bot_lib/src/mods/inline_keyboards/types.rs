@@ -116,7 +116,6 @@ mod tests
         let serialized_enum: String = serde_json::to_string(&KeyBoard::SearchCommand(SearchBy)).unwrap();
         let deserialized_enum: KeyBoard = serde_json::from_str(&serialized_enum).unwrap();
         assert_eq!(deserialized_enum, KeyBoard::SearchCommand(SearchBy));
-        // assert_eq!(serialized_enum, KeyBoard::SearchCommand(SearchBy).to_debug());
     }
 }
 

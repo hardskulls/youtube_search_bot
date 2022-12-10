@@ -1,33 +1,20 @@
-use google_youtube3::api::Subscription;
-use google_youtube3::oauth2::read_application_secret;
-use google_youtube3::YouTube;
+use google_youtube3::{api::Subscription, oauth2::read_application_secret, YouTube};
 use hyper::client::HttpConnector;
 use hyper_rustls::HttpsConnector;
-use teloxide::
-{
-    Bot,
-    types::{InlineKeyboardMarkup, Message},
-};
+use teloxide::Bot;
+use teloxide::types::{InlineKeyboardMarkup, Message, ParseMode};
 use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
-use teloxide::types::ParseMode;
-use url::{ParseError, Url};
-use crate::dialogue::types::{ListConfigData, SearchConfigData};
-use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
+use url::Url;
+use crate::dialogue::types::{ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}};
 
-use crate::mods::dialogue::types::{DialogueData, Either, State};
+use crate::mods::dialogue::types::{DialogueData, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{search_subs, youtube_service};
 use crate::mods::youtube::helpers::make_auth_url;
-use crate::mods::youtube::types::{ACCESS_TYPE, CLIENT_ID, REDIRECT_URI, RESPONSE_TYPE, SCOPE_YOUTUBE, SCOPE_YOUTUBE_READONLY};
+use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE, SCOPE_YOUTUBE_READONLY};
 
 pub(crate) type YouTubeService = YouTube<HttpsConnector<HttpConnector>>;
-
-// pub async fn handle_start_state(bot: Bot, msg: Message) -> eyre::Result<()>
-// {
-//     bot.send_message(msg.chat.id, "Bot is running! 🚀 \nSend /start_game command to start a game 🕹").await?;
-//     Ok(())
-// }
 
 pub(crate) fn parse_number(text: &str, either: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)

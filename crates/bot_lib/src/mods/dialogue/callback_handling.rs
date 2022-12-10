@@ -13,8 +13,6 @@ use crate::mods::
 pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {
-    // log::info!("[:: LOG ::]  :  [:: 'callback_helper_for_search_kb' executed ::]");
-    // log::info!("[:: LOG DATA ::]  :  [:: INPUT of 'callback_helper_for_search_kb' is: {:#?} ::]", (search_kb, &dialogue_data, &callback));
     let opt_dialogue_data =
         match search_kb
         {
@@ -38,16 +36,12 @@ pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogu
                 }
             _ => dialogue_data.into()
         };
-    let output = (search_kb.keyboard_text(), search_kb.create_kb(), opt_dialogue_data);
-    // log::info!("[:: LOG DATA ::]  :  [:: OUTPUT of 'callback_helper_for_search_kb' is: {:#?} ::]", &output);
-    output
+    (search_kb.keyboard_text(), search_kb.create_kb(), opt_dialogue_data)
 }
 
 pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {
-    // log::info!("[:: LOG ::]  :  [:: 'callback_helper_for_list_kb' executed ::]");
-    // log::info!("[:: LOG DATA ::]  :  [:: INPUT of 'callback_helper_for_list_kb' is: {:#?} ::]", (list_kb, &dialogue_data, &callback));
     let opt_dialogue_data =
         match list_kb
         {
@@ -77,9 +71,7 @@ pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data
                 }
             _ => dialogue_data.into()
         };
-    let output = (list_kb.keyboard_text(), list_kb.create_kb(), opt_dialogue_data);
-    // log::info!("[:: LOG DATA ::]  :  [:: OUTPUT of 'callback_helper_for_list_kb' is: {:#?} ::]", &output);
-    output
+    (list_kb.keyboard_text(), list_kb.create_kb(), opt_dialogue_data)
 }
 
 

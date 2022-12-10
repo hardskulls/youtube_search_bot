@@ -1,16 +1,9 @@
+use std::fmt::Display;
 use serde::Serialize;
 
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardButtonKind, InlineKeyboardMarkup};
 
 use crate::mods::inline_keyboards::types::{ListCommandKB, SearchMode, SearchCommandKB, SearchTarget, SortMode, ListFilter, ListTarget, KeyBoard};
-
-
-// fn keyboard_new_row(n: usize) -> Vec<InlineKeyboardButton>
-// {
-//     let text = "text was not provided";
-//     let data = InlineKeyboardButtonKind::CallbackData("data was not provided".into());
-//     vec![InlineKeyboardButton::new(text, data); n]
-// }
 
 fn callback_data<D: Serialize>(callback_data: D) -> InlineKeyboardButtonKind
 {
@@ -134,61 +127,37 @@ impl KeyboardText for ListCommandKB
 }
 
 
-pub trait ButtonText
-{ fn button_text(&self) -> String; }
-
-
-impl ButtonText for KeyBoard
+pub trait ButtonText: Display
 {
     fn button_text(&self) -> String
-    { self.to_string() }
+    {
+        self.to_string()
+    }
 }
 
 
-impl ButtonText for SearchCommandKB
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
-
-impl ButtonText for SearchMode
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
-
-impl ButtonText for SearchTarget
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
+impl ButtonText for KeyBoard {}
 
 
-impl ButtonText for ListCommandKB
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
 
-impl ButtonText for SortMode
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
+impl ButtonText for SearchCommandKB {}
 
-impl ButtonText for ListFilter
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
+impl ButtonText for SearchMode {}
 
-impl ButtonText for ListTarget
-{
-    fn button_text(&self) -> String
-    { self.to_string() }
-}
+impl ButtonText for SearchTarget {}
 
 
+
+impl ButtonText for ListCommandKB {}
+
+impl ButtonText for SortMode {}
+
+impl ButtonText for ListFilter {}
+
+impl ButtonText for ListTarget {}
+
+
+// TODO: This trait gives strange error when used.
 /*pub trait CreateKB
 {
     fn search_config() -> InlineKeyboardMarkup

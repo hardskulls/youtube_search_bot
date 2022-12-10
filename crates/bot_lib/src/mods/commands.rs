@@ -1,20 +1,15 @@
 use teloxide::
 {
     Bot,
+    payloads::SendMessageSetters,
     requests::Requester,
-    types::{Me, Message},
-    types::InlineKeyboardMarkup,
+    types::{InlineKeyboardMarkup, Me, Message},
     utils::command::BotCommands
 };
-use teloxide::payloads::SendMessageSetters;
 
-use SearchCommandKB::SearchConfig;
-
-use crate::mods::dialogue::types::{MessageWithKB, State, TheDialogue};
-
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::inline_keyboards::funcs::{CreateKB, KeyboardText};
-use crate::mods::inline_keyboards::types::SearchCommandKB;
+use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 
 #[derive(Clone, BotCommands)]
 #[command(rename_rule = "snake_case", description = "These commands are available")]
@@ -51,19 +46,12 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
     let message_to_send = bot.send_message(msg.chat.id, &message_text);
     if let (Some(d_data), Some(kb)) = (opt_dialogue_data, opt_keyboard)
     {
-        // log::info!("[:: LOG ::]  :  [:: 'handle_commands' executed, sending keyboard | path 1/2 ::]");
         let sent_msg = message_to_send.reply_markup(kb).await?;
-        // log::info!("[:: LOG DATA ::]  :  [:: INPUT of 'handle_commands' is: {:#?} ::]", (&sent_msg.text(), &sent_msg.kind, &sent_msg.reply_markup()));
-        dialogue.update(DialogueData { message_with_kb: MessageWithKB { opt_message: sent_msg.into() }, ..d_data })
-            .await
-            .map_err(|e| eyre::anyhow!(e))?;
+        let new_dialogue_data = DialogueData { message_with_kb: MessageWithKB { opt_message: sent_msg.into() }, ..d_data };
+        dialogue.update(new_dialogue_data).await.map_err(|e| eyre::anyhow!(e))?;
     }
     else
-    {
-        // log::info!("[:: LOG ::]  :  [:: 'handle_commands' executed, sending keyboard | path 2/2 ::]");
-        message_to_send.await?;
-    }
-    // update_state_and_send_message(Some(dialogue), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await?;
+    { message_to_send.await?; }
     Ok(())
 }
 

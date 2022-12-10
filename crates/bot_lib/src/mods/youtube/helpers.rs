@@ -1,8 +1,10 @@
 use crate::mods::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
+use crate::StdResult;
 
 pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
-    -> std::result::Result<url::Url, url::ParseError>
-    where V: AsRef<str> + Clone, // K: AsRef<str>, I: IntoIterator, I::Item: std::borrow::Borrow<(K, V)>,
+    -> StdResult<url::Url, url::ParseError>
+    where
+        V: AsRef<str> + Clone, // K: AsRef<str>, I: IntoIterator, I::Item: std::borrow::Borrow<(K, V)>,
 {
     let keys = (RequiredAuthURLParams::ClientId, RequiredAuthURLParams::RedirectUri, RequiredAuthURLParams::ResponseType);
     let required_params = [(keys.0.to_string(), client_id), (keys.1.to_string(), redirect_uri), (keys.2.to_string(), response_type)];

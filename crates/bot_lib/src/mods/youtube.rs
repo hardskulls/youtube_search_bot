@@ -1,22 +1,20 @@
-use std::future::Future;
-use std::path::Path;
-use std::pin::Pin;
+use std::{path::Path, future::Future, pin::Pin};
+
 use google_youtube3::
 {
-    oauth2::ApplicationSecret,
     oauth2,
-    YouTube,
+    oauth2::ApplicationSecret,
     oauth2::authenticator::Authenticator,
-    oauth2::authenticator_delegate::InstalledFlowDelegate
+    oauth2::authenticator_delegate::InstalledFlowDelegate,
+    YouTube,
+    api::SubscriptionListResponse
 };
-use google_youtube3::api::SubscriptionListResponse;
-use hyper::{Client};
+use hyper::Client;
 use hyper::client::HttpConnector;
 use hyper_rustls::HttpsConnector;
-use redis::Commands;
-use teloxide::{Bot, requests::Requester, types::ChatId};
-use crate::mods::youtube::helpers::{make_auth_url, query_pairs};
-use crate::mods::youtube::types::{MapErrToString, REDIRECT_URI, TelegramBotInstalledFlow};
+
+use crate::mods::dialogue::text_handling::YouTubeService;
+use crate::mods::youtube::types::{REDIRECT_URI, TelegramBotInstalledFlow};
 
 pub(crate) mod types;
 pub(crate) mod helpers;
@@ -28,61 +26,21 @@ impl InstalledFlowDelegate for TelegramBotInstalledFlow
         Some(REDIRECT_URI)
     }
 
+    #[allow(unused_variables)]
     fn present_user_url<'a>(&'a self, url: &'a str, need_code: bool)
         -> Pin<Box<dyn Future<Output=Result<String, String>> + Send + 'a>>
     {
         // !! TODO: Is it safe to create pins manually? !!
-        Box::pin(present_user_url(url, need_code))
+        Box::pin(present_user_url())
     }
 }
 
-async fn present_user_url(url: &str, need_code: bool) -> Result<String, String>
+async fn present_user_url() -> Result<String, String>
 {
     Ok("[:: crates/bot_lib/src/mods/youtube.rs : 'impl InstalledFlowDelegate for TelegramBotInstalledFlow' ::]".to_owned())
 }
 
-/*async fn present_user_url() -> std::result::Result<String, String>
-{
-    let client = redis::Client::open("redis://127.0.0.1/").map_err_to_str()?;
-    let mut con = client.get_connection().map_err_to_str()?;
-    let chat_id: i64 = con.get("my_counter").map_err_to_str()?;
-
-    let token = std::env::var("TELOXIDE_TOKEN").map_err_to_str()?;
-    let bot = Bot::new(&token);
-
-    let secret = oauth2::read_application_secret("").await.map_err_to_str()?;
-    let (RESPONSE_TYPE, scope) = ("code".to_owned(), ["https://www.googleapis.com/auth/youtube".to_owned()]);
-    let url = make_auth_url(secret.CLIENT_ID, &secret.redirect_uris, RESPONSE_TYPE, &scope, &[]).map_err_to_str()?;
-
-    let text = format!("Follow this link to log in {}", url);
-    bot.send_message(ChatId(chat_id), text).await.map_err_to_str()?;
-
-    // let access_token: String;
-    // let clos = || {  };
-
-    // let app: axum::Router = axum::Router::new().route("/google_callback", axum::routing::get(|| async { "Hello, World!" }));
-    // axum::Server::bind(&"0.0.0.0:8433".parse().unwrap())
-    //     .serve(app.into_make_service())
-    //     .await
-    //     .unwrap();
-
-    todo!()
-}*/
-
-async fn request(request: axum::http::Request<axum::body::Body>)
-{
-    let (parts, body) = request.into_parts();
-    let params: Vec<_> = query_pairs(&parts.uri).collect();
-    let Some(&(_, exchange_code)) = params.iter().find(|&&(key, _val)| key == "code") else { return };
-    let Some(&(_, state)) = params.iter().find(|&&(key, _val)| key == "state") else { return };
-}
-
-pub(crate) async fn authentificator<T: AsRef<Path>>(path: T) -> std::io::Result<ApplicationSecret>
-{
-    oauth2::read_application_secret(path).await
-}
-
-pub(crate) async fn youtube_service<P: AsRef<Path>>(path: P) -> eyre::Result<YouTube<HttpsConnector<HttpConnector>>>
+pub(crate) async fn youtube_service<P: AsRef<Path>>(path: P) -> eyre::Result<YouTubeService>
 {
     let secret: ApplicationSecret = oauth2::read_application_secret(path).await?;
     let authenticator: Authenticator<_> =
@@ -116,6 +74,9 @@ pub(crate) async fn search_subs(youtube_hub: &YouTube<HttpsConnector<HttpConnect
 mod tests
 {
     use std::any::Any;
+
+    use crate::mods::youtube::helpers::make_auth_url;
+
     use super::*;
 
     #[tokio::test]
@@ -124,16 +85,16 @@ mod tests
         let secret: ApplicationSecret = oauth2::read_application_secret("client_secret_web_app.json").await.unwrap();
         let (response_type, scope) = ("code".to_owned(), ["https://www.googleapis.com/auth/youtube".to_owned()]);
         let url = make_auth_url(secret.client_id, secret.redirect_uris[0].clone(), response_type, &scope, &[]);
-        assert!(matches!(url, Ok(_))) ;;
-        dbg!(&url) ;;
-        println!("{}", url.as_ref().unwrap()) ;;
+        assert!(matches!(url, Ok(_))) ;
+        dbg!(&url) ;
+        println!("{}", url.as_ref().unwrap()) ;
     }
 
     #[tokio::test]
     async fn auth_test()
     {
         let secret: ApplicationSecret = oauth2::read_application_secret("client_secret_web_app.json").await.expect("client_secret_web_app.json");
-        let auth: oauth2::authenticator::Authenticator<_> =
+        let auth: Authenticator<_> =
             oauth2::InstalledFlowAuthenticator::builder(secret, oauth2::InstalledFlowReturnMethod::HTTPRedirect)
                 .build()
                 .await

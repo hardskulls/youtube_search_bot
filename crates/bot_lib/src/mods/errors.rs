@@ -61,10 +61,10 @@ pub struct DeserializeError;
 pub struct NoMessageWithKB;
 
 
-pub async fn notify_user_on_err<'a, F, X, OK, ERR, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
-    -> error_stack::Result<OK, ERR>
+pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
+    -> eyre::Result<OK>
     where
-        FUT: Future<Output = error_stack::Result<OK, ERR>>,
+        FUT: Future<Output = eyre::Result<OK>>,
         F: Fn(&'a X) -> FUT,
         S: Into<String> + Send,
 {
