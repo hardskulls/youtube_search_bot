@@ -1,14 +1,20 @@
+use google_youtube3::YouTube;
+use hyper::client::HttpConnector;
+use hyper_rustls::HttpsConnector;
 use parse_display::Display;
+use crate::StdResult;
+
+pub(crate) type YouTubeService = YouTube<HttpsConnector<HttpConnector>>;
 
 pub(crate) trait MapErrToString<T>
 {
     fn map_err_to_str(self) -> Result<T, String>;
 }
 
-impl<T, E> MapErrToString<T> for std::result::Result<T, E>
+impl<T, E> MapErrToString<T> for StdResult<T, E>
     where E: ToString
 {
-    fn map_err_to_str(self) -> Result<T, String>
+    fn map_err_to_str(self) -> StdResult<T, String>
     {
         self.map_err(|e| e.to_string())
     }
@@ -32,7 +38,7 @@ pub(crate) const REDIRECT_URI: &str = "code";
 
 pub(crate) const RESPONSE_TYPE: &str = "code";
 
-pub(crate) const SCOPE_YOUTUBE : &str = "https://www.googleapis.com/auth/youtube";
+// pub(crate) const SCOPE_YOUTUBE : &str = "https://www.googleapis.com/auth/youtube";
 
 pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
 
@@ -49,17 +55,5 @@ pub(crate) enum RequiredAuthURLParams
 #[display(style = "snake_case")]
 pub(crate) enum OptionalAuthURLParams
 { AccessType, State, IncludeGrantedScopes, LoginHint, Prompt }
-
-#[cfg(test)]
-mod tests
-{
-    use super::*;
-
-    #[test]
-    fn url_equal()
-    {
-        // assert_eq!(URL_1, URL_2);
-    }
-}
 
 

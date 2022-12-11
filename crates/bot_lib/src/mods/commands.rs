@@ -8,7 +8,7 @@ use teloxide::
 };
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
-use crate::mods::inline_keyboards::funcs::{CreateKB, KeyboardText};
+use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 
 #[derive(Clone, BotCommands)]

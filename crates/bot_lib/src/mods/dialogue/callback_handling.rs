@@ -4,11 +4,11 @@ use State::{ListCommandActive, SearchCommandActive};
 
 use crate::mods::
 {
-    dialogue::helpers::{list_config_update_or_default, search_config_update_or_default},
+    dialogue::funcs::{list_config_update_or_default, search_config_update_or_default},
     dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State},
-    inline_keyboards::funcs::{CreateKB, KeyboardText},
     inline_keyboards::types::{ListCommandKB, SearchCommandKB},
 };
+use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 
 pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)

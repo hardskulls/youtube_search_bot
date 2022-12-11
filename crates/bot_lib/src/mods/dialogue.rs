@@ -9,14 +9,14 @@ use teloxide::
 use crate::mods::
 {
     dialogue::callback_handling::{callback_helper_for_list_kb, callback_helper_for_search_kb},
-    dialogue::helpers::{get_callback_data, get_dialogue_data, get_text, update_optionally_and_send_message},
+    dialogue::funcs::{get_callback_data, get_dialogue_data, get_text, update_optionally_and_send_message},
     dialogue::text_handling::{execute_search, parse_number},
     dialogue::types::{DialogueData, Either, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, TheDialogue},
     errors::{EndpointErrors, DialogueStateStorageError},
     inline_keyboards::types::{KeyBoard::{self, ListCommand, SearchCommand}, ListCommandKB, SearchCommandKB, SearchMode},
 };
 
-pub(crate) mod helpers;
+pub(crate) mod funcs;
 pub(crate) mod types;
 pub(crate) mod text_handling;
 pub(crate) mod callback_handling;
@@ -59,9 +59,9 @@ pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> eyre:
             (ListCommandActive(ListConfigData { sort_by: Some(_), target: Some(_), filter: Some(_), result_limit: Some(r) }), _) =>
                 execute_search(&bot, &msg, &dialogue_data, text, *r, &SearchMode::Title).await?,
             (SearchCommandActive(search_config), SearchCommand(SearchCommandKB::ResultLimit)) =>
-                parse_number(text, Either::Left(search_config), &dialogue_data),
+                parse_number(text, Either::First(search_config), &dialogue_data),
             (ListCommandActive(list_config), ListCommand(ListCommandKB::ResultLimit)) =>
-                parse_number(text, Either::Right(list_config), &dialogue_data),
+                parse_number(text, Either::Last(list_config), &dialogue_data),
             other =>
                 {
                     log::info!(" [:: LOG ::] : [:: {:?} ::]", other);

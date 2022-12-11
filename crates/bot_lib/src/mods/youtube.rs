@@ -13,11 +13,10 @@ use hyper::Client;
 use hyper::client::HttpConnector;
 use hyper_rustls::HttpsConnector;
 
-use crate::mods::dialogue::text_handling::YouTubeService;
-use crate::mods::youtube::types::{REDIRECT_URI, TelegramBotInstalledFlow};
+use crate::mods::youtube::types::{REDIRECT_URI, TelegramBotInstalledFlow, YouTubeService};
 
 pub(crate) mod types;
-pub(crate) mod helpers;
+pub(crate) mod funcs;
 
 impl InstalledFlowDelegate for TelegramBotInstalledFlow
 {
@@ -75,7 +74,7 @@ mod tests
 {
     use std::any::Any;
 
-    use crate::mods::youtube::helpers::make_auth_url;
+    use crate::mods::youtube::funcs::make_auth_url;
 
     use super::*;
 

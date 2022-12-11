@@ -7,6 +7,7 @@ use teloxide::
 use teloxide::types::Message;
 use crate::mods::inline_keyboards::types::{ListFilter, ListTarget, SearchMode, SearchTarget, SortMode};
 
+/// Dialogue type available in the handlers that stores all of dialogue state.
 pub type TheDialogue = Dialogue<DialogueData, ErasedStorage<DialogueData>>;
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
@@ -54,10 +55,10 @@ pub struct DialogueData
     pub last_callback: Option<CallbackQuery>
 }
 
-pub enum Either<L, R>
+pub enum Either<F, L>
 {
-    Left(L), 
-    Right(R)
+    First(F),
+    Last(L)
 }
 
 

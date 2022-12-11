@@ -8,7 +8,8 @@ mod mods
     pub(crate) mod inline_keyboards 
     {
         pub(crate) mod funcs; 
-        pub(crate) mod types; 
+        pub(crate) mod types;
+        pub(crate) mod traits;
     }
 }
 

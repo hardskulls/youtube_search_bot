@@ -4,7 +4,7 @@ use crate::StdResult;
 pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
     -> StdResult<url::Url, url::ParseError>
     where
-        V: AsRef<str> + Clone, // K: AsRef<str>, I: IntoIterator, I::Item: std::borrow::Borrow<(K, V)>,
+        V: AsRef<str> + Clone, /* K: AsRef<str>, I: IntoIterator, I::Item: std::borrow::Borrow<(K, V)> */
 {
     let keys = (RequiredAuthURLParams::ClientId, RequiredAuthURLParams::RedirectUri, RequiredAuthURLParams::ResponseType);
     let required_params = [(keys.0.to_string(), client_id), (keys.1.to_string(), redirect_uri), (keys.2.to_string(), response_type)];
@@ -50,9 +50,7 @@ pub(crate) fn query_pairs(uri: &axum::http::Uri) -> impl Iterator<Item = (&str, 
 mod tests
 {
     use google_youtube3::oauth2::read_application_secret;
-
     use crate::mods::youtube::types::URL_1;
-
     use super::*;
 
     #[tokio::test]
@@ -74,6 +72,31 @@ mod tests
         {
             assert_eq!(x, &val_2[i]);
         }
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn go_rust_auth_urls() -> eyre::Result<()>
+    {
+        let go_url =
+            "\
+            https://accounts.google.com/o/oauth2/auth?\
+            access_type=offline&\
+            client_id=799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com&\
+            redirect_uri=https%3A%2F%2Fpost-123456.herokuapp.com%2Fgoogle_callback&\
+            response_type=code&\
+            scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly&\
+            state=%26state_code%3Dkut987987_576fg78d5687lojfvkzr_85y6_435sgred_vnhgx_gdut%26for_user%3DАлександр+Лебедев\
+            ";
+        let rust_url =
+            "\
+            https://accounts.google.com/o/oauth2/v2/auth?\
+            client_id=156187461731-lgrn7aba80qtljt5pvqncm60me7b8rgl.apps.googleusercontent.com&\
+            redirect_uri=https%3A%2F%2Fyoutube-search-bot.onrender.com&\
+            response_type=code&\
+            access_type=offline&\
+            scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube%2Chttps%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly\
+            ";
         Ok(())
     }
 }

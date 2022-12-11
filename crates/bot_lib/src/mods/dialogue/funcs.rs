@@ -9,8 +9,7 @@ use teloxide::
 use crate::mods::dialogue::types::{DialogueData, State, ListConfigData, SearchConfigData, TheDialogue, MessageWithKB};
 use crate::mods::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
 use crate::mods::errors::NoMessageWithKB;
-
-type StdResult<T, E> = Result<T, E>;
+use crate::StdResult;
 
 pub(crate) async fn edit_keyboard<S: Into<String>>(bot: &Bot, text: S, inline_keyboard: InlineKeyboardMarkup, msg_with_kb: &MessageWithKB)
     -> eyre::Result<()>
@@ -60,8 +59,8 @@ pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
             }
         (None, Some(dialogue), Some(d_data)) =>
             {
-                dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;
                 bot.send_message(chat_id, text_to_send).await?;
+                dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;
             }
         _ => { bot.send_message(chat_id, text_to_send).await?; }
     }
