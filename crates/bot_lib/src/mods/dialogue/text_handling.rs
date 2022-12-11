@@ -64,7 +64,7 @@ async fn default_auth_url() -> eyre::Result<Url>
 {
     let secret = read_application_secret("client_secret_web_client_for_youtube_search_bot.json").await?;
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());
-    let (scope, response_type) = (&[SCOPE_YOUTUBE, SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);
+    let (scope, response_type) = (&[SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);
     let optional_params = &[("ACCESS_TYPE".to_owned().to_lowercase(), ACCESS_TYPE)];
     let url = make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?;
     Ok(url)
