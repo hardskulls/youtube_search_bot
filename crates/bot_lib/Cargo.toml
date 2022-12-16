@@ -43,5 +43,6 @@ serde_json = { version = "1.0.87", features = ["std"] }
 
 [dev-dependencies]
 tokio = { version = "1.21.2", features = ["macros"] }
+miette = { version = "5.5.0", features = ["fancy"] }
 
 

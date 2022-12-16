@@ -15,6 +15,12 @@ teloxide = { version = "0.11.3", features = ["webhooks-axum", "redis-storage"] }
 #====[ Net ]====
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 reqwest = "0.11.13"
+axum = { version = "0.6.1", features = ["macros", "form", "http1", "http2", "json", "multipart", "query"] }
+url = { version = "2.3.1", features = [] }
+hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
+yup-oauth2 = "=7.0.1"
+
+time = { version = "0.3.17", features = [] }
 
 #====[ Errors ]====
 eyre = { version = "0.6.8", features = [] }
@@ -22,5 +28,17 @@ eyre = { version = "0.6.8", features = [] }
 #====[ Logging ]====
 log = "0.4.17"
 simple_logger = { version = "4.0.0", features = [] }
+
+#==[ DB ]==
+redis = { version = "0.22.1", features = ["tokio-comp"] }
+#redis-derive = { version = "0.1.6", features = [] }
+
+#==[ Serialization ]==
+#derive_tools = { version = "0.1.5", features = ["default"] }
+#enum_variants = "1.0.0"
+#parse-display = { version = "0.7.0", features = ["std"] }
+#to_debug = "0.1.0"
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = { version = "1.0.87", features = ["std"] }
 
 

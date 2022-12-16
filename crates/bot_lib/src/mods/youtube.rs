@@ -1,5 +1,4 @@
 use std::{path::Path, future::Future, pin::Pin};
-
 use google_youtube3::
 {
     oauth2,
@@ -10,8 +9,6 @@ use google_youtube3::
     api::SubscriptionListResponse
 };
 use hyper::Client;
-use hyper::client::HttpConnector;
-use hyper_rustls::HttpsConnector;
 
 use crate::mods::youtube::types::{REDIRECT_URI, TelegramBotInstalledFlow, YouTubeService};
 
@@ -58,12 +55,13 @@ pub(crate) async fn youtube_service<P: AsRef<Path>>(path: P) -> eyre::Result<You
     Ok(YouTube::new(client, authenticator))
 }
 
-pub(crate) async fn search_subs(youtube_hub: &YouTube<HttpsConnector<HttpConnector>>, max_res: u32)
-    -> google_youtube3::Result<(hyper::Response<hyper::body::Body>, SubscriptionListResponse)>
+pub(crate) async fn search_subs(youtube_hub: &YouTubeService, max_res: u32, access_token: &str)
+    -> google_youtube3::Result<(hyper::Response<hyper::Body>, SubscriptionListResponse)>
 {
     youtube_hub.subscriptions()
         .list(&vec!["snippet".into()])
         .max_results(max_res)
+        .param("access_token", access_token)
         .mine(true)
         .doit()
         .await
@@ -120,7 +118,6 @@ mod tests
             Err(e) => println!(" [ DEBUG ] ... Error: {} ... ", e),
             Ok(res) => println!(" [ INFO ] ... Success: {:?} ... ", res),
         }
-
     }
 }
 

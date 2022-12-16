@@ -1,4 +1,5 @@
 use google_youtube3::{api::Subscription, oauth2::read_application_secret, api::SubscriptionListResponse};
+use redis::Commands;
 use teloxide::
 {
     Bot,
@@ -25,8 +26,10 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
                 let state =
                     match configs
                     {
-                        Either::First(search_config) => SearchCommandActive(SearchConfigData { result_limit, ..search_config.clone() }),
-                        Either::Last(list_config) => ListCommandActive(ListConfigData { result_limit, ..list_config.clone() })
+                        Either::First(search_config) =>
+                            SearchCommandActive(SearchConfigData { result_limit, ..search_config.clone() }),
+                        Either::Last(list_config) =>
+                            ListCommandActive(ListConfigData { result_limit, ..list_config.clone() })
                     };
                 ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
             }
@@ -34,25 +37,39 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
     }
 }
 
-pub(crate) async fn execute_search(bot: &Bot, msg: &Message, dialogue_data: &DialogueData, text_to_look_for: &str, result_lim: u32, search_mode: &SearchMode)
+pub(crate) async fn execute_search
+(
+    bot: &Bot,
+    msg: &Message,
+    dialogue_data: &DialogueData,
+    text_to_look_for: &str,
+    result_lim: u32,
+    search_mode: &SearchMode,
+)
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
-    let provide_user_auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url().await?, "Log In");
-    bot.send_message(msg.chat.id, provide_user_auth_url).parse_mode(ParseMode::Html).await?;
+    let access_token =
+        match get_access_token(msg.from().unwrap().full_name().as_str())
+        {
+            Ok(token) => token,
+            Err(_) =>
+                {
+                    let auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url().await?, "Log In");
+                    bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
+                    return Ok(("Please, log in first ".to_owned(), None, None))
+                }
+        };
+    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
 
-    let hub = youtube_service("client_secret_web_client_for_youtube_search_bot.json").await?;
-    let (_, subs_list_resp): (_, SubscriptionListResponse) = search_subs(&hub, 50).await?;
-
-    let capacity = subs_list_resp.page_info.as_ref().unwrap().total_results.as_ref().unwrap_or(&20);
-    let mut subscription_list = Vec::with_capacity(*capacity as usize);
-
-    let _ = get_subs_list(&hub, subs_list_resp, search_mode, &mut subscription_list, text_to_look_for).await;
-    for s in subscription_list.iter().take(result_lim as _)
+    let yt_service = youtube_service("client_secret_web_client_for_youtube_search_bot.json").await?;
+    let subscription_list = get_subs_list(&yt_service, search_mode, text_to_look_for, &access_token).await?;
+    
+    for s in subscription_list.into_iter().take(result_lim as usize)
     {
-        let snip = s.snippet.as_ref().unwrap();
+        let snip = s.snippet.unwrap();
         let (title, descr, chan_id) =
-            (snip.channel_title.as_ref(), snip.description.as_ref(), snip.resource_id.as_ref().unwrap().channel_id.as_ref());
-        let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title.unwrap(), descr.unwrap(), chan_id.unwrap());
+            (snip.channel_title.unwrap(), snip.description.unwrap(), snip.resource_id.unwrap().channel_id.unwrap());
+        let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title, descr, chan_id);
         let _ = bot.send_message(msg.chat.id, text).await;
     }
 
@@ -71,26 +88,38 @@ async fn default_auth_url() -> eyre::Result<Url>
     Ok(url)
 }
 
+pub(crate) fn get_access_token(user_id: &str) -> eyre::Result<String>
+{
+    log::info!("getting access_token from a database | (silent on failure)");
+    let client = redis::Client::open("redis://127.0.0.1/")?;
+    let mut con = client.get_connection()?;
+    let access_token: String = con.get(user_id)?;
+    log::info!("access_token acquired!");
+    Ok(access_token)
+}
+
 pub(crate) async fn get_subs_list
 (
     youtube_hub: &YouTubeService,
-    subs_list: SubscriptionListResponse,
     search_mode: &SearchMode,
-    store_in: &mut Vec<Subscription>,
-    text_to_look_for: &str
+    text_to_look_for: &str,
+    access_token: &str,
 )
-    -> eyre::Result<()>
+    -> eyre::Result<Vec<Subscription>>
 {
-    if let Some(items) = subs_list.items
-    { find_matches(search_mode, store_in, items, text_to_look_for); }
+    let (_, subs_list_resp) = search_subs(youtube_hub, 50, access_token).await?;
+    let mut store_in: Vec<Subscription> = Vec::with_capacity(20);
+    
+    if let Some(items) = subs_list_resp.items
+    { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
 
-    let mut next_page_token = subs_list.next_page_token.clone();
-
+    let mut next_page_token = subs_list_resp.next_page_token.clone();
     while let Some(page) = next_page_token
     {
         let (_, subscription_list_resp) =
             youtube_hub.subscriptions().list(&vec!["part".into()])
                 .max_results(50)
+                .param("access_token", access_token)
                 .mine(true)
                 .page_token(&page)
                 .doit()
@@ -99,9 +128,9 @@ pub(crate) async fn get_subs_list
         next_page_token = subscription_list_resp.next_page_token.clone();
 
         if let Some(items) = subscription_list_resp.items
-        { find_matches(search_mode, store_in, items, text_to_look_for); }
+        { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
     }
-    Ok(())
+    Ok(store_in)
 }
 
 fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)

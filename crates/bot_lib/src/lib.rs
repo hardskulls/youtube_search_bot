@@ -1,4 +1,6 @@
 
+pub(crate) type StdResult<T, E> = Result<T, E>;
+
 mod mods
 {
     pub(crate) mod errors;
@@ -25,11 +27,8 @@ pub mod dialogue
     pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListConfigData, SearchConfigData, }; }
 }
 
-pub mod errors
-{
-    pub mod types { pub use crate::mods::errors::*; }
-}
+pub mod errors { pub mod types { pub use crate::mods::errors::*; } }
+pub mod net { pub mod url { pub use crate::mods::youtube::funcs::{query_pairs, find_by_key}; } }
 
-pub(crate) type StdResult<T, E> = Result<T, E>;
 
 
