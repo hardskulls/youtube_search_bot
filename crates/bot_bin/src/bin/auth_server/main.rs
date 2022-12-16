@@ -104,7 +104,7 @@ async fn handle_access_token
     if !state.contains("! insert state code here") { return }
     let Some(for_user) = params.get("for_user") else { return };
     
-    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
     let _: () = con.set(for_user, access_token.access_token.as_ref().unwrap()).unwrap();
     log::info!("'handle_access_token' finished");

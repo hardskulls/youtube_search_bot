@@ -1,4 +1,4 @@
-use google_youtube3::{api::Subscription, oauth2::read_application_secret, api::SubscriptionListResponse};
+use google_youtube3::{api::Subscription, oauth2::read_application_secret};
 use redis::Commands;
 use teloxide::
 {
@@ -91,7 +91,7 @@ async fn default_auth_url() -> eyre::Result<Url>
 pub(crate) fn get_access_token(user_id: &str) -> eyre::Result<String>
 {
     log::info!("getting access_token from a database | (silent on failure)");
-    let client = redis::Client::open("redis://127.0.0.1/")?;
+    let client = redis::Client::open(std::env::var("REDIS_URL").unwrap())?;
     let mut con = client.get_connection()?;
     let access_token: String = con.get(user_id)?;
     log::info!("access_token acquired!");
