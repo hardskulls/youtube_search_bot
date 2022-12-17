@@ -22,21 +22,19 @@ pub async fn start_auth_server() -> eyre::Result<()>
     // run it with hyper on localhost:8443
     //let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
     let addr = std::env::var("LOCAL_ADDR")?;
-    let ports = [80, 443, 88, 8181, 8080];
+    let ports = [80, 443, 88, 8181, 8080, 8443, 8450];
     for p in ports.into_iter()
     {
         let app = app.clone();
-        let res =
-            axum::Server::bind(&format!("{addr}:{p}").parse()?)
-                .serve(app.into_make_service())
-                .await;
-        
-        if res.is_err()
-        { log::info!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {res:#?} |> 🚧 )"); }
-        else
+        let bind_res = axum::Server::try_bind(&format!("{addr}:{p}").parse()?);
+        match bind_res
         {
-            log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started 🚀 )");
-            break
+            Err(e) => log::info!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {e:#?} |> 🚧 )"),
+            Ok(binding) =>
+                {
+                    log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started 🚀 )");
+                    binding.serve(app.into_make_service()).await?;
+                }
         }
     }
     
