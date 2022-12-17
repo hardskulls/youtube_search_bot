@@ -20,8 +20,9 @@ pub async fn start_auth_server() -> eyre::Result<()>
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
     
     // run it with hyper on localhost:8443
+    let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
     log::info!(" [:: LOG ::] ... : ( 'auth_server' started 🚀 )");
-    axum::Server::bind(&format!("0.0.0.0:443").parse()?)
+    axum::Server::bind(&format!("0.0.0.0:{port}").parse()?)
         .serve(app.into_make_service())
         .await?;
     
