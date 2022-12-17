@@ -39,7 +39,7 @@ async fn main() -> eyre::Result<()>
     let token = std::env::var("TELEGRAM_BOT_TOKEN")?;
     let bot = Bot::new(&token);
 
-    let redis_url = std::env::var("")?;
+    let redis_url = std::env::var("REDIS_URL")?;
     let storage: Arc<ErasedStorage<DialogueData>> =
         if let Ok(redis_storage) = RedisStorage::open(redis_url, Json).await
         {
