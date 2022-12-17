@@ -11,7 +11,7 @@ use crate::net::url::find_by_key;
 
 pub async fn start_auth_server() -> eyre::Result<()>
 {
-    log::info!(" [:: LOG ::] ... : ( <| Building 'auth_server'... |> ⚙ )");
+    log::info!(" [:: LOG ::] ... : ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     // build our application with a single route
     let app =
         Router::new()
@@ -20,11 +20,24 @@ pub async fn start_auth_server() -> eyre::Result<()>
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
     
     // run it with hyper on localhost:8443
-    let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
-    log::info!(" [:: LOG ::] ... : ( 'auth_server' started 🚀 )");
-    axum::Server::bind(&format!("0.0.0.0:{port}").parse()?)
-        .serve(app.into_make_service())
-        .await?;
+    //let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
+    let addr = std::env::var("LOCAL_ADDR")?;
+    let ports = [80, 443, 88, 8181, 8080];
+    for p in ports.into_iter()
+    {
+        let res =
+            axum::Server::bind(&format!("{addr}:{p}").parse()?)
+                .serve(app.clone().into_make_service())
+                .await;
+        
+        if res.is_err()
+        { log::info!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {res:#?} |> 🚧 )"); }
+        else
+        {
+            log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started 🚀 )");
+            break
+        }
+    }
     
     log::info!(" [:: LOG ::] ... : ( <| 'auth_server' finished |> ❌ )");
     Ok(())
