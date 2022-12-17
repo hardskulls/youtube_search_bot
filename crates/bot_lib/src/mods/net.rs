@@ -19,10 +19,9 @@ pub async fn start_auth_server() -> eyre::Result<()>
             .route("/google_callback_access_token", post(handle_access_token))
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
     
-    let port = std::env::var("PORT")?.parse::<u16>()?;
     // run it with hyper on localhost:8443
     log::info!(" [:: LOG ::] ... : ( 'auth_server' started 🚀 )");
-    axum::Server::bind(&format!("0.0.0.0:{port}").parse()?)
+    axum::Server::bind(&format!("0.0.0.0:443").parse()?)
         .serve(app.into_make_service())
         .await?;
     
@@ -156,6 +155,7 @@ mod tests
     
     mod requests_testing
     {
+        use std::net::SocketAddr;
         use super::*;
     
         #[tokio::test]
@@ -175,6 +175,15 @@ mod tests
                     .unwrap();
             println!(" [:: LOG ::] ... : ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
             assert_eq!(request.method(), hyper::Method::POST)
+        }
+    
+        #[test]
+        fn create_port_test()
+        {
+            let socket_addr: Result<SocketAddr, _> = "0.0.0.0:443".parse();
+            assert!(matches!(socket_addr, Ok(_)));
+            let socket_addr: Result<SocketAddr, _> = "0.0.0.0".parse();
+            assert!(matches!(socket_addr, Err(_)));
         }
     }
 }
