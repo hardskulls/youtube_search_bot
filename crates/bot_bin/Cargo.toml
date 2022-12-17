@@ -13,7 +13,7 @@ bot_lib = { path = "../bot_lib" }
 teloxide = { version = "0.11.3", features = ["webhooks-axum", "redis-storage"] }
 
 #====[ Net ]====
-tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
 reqwest = "0.11.13"
 axum = { version = "0.6.1", features = ["macros", "form", "http1", "http2", "json", "multipart", "query"] }
 url = { version = "2.3.1", features = [] }
@@ -38,7 +38,7 @@ redis = { version = "0.22.1", features = ["tokio-comp"] }
 #enum_variants = "1.0.0"
 #parse-display = { version = "0.7.0", features = ["std"] }
 #to_debug = "0.1.0"
-serde = { version = "1.0.147", features = ["derive"] }
-serde_json = { version = "1.0.87", features = ["std"] }
+serde = { version = "1.0.151", features = ["derive"] }
+serde_json = { version = "1.0.89", features = ["std"] }
 
 

@@ -13,6 +13,7 @@ mod mods
         pub(crate) mod types;
         pub(crate) mod traits;
     }
+    pub(crate) mod net;
 }
 
 pub mod commands
@@ -28,7 +29,13 @@ pub mod dialogue
 }
 
 pub mod errors { pub mod types { pub use crate::mods::errors::*; } }
-pub mod net { pub mod url { pub use crate::mods::youtube::funcs::{query_pairs, find_by_key}; } }
-
+pub mod net
+{
+    pub mod url
+    {
+        pub use crate::mods::youtube::funcs::{query_pairs, find_by_key};
+        pub use crate::mods::net::start_auth_server;
+    }
+}
 
 

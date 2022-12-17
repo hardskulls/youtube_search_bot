@@ -14,12 +14,13 @@ teloxide = { version = "0.11.3", features = ["macros"] }
 google-youtube3 = "4.0.1"
 
 #==[ NetWork Helpers ]==
-axum = { version = "0.6.0", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
+axum = { version = "0.6.1", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
 url = { version = "2.3.1", features = [] }
 reqwest = { version = "0.11.13", features = ["blocking", "json", "multipart"] }
 hyper = { version = "0.14.23", features = ["client", "http1", "http2", "runtime"] }
-hyper-rustls = { version = "0.23.1", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
+hyper-rustls = { version = "0.23.2", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
 #yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
+time = "0.3.17"
 
 #==[ DB ]==
 redis = { version = "0.22.1", features = ["tokio-comp"] }
@@ -38,11 +39,11 @@ log = "0.4.17"
 #enum_variants = "1.0.0"
 parse-display = { version = "0.7.0", features = ["std"] }
 to_debug = "0.1.0"
-serde = { version = "1.0.147", features = ["derive"] }
-serde_json = { version = "1.0.87", features = ["std"] }
+serde = { version = "1.0.151", features = ["derive"] }
+serde_json = { version = "1.0.89", features = ["std"] }
 
 [dev-dependencies]
-tokio = { version = "1.21.2", features = ["macros"] }
+tokio = { version = "1.23.0", features = ["macros"] }
 miette = { version = "5.5.0", features = ["fancy"] }
 
 

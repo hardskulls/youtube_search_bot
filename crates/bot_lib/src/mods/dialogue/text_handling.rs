@@ -22,14 +22,13 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
     {
         Ok(num) if num > 1 =>
             {
-                let result_limit = num.into();
                 let state =
                     match configs
                     {
                         Either::First(search_config) =>
-                            SearchCommandActive(SearchConfigData { result_limit, ..search_config.clone() }),
+                            SearchCommandActive(SearchConfigData { result_limit: num.into(), ..search_config.clone() }),
                         Either::Last(list_config) =>
-                            ListCommandActive(ListConfigData { result_limit, ..list_config.clone() })
+                            ListCommandActive(ListConfigData { result_limit: num.into(), ..list_config.clone() })
                     };
                 ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
             }
@@ -60,8 +59,9 @@ pub(crate) async fn execute_search
                 }
         };
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
-
-    let yt_service = youtube_service("client_secret_web_client_for_youtube_search_bot.json").await?;
+    
+    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+    let yt_service = youtube_service(secret_path).await?;
     let subscription_list = get_subs_list(&yt_service, search_mode, text_to_look_for, &access_token).await?;
     
     for s in subscription_list.into_iter().take(result_lim as usize)
@@ -78,7 +78,8 @@ pub(crate) async fn execute_search
 
 async fn default_auth_url() -> eyre::Result<Url>
 {
-    let secret = read_application_secret("client_secret_web_client_for_youtube_search_bot.json").await?;
+    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+    let secret = read_application_secret(secret_path).await?;
 
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());
     let (scope, response_type) = (&[SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);

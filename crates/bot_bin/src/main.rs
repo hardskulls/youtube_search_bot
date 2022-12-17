@@ -10,7 +10,7 @@ use teloxide::
     dptree,
     error_handlers::LoggingErrorHandler,
     requests::Requester,
-    types::{Update},
+    types::Update,
     utils::command::BotCommands
 };
 use teloxide::types::{CallbackQuery, Message};
@@ -20,8 +20,9 @@ use bot_lib::
     commands::funcs::{handle_commands, handle_unknown_command, is_other_command},
     commands::types::Command,
     dialogue::funcs::{handle_callback_data, handle_text},
-    dialogue::types::{DialogueData},
-    errors::types::NetworkError
+    dialogue::types::DialogueData,
+    errors::types::NetworkError,
+    net::url::start_auth_server
 };
 
 #[tokio::main]
@@ -29,6 +30,8 @@ async fn main() -> eyre::Result<()>
 {
     // !! All `logs::info!` work only after this line + env variable `RUST_LOG` set to `INFO`. !!
     simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
+    
+    tokio::task::spawn(start_auth_server()).await.expect("auth server task panicked!");
 
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());
@@ -36,8 +39,9 @@ async fn main() -> eyre::Result<()>
     let token = std::env::var("TELEGRAM_BOT_TOKEN")?;
     let bot = Bot::new(&token);
 
+    let redis_url = std::env::var("")?;
     let storage: Arc<ErasedStorage<DialogueData>> =
-        if let Ok(redis_storage) = RedisStorage::open("redis://127.0.0.1:6379", Json).await
+        if let Ok(redis_storage) = RedisStorage::open(redis_url, Json).await
         {
             log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
             TraceStorage::new(redis_storage).erase()
@@ -48,8 +52,8 @@ async fn main() -> eyre::Result<()>
             log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
             TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
         };
+    
     let port = std::env::var("PORT")?.parse::<u16>()?;
-
     let host = std::env::var("HOST")?;
     let addr = ([0,0,0,0], port).into();
     let url = reqwest::Url::parse(&format!("{host}/bot{token}"))?;
@@ -67,30 +71,22 @@ async fn main() -> eyre::Result<()>
         Update::filter_callback_query()
             .enter_dialogue::<CallbackQuery, ErasedStorage<DialogueData>, DialogueData>()
             .endpoint(handle_callback_data);
-    let handler =
+    let main_handler =
         dptree::entry()
             .branch(message_handler)
             .branch(callback_handler);
-    // let handler =
-    //     Update::filter_message()
-    //         .enter_dialogue::<Message, ErasedStorage<DialogueData>, DialogueData>()
-    //         .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
-    //         .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
-    //         .branch(dptree::case![DialogueData { state, last_callback }].endpoint(handle_callback_data).endpoint(handle_text))
-    //         // .branch(dptree::case![DialogueData { state, last_callback }].endpoint(handle_callback_data))
-    //     ;
 
-    // Must be after `bot.delete_webhook()`.
+    // !! Must be after `bot.delete_webhook()` !!
     let update_listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, url)).await?;
-    let upd_list_err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
+    let err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
 
     log::info!("[ LOG ] ⚙(✅) <| Build finished |>");
     log::info!("[ LOG ] 🚀 <| Bot is running |> ");
 
-    Dispatcher::builder(bot, handler)
+    Dispatcher::builder(bot, main_handler)
         .dependencies(dptree::deps![storage])
         .build()
-        .dispatch_with_listener(update_listener, upd_list_err_handler)
+        .dispatch_with_listener(update_listener, err_handler)
         .await;
 
     Ok(())

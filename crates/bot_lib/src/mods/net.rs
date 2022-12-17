@@ -1,46 +1,36 @@
-use std::{collections::HashMap};
-use axum::
-{
-    body::Body,
-    http::Request,
-    Json,
-    Router,
-    extract::{Path, Query},
-    headers::HeaderMap,
-    routing::{get, post}
-};
+use std::collections::HashMap;
+use std::env;
+use axum::{headers::HeaderMap, Json, Router, http::Request};
+use axum::extract::{Path, Query};
+use axum::routing::{get, post};
+use google_youtube3::oauth2::read_application_secret;
+use hyper::Body;
 use redis::Commands;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use yup_oauth2::read_application_secret;
+use crate::net::url::find_by_key;
 
-use bot_lib::net::url::find_by_key;
-
-#[tokio::main]
-async fn main() -> eyre::Result<()>
+pub async fn start_auth_server()
 {
-    // !! All `logs::info!` work only after this line !!
-    simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
-
     // build our application with a single route
     let app =
         Router::new()
             .route("/google_callback_auth_code", get(handle_auth_code))
             .route("/google_callback_access_token", post(handle_access_token))
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
-
+    
+    let port = std::env::var("PORT").unwrap().parse::<u16>().unwrap();
     // run it with hyper on localhost:8443
-    axum::Server::bind(&"0.0.0.0:8443".parse().unwrap())
+    axum::Server::bind(&format!("0.0.0.0:{port}").parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
-
-    Ok(())
 }
 
 async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, String)>
 {
-    let secret = read_application_secret("client_secret_web_client_for_youtube_search_bot").await.unwrap();
+    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+    let secret = read_application_secret(secret_path).await.unwrap();
     let arr: [(&str, &str); 7] =
         [
             ("client_id", &secret.client_id),
@@ -58,8 +48,8 @@ async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, St
 
 async fn handle_auth_code(req: Request<Body>)
 {
-    log::info!("'handle_auth_code' started");
-    log::info!("{:#?}", req);
+    log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' started )");
+    log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
     let query_as_str = req.uri().query().unwrap_or("");
     let Ok(state) = find_by_key(query_as_str, "state") else { return };
     if !state.contains("! insert state code here") { return }
@@ -72,23 +62,18 @@ async fn handle_auth_code(req: Request<Body>)
         hyper::Request::builder()
             .uri(uri.as_str())
             .method(hyper::Method::POST)
-            .header("POST", "/token HTTP/1.1")
-            .header("Host:", "oauth2.googleapis.com")
-            .header("Content-Type:", "application/x-www-form-urlencoded")
+            .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+            .header(hyper::header::HOST, "oauth2.googleapis.com")
+            .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
             .body(Body::empty())
             .unwrap();
+    log::info!(" [:: LOG ::] ... : ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
     let hyper_client: hyper::Client<_> = hyper::Client::new();
     let r = hyper_client.request(request).await;
-    log::info!("{:#?}", r);
-    log::info!("'handle_auth_code' finished");
+    log::info!(" [:: LOG ::] ... : ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<hyper::Result<hyper::Response<Body>>>(), r);
+    log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' finished )");
 }
 
-async fn handle_bot_access_token_req()
-{
-
-}
-
-// Something like `async fn handle_access_token(Json(payload): Json<serde_json::Value>) { ... }`
 async fn handle_access_token
 (
     Path(user_id): Path<u32>,
@@ -97,9 +82,10 @@ async fn handle_access_token
     Json(access_token): Json<YouTubeAccessToken>
 )
 {
-    log::info!("'handle_access_token' started");
-    log::info!("{:#?}", user_id);
-    log::info!("{:#?}", headers);
+    log::info!(" [:: LOG ::] ... : ( 'handle_access_token' started )");
+    log::info!(" [:: LOG ::] ... : ( 'user_id' of type '{}' is [< {:#?} >]", std::any::type_name::<Path<u32>>(), user_id);
+    log::info!(" [:: LOG ::] ... : ( 'params' of type '{}' is [< {:#?} >]", std::any::type_name::<Query<HashMap<String, String>>>(), params);
+    log::info!(" [:: LOG ::] ... : ( 'headers' of type '{}' is [< {:#?} >]", std::any::type_name::<HeaderMap>(), headers);
     let Some(state) = params.get("state") else { return };
     if !state.contains("! insert state code here") { return }
     let Some(for_user) = params.get("for_user") else { return };
@@ -107,9 +93,13 @@ async fn handle_access_token
     let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
     let _: () = con.set(for_user, access_token.access_token.as_ref().unwrap()).unwrap();
-    log::info!("'handle_access_token' finished");
+    log::info!(" [:: LOG ::] ... : ( 'handle_access_token' finished )");
 }
 
+async fn handle_bot_access_token_req()
+{
+
+}
 
 /// Represents a `token` as returned by `OAuth2` servers.
 ///
@@ -134,11 +124,11 @@ pub struct YouTubeAccessToken {
 mod tests
 {
     use super::*;
-
-    mod serialization
+    
+    mod serialization_testing
     {
         use super::*;
-    
+        
         #[test]
         fn serialize_deserialize_string_test()
         {
@@ -150,14 +140,38 @@ mod tests
             let deserialized = serde_json::from_str::<YouTubeAccessToken>(&serialized).unwrap();
             assert_eq!(token, deserialized);
         }
-    
+        
         #[test]
         fn deserialize_from_json_test()
         {
-            let path = "C:/Users/Bender/Downloads/test_access_token_deserialization.json";
+            let path = "test_access_token_deserialization.json";
             let contents = std::fs::read_to_string(path).unwrap();
             let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
             assert!(matches!(deserialized_2, Ok(_)));
+        }
+    }
+    
+    mod requests_testing
+    {
+        use super::*;
+    
+        #[tokio::test]
+        async fn print_request_contents_test()
+        {
+            let (state, for_user, auth_code) = ("this_is_state", "this_is_for_user", "this_is_auth_code");
+            let params = params(state, for_user, auth_code).await;
+            let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+            let request =
+                hyper::Request::builder()
+                    .uri(uri.as_str())
+                    .method(hyper::Method::POST)
+                    .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+                    .header(hyper::header::HOST, "oauth2.googleapis.com")
+                    .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(Body::empty())
+                    .unwrap();
+            println!(" [:: LOG ::] ... : ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
+            assert_eq!(request.method(), hyper::Method::POST)
         }
     }
 }
