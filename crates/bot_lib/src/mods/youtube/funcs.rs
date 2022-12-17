@@ -59,7 +59,15 @@ pub fn find_by_key<'a>(url_query: &'a str, key: &str) -> StdResult<&'a str, Pars
 mod tests
 {
     use google_youtube3::oauth2::read_application_secret;
-    use crate::mods::youtube::types::URL_1;
+    const URL_1 : &str =
+        "\
+        https://accounts.google.com/o/oauth2/auth?\
+        scope=https://www.googleapis.com/auth/youtube%20https://www.googleapis.com/auth/youtube.readonly&\
+        access_type=offline&\
+        redirect_uri=http://127.0.0.1:62320&\
+        response_type=code&\
+        client_id=799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com\
+        ";
     use super::*;
 
     #[tokio::test]
@@ -84,10 +92,11 @@ mod tests
         Ok(())
     }
 
+    // TODO: Finish or remove test.
     #[tokio::test]
     async fn go_rust_auth_urls() -> eyre::Result<()>
     {
-        let go_url =
+        let _go_url =
             "\
             https://accounts.google.com/o/oauth2/auth?\
             access_type=offline&\
@@ -97,7 +106,7 @@ mod tests
             scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly&\
             state=%26state_code%3Dkut987987_576fg78d5687lojfvkzr_85y6_435sgred_vnhgx_gdut%26for_user%3DАлександр+Лебедев\
             ";
-        let rust_url =
+        let _rust_url =
             "\
             https://accounts.google.com/o/oauth2/v2/auth?\
             client_id=156187461731-lgrn7aba80qtljt5pvqncm60me7b8rgl.apps.googleusercontent.com&\

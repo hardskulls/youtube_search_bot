@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::env;
 use axum::{headers::HeaderMap, Json, Router, http::Request};
 use axum::extract::{Path, Query};
 use axum::routing::{get, post};
@@ -10,8 +9,9 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use crate::net::url::find_by_key;
 
-pub async fn start_auth_server()
+pub async fn start_auth_server() -> eyre::Result<()>
 {
+    log::info!(" [:: LOG ::] ... : ( <| Building 'auth_server'... |> ⚙ )");
     // build our application with a single route
     let app =
         Router::new()
@@ -19,12 +19,15 @@ pub async fn start_auth_server()
             .route("/google_callback_access_token", post(handle_access_token))
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
     
-    let port = std::env::var("PORT").unwrap().parse::<u16>().unwrap();
+    let port = std::env::var("PORT")?.parse::<u16>()?;
     // run it with hyper on localhost:8443
-    axum::Server::bind(&format!("0.0.0.0:{port}").parse().unwrap())
+    log::info!(" [:: LOG ::] ... : ( 'auth_server' started 🚀 )");
+    axum::Server::bind(&format!("0.0.0.0:{port}").parse()?)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
+        .await?;
+    
+    log::info!(" [:: LOG ::] ... : ( <| 'auth_server' finished |> ❌ )");
+    Ok(())
 }
 
 async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, String)>

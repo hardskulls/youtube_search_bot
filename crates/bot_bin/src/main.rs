@@ -31,7 +31,7 @@ async fn main() -> eyre::Result<()>
     // !! All `logs::info!` work only after this line + env variable `RUST_LOG` set to `INFO`. !!
     simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
     
-    tokio::task::spawn(start_auth_server()).await.expect("auth server task panicked!");
+    tokio::task::spawn(start_auth_server());
 
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());

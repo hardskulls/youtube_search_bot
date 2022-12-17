@@ -21,7 +21,7 @@ impl<T, E> MapErrToString<T> for StdResult<T, E>
 }
 
 pub(crate) const AUTH_URL_BASE : &str = "https://accounts.google.com/o/oauth2/v2/auth?";
-
+/*
 pub(crate) const URL_1 : &str =
     "\
         https://accounts.google.com/o/oauth2/auth?\
@@ -33,7 +33,7 @@ pub(crate) const URL_1 : &str =
     ";
 
 pub(crate) const CLIENT_ID: &str = "799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com";
-
+*/
 pub(crate) const REDIRECT_URI: &str = "code";
 
 pub(crate) const RESPONSE_TYPE: &str = "code";
@@ -50,10 +50,10 @@ pub(crate) struct TelegramBotInstalledFlow;
 #[display(style = "snake_case")]
 pub(crate) enum RequiredAuthURLParams
 { ClientId, RedirectUri, ResponseType, Scope }
-
+/*
 #[derive(Debug, Display)]
 #[display(style = "snake_case")]
 pub(crate) enum OptionalAuthURLParams
 { AccessType, State, IncludeGrantedScopes, LoginHint, Prompt }
-
+*/
 
