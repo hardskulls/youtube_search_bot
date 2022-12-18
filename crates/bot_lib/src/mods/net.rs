@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use axum::{headers::HeaderMap, Json, Router, http::Request};
 use axum::extract::{Path, Query};
-use axum::routing::{get, post};
+use axum::routing::{any, get, post};
 use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use redis::Commands;
@@ -13,32 +13,33 @@ pub async fn start_auth_server() -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::] ... : ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     // build our application with a single route
-    let app =
+    let router: axum::routing::Router =
         Router::new()
-            .route("/google_callback_auth_code", get(handle_auth_code))
-            .route("/google_callback_access_token", post(handle_access_token))
-            .route("/bot_access_token_req", post(handle_bot_access_token_req));
+            .route("/google_callback_auth_code", any(handle_auth_code))
+            .route("/google_callback_access_token", any(handle_access_token))
+            .route("/bot_access_token_req", any(handle_bot_access_token_req))
+            .route("/", any(serve_all));
     
     // run it with hyper on localhost:8443
     let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u32>()?;
     let addr = std::env::var("LOCAL_ADDR")?;
-    let ports = [0, 10_000, port, 80, 443, 88, 8181, 8080, 8443, 8450];
+    let ports = [port, 80, 443, 10_000, 0, 88, 8181, 8080, 8443, 8450];
     for p in ports.into_iter()
     {
-        let app = app.clone();
+        let app = router.clone();
         let bind_res = axum::Server::try_bind(&format!("{addr}:{p}").parse()?);
         match bind_res
         {
             Err(e) => log::info!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {e:#?} |> 🚧 )"),
             Ok(binding) =>
                 {
-                    log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started 🚀 )");
+                    log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started on port {p} 🚀 )");
                     binding.serve(app.into_make_service()).await?;
                 }
         }
     }
     
-    log::info!(" [:: LOG ::] ... : ( <| 'auth_server' finished |> ❌ )");
+    log::info!(" [:: LOG ::] ... : ( ❌ <| 'auth_server' finished |> ❌ )");
     Ok(())
 }
 
@@ -61,7 +62,7 @@ async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, St
         .collect()
 }
 
-async fn handle_auth_code(req: Request<Body>)
+pub async fn handle_auth_code(req: Request<Body>)
 {
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' started )");
     log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
@@ -89,7 +90,7 @@ async fn handle_auth_code(req: Request<Body>)
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' finished )");
 }
 
-async fn handle_access_token
+pub async fn handle_access_token
 (
     Path(user_id): Path<u32>,
     Query(params): Query<HashMap<String, String>>,
@@ -111,9 +112,16 @@ async fn handle_access_token
     log::info!(" [:: LOG ::] ... : ( 'handle_access_token' finished )");
 }
 
-async fn handle_bot_access_token_req()
+pub async fn handle_bot_access_token_req()
 {
 
+}
+
+pub async fn serve_all(req: Request<Body>)
+{
+    log::info!(" [:: LOG ::] ... : ( 'serve_all' started )");
+    log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
+    log::info!(" [:: LOG ::] ... : ( 'serve_all' finished )");
 }
 
 /// Represents a `token` as returned by `OAuth2` servers.
