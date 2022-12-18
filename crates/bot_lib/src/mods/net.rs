@@ -20,9 +20,9 @@ pub async fn start_auth_server() -> eyre::Result<()>
             .route("/bot_access_token_req", post(handle_bot_access_token_req));
     
     // run it with hyper on localhost:8443
-    //let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
+    let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u32>()?;
     let addr = std::env::var("LOCAL_ADDR")?;
-    let ports = [80, 443, 88, 8181, 8080, 8443, 8450];
+    let ports = [0, 10_000, port, 80, 443, 88, 8181, 8080, 8443, 8450];
     for p in ports.into_iter()
     {
         let app = app.clone();
