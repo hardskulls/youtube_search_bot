@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use axum::{headers::HeaderMap, Json, Router, http::Request};
 use axum::extract::{Path, Query};
-use axum::routing::{any, get, post};
+use axum::routing::{any};
 use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use redis::Commands;
@@ -13,7 +13,7 @@ pub async fn start_auth_server() -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::] ... : ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     // build our application with a single route
-    let router: axum::routing::Router =
+    let router: Router =
         Router::new()
             .route("/google_callback_auth_code", any(handle_auth_code))
             .route("/google_callback_access_token", any(handle_access_token))
@@ -21,20 +21,21 @@ pub async fn start_auth_server() -> eyre::Result<()>
             .route("/", any(serve_all));
     
     // run it with hyper on localhost:8443
-    let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u32>()?;
+    let port = std::env::var("PORT")?.parse::<u16>()?;
+    let port_auth_server = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
     let addr = std::env::var("LOCAL_ADDR")?;
-    let ports = [port, 80, 443, 10_000, 0, 88, 8181, 8080, 8443, 8450];
+    let ports = [port, 80, 88, 443, port_auth_server, 0, 10_000, 8181, 8080, 8443, 8450];
     for p in ports.into_iter()
     {
-        let app = router.clone();
         let bind_res = axum::Server::try_bind(&format!("{addr}:{p}").parse()?);
         match bind_res
         {
-            Err(e) => log::info!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {e:#?} |> 🚧 )"),
+            Err(e) => log::error!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {e:#?} | port is {p} |> 🚧 )"),
             Ok(binding) =>
                 {
                     log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started on port {p} 🚀 )");
-                    binding.serve(app.into_make_service()).await?;
+                    let router = router.clone();
+                    binding.serve(router.into_make_service()).await?;
                 }
         }
     }
@@ -62,15 +63,15 @@ async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, St
         .collect()
 }
 
-pub async fn handle_auth_code(req: Request<Body>)
+pub async fn handle_auth_code(req: Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' started )");
     log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
     let query_as_str = req.uri().query().unwrap_or("");
-    let Ok(state) = find_by_key(query_as_str, "state") else { return };
-    if !state.contains("! insert state code here") { return }
-    let Ok(for_user) = find_by_key(state, "for_user") else { return };
-    let Ok(auth_code) = find_by_key(query_as_str, "code") else { return };
+    let Ok(state) = find_by_key(query_as_str, "state") else { return "state not found" };
+    if !state.contains("! insert state code here") { return "codes don't match"}
+    let Ok(for_user) = find_by_key(state, "for_user") else { return "no user id" };
+    let Ok(auth_code) = find_by_key(query_as_str, "code") else { return "no auth code" };
     
     let params = params(state, for_user, auth_code).await;
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
@@ -88,6 +89,7 @@ pub async fn handle_auth_code(req: Request<Body>)
     let r = hyper_client.request(request).await;
     log::info!(" [:: LOG ::] ... : ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<hyper::Result<hyper::Response<Body>>>(), r);
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' finished )");
+    "success"
 }
 
 pub async fn handle_access_token
@@ -97,19 +99,21 @@ pub async fn handle_access_token
     headers: HeaderMap,
     Json(access_token): Json<YouTubeAccessToken>
 )
+    -> &'static str
 {
     log::info!(" [:: LOG ::] ... : ( 'handle_access_token' started )");
     log::info!(" [:: LOG ::] ... : ( 'user_id' of type '{}' is [< {:#?} >]", std::any::type_name::<Path<u32>>(), user_id);
     log::info!(" [:: LOG ::] ... : ( 'params' of type '{}' is [< {:#?} >]", std::any::type_name::<Query<HashMap<String, String>>>(), params);
     log::info!(" [:: LOG ::] ... : ( 'headers' of type '{}' is [< {:#?} >]", std::any::type_name::<HeaderMap>(), headers);
-    let Some(state) = params.get("state") else { return };
-    if !state.contains("! insert state code here") { return }
-    let Some(for_user) = params.get("for_user") else { return };
+    let Some(state) = params.get("state") else { return "no state present" };
+    if !state.contains("! insert state code here") { return "states don't match" }
+    let Some(for_user) = params.get("for_user") else { return "no user id" };
     
     let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
     let _: () = con.set(for_user, access_token.access_token.as_ref().unwrap()).unwrap();
     log::info!(" [:: LOG ::] ... : ( 'handle_access_token' finished )");
+    "success"
 }
 
 pub async fn handle_bot_access_token_req()
@@ -117,11 +121,12 @@ pub async fn handle_bot_access_token_req()
 
 }
 
-pub async fn serve_all(req: Request<Body>)
+pub async fn serve_all(req: Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::] ... : ( 'serve_all' started )");
     log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
     log::info!(" [:: LOG ::] ... : ( 'serve_all' finished )");
+    "server is up"
 }
 
 /// Represents a `token` as returned by `OAuth2` servers.
