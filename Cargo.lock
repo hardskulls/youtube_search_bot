@@ -91,38 +91,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acee9fd5073ab6b045a275b3e709c163dd36c90685219cb21804a147b58dba43"
 dependencies = [
  "async-trait",
- "axum-core 0.2.9",
- "bitflags",
- "bytes",
- "futures-util",
- "http",
- "http-body",
- "hyper",
- "itoa",
- "matchit 0.5.0",
- "memchr",
- "mime 0.3.16",
- "percent-encoding 2.2.0",
- "pin-project-lite",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sync_wrapper",
- "tokio",
- "tower",
- "tower-http",
- "tower-layer",
- "tower-service",
-]
-
-[[package]]
-name = "axum"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08b108ad2665fa3f6e6a517c3d80ec3e77d224c47d605167aefaa5d7ef97fa48"
-dependencies = [
- "async-trait",
- "axum-core 0.3.0",
+ "axum-core",
  "axum-macros",
  "bitflags",
  "bytes",
@@ -132,16 +101,14 @@ dependencies = [
  "http-body",
  "hyper",
  "itoa",
- "matchit 0.7.0",
+ "matchit",
  "memchr",
  "mime 0.3.16",
  "multer",
  "percent-encoding 2.2.0",
  "pin-project-lite",
- "rustversion",
  "serde",
  "serde_json",
- "serde_path_to_error",
  "serde_urlencoded",
  "sync_wrapper",
  "tokio",
@@ -168,27 +135,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "axum-core"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79b8558f5a0581152dc94dcd289132a1d377494bdeafcd41869b3258e3e2ad92"
-dependencies = [
- "async-trait",
- "bytes",
- "futures-util",
- "http",
- "http-body",
- "mime 0.3.16",
- "rustversion",
- "tower-layer",
- "tower-service",
-]
-
-[[package]]
 name = "axum-macros"
-version = "0.3.0"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4df0fc33ada14a338b799002f7e8657711422b25d4e16afb032708d6b185621"
+checksum = "6293dae2ec708e679da6736e857cf8532886ef258e92930f38279c12641628b8"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -236,7 +186,7 @@ dependencies = [
 name = "bot_bin"
 version = "0.1.0"
 dependencies = [
- "axum 0.6.1",
+ "axum",
  "bot_lib",
  "eyre",
  "hyper",
@@ -257,7 +207,7 @@ dependencies = [
 name = "bot_lib"
 version = "0.1.0"
 dependencies = [
- "axum 0.6.1",
+ "axum",
  "eyre",
  "google-youtube3",
  "hyper",
@@ -973,12 +923,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73cbba799671b762df5a175adf59ce145165747bb891505c43d09aefbbf38beb"
 
 [[package]]
-name = "matchit"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b87248edafb776e59e6ee64a79086f65890d3510f2c656c000bf2a7e8a0aea40"
-
-[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1560,12 +1504,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustversion"
-version = "1.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97477e48b4cf8603ad5f7aaf897467cf42ab4218a38ef76fb14c2d6773a6d6a8"
-
-[[package]]
 name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1660,15 +1598,6 @@ checksum = "020ff22c755c2ed3f8cf162dbb41a7268d934702f3ed3631656ea597e08fc3db"
 dependencies = [
  "itoa",
  "ryu",
- "serde",
-]
-
-[[package]]
-name = "serde_path_to_error"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "184c643044780f7ceb59104cef98a5a6f12cb2288a7bc701ab93a362b49fd47d"
-dependencies = [
  "serde",
 ]
 
@@ -1874,7 +1803,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59c3b28292b33a57a8d71ce000c23fdaffeb0b4aec35fa9351d4be7ec6376a3f"
 dependencies = [
  "aquamarine",
- "axum 0.5.17",
+ "axum",
  "bytes",
  "derive_more",
  "dptree",

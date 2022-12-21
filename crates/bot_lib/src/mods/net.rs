@@ -1,48 +1,12 @@
 use std::collections::HashMap;
-use axum::{headers::HeaderMap, Json, Router, http::Request};
+use axum::{headers::HeaderMap, Json, http::Request};
 use axum::extract::{Path, Query};
-use axum::routing::{any};
 use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use redis::Commands;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use crate::net::url::find_by_key;
-
-pub async fn start_auth_server() -> eyre::Result<()>
-{
-    log::info!(" [:: LOG ::] ... : ( ⚙ <| Building 'auth_server'... |> ⚙ )");
-    // build our application with a single route
-    let router: Router =
-        Router::new()
-            .route("/google_callback_auth_code", any(handle_auth_code))
-            .route("/google_callback_access_token", any(handle_access_token))
-            .route("/bot_access_token_req", any(handle_bot_access_token_req))
-            .route("/", any(serve_all));
-    
-    // run it with hyper on localhost:8443
-    let port = std::env::var("PORT")?.parse::<u16>()?;
-    let port_auth_server = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
-    let addr = std::env::var("LOCAL_ADDR")?;
-    let ports = [port, 80, 88, 443, port_auth_server, 0, 10_000, 8181, 8080, 8443, 8450];
-    for p in ports.into_iter()
-    {
-        let bind_res = axum::Server::try_bind(&format!("{addr}:{p}").parse()?);
-        match bind_res
-        {
-            Err(e) => log::error!(" [:: LOG ::] ... : ( 🚧 <| 'res' is {e:#?} | port is {p} |> 🚧 )"),
-            Ok(binding) =>
-                {
-                    log::info!(" [:: LOG ::] ... : ( 🚀 'auth_server' started on port {p} 🚀 )");
-                    let router = router.clone();
-                    binding.serve(router.into_make_service()).await?;
-                }
-        }
-    }
-    
-    log::info!(" [:: LOG ::] ... : ( ❌ <| 'auth_server' finished |> ❌ )");
-    Ok(())
-}
 
 async fn params(state: &str, for_user: &str, auth_code: &str) -> Vec<(String, String)>
 {

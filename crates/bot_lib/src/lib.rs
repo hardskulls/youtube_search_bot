@@ -25,16 +25,23 @@ pub mod commands
 pub mod dialogue
 {
     pub mod funcs { pub use crate::mods::dialogue::{handle_callback_data, handle_text}; }
-    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListConfigData, SearchConfigData, }; }
+    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListConfigData, SearchConfigData}; }
 }
 
-pub mod errors { pub mod types { pub use crate::mods::errors::*; } }
+pub mod errors
+{
+    pub mod types { pub use crate::mods::errors::*; }
+}
+
 pub mod net
 {
     pub mod url
     {
         pub use crate::mods::youtube::funcs::{query_pairs, find_by_key};
-        pub use crate::mods::net::start_auth_server;
+    }
+    pub mod funcs
+    {
+        pub use crate::mods::net::{handle_access_token, handle_bot_access_token_req, handle_auth_code, serve_all};
     }
 }
 

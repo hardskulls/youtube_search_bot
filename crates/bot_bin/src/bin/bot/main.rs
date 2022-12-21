@@ -11,7 +11,7 @@ use teloxide::
     error_handlers::LoggingErrorHandler,
     requests::Requester,
     types::Update,
-    utils::command::BotCommands
+    utils::command::BotCommands,
 };
 use teloxide::types::{CallbackQuery, Message};
 
@@ -22,7 +22,6 @@ use bot_lib::
     dialogue::funcs::{handle_callback_data, handle_text},
     dialogue::types::DialogueData,
     errors::types::NetworkError,
-    net::url::start_auth_server
 };
 
 #[tokio::main]
@@ -30,8 +29,6 @@ async fn main() -> eyre::Result<()>
 {
     // !! All `logs::info!` work only after this line + env variable `RUST_LOG` set to `INFO`. !!
     simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
-    
-    tokio::task::spawn(start_auth_server());
 
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());
@@ -75,7 +72,7 @@ async fn main() -> eyre::Result<()>
         dptree::entry()
             .branch(message_handler)
             .branch(callback_handler);
-
+    
     // !! Must be after `bot.delete_webhook()` !!
     let update_listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, url)).await?;
     let err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
