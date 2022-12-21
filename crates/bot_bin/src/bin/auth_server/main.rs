@@ -18,7 +18,7 @@ async fn main() -> eyre::Result<()>
             .route("/", any(serve_all));
     
     // run it with hyper on localhost:8443
-    let port = std::env::var("PORT_AUTH_SERVER")?.parse::<u16>()?;
+    let port = std::env::var("PORT")?.parse::<u16>()?;
     axum::Server::try_bind(&([0, 0, 0, 0], port).into())?
         .serve(router.into_make_service())
         .await?;
