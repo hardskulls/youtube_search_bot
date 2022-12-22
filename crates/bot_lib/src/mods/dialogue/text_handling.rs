@@ -47,13 +47,15 @@ pub(crate) async fn execute_search
 )
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
+    let user_id = msg.from().unwrap().full_name();
     let access_token =
-        match get_access_token(msg.from().unwrap().full_name().as_str())
+        match get_access_token(&user_id)
         {
             Ok(token) => token,
             Err(_) =>
                 {
-                    let auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", default_auth_url().await?, "Log In");
+                    let url = default_auth_url(&user_id).await?;
+                    let auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", url, "Log In");
                     bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
                     return Ok(("Please, log in first ".to_owned(), None, None))
                 }
@@ -76,14 +78,15 @@ pub(crate) async fn execute_search
     Ok(("Finished! ✔".to_owned(), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
 }
 
-async fn default_auth_url() -> eyre::Result<Url>
+async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 {
     let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
     let secret = read_application_secret(secret_path).await?;
 
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());
     let (scope, response_type) = (&[SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);
-    let optional_params = &[("ACCESS_TYPE".to_owned().to_lowercase(), ACCESS_TYPE)];
+    let state = format!("for_user={u}xplusxstate_code=liuhw9p38y08q302q02h0gp9g0p2923924u0s", u = user_id);
+    let optional_params = &[("ACCESS_TYPE".to_owned().to_lowercase(), ACCESS_TYPE), ("state".to_owned(), state.as_str())];
 
     let url = make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?;
     Ok(url)

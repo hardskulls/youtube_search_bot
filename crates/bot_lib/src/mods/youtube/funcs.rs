@@ -40,16 +40,19 @@ pub(crate) fn join<T>(pieces: &[T], separator: &str) -> String
     result
 }
 
-pub fn query_pairs(url_query: &str) -> StdResult<impl Iterator<Item = (&str, &str)>, ParseError>
+pub fn query_pairs<'a, 'b>(url_query: &'a str, sep: &'b str)
+    -> StdResult<impl Iterator<Item = (&'a str, &'a str)> + 'b, ParseError>
+    where
+         'a: 'b
 {
-    let res = url_query.split('&').filter_map(|kv_pair| kv_pair.split_once('='));
-    if url_query.is_empty() { return Err(ParseError) }
+    let res = url_query.split(sep).filter_map(|kv_pair| kv_pair.split_once('='));
+    if res.clone().count() < 1 { return Err(ParseError) }
     Ok(res)
 }
 
-pub fn find_by_key<'a>(url_query: &'a str, key: &str) -> StdResult<&'a str, ParseError>
+pub fn find_by_key<'a, 'b>(url_query: &'a str, sep: &'b str, key: &str) -> StdResult<&'a str, ParseError>
 {
-    query_pairs(url_query)?
+    query_pairs(url_query, sep)?
         .find(|&(k, _)| k == key)
         .map(|(_, v)| v)
         .ok_or(ParseError)
@@ -81,9 +84,9 @@ mod tests
         let url = make_auth_url(client_id, redirect_uri, response_type, &scopes, &opt_params).unwrap();
         let uri_1 = url.as_str().parse::<axum::http::Uri>().unwrap();
         let uri_2 = URL_1.parse::<axum::http::Uri>().unwrap();
-        let mut val_1: Vec<_> = query_pairs(uri_1.query().unwrap_or(""))?.collect();
+        let mut val_1: Vec<_> = query_pairs(uri_1.query().unwrap_or(""), "&")?.collect();
         val_1.sort();
-        let mut val_2: Vec<_> = query_pairs(uri_2.query().unwrap_or(""))?.collect();
+        let mut val_2: Vec<_> = query_pairs(uri_2.query().unwrap_or(""), "&")?.collect();
         val_2.sort();
         for (i, x) in val_1.iter().enumerate()
         {

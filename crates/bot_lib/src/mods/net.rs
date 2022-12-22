@@ -29,10 +29,11 @@ pub async fn handle_auth_code(req: Request<Body>) -> &'static str
     log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
     
     let query_as_str = req.uri().query().unwrap_or("");
-    let Ok(state) = find_by_key(query_as_str, "state") else { return "state not found" };
-    if !state.contains("! insert state code here") { return "codes don't match"}
-    let Ok(for_user) = find_by_key(state, "for_user") else { return "no user id" };
-    let Ok(auth_code) = find_by_key(query_as_str, "code") else { return "no auth code" };
+    let Ok(state) = find_by_key(query_as_str, "&", "state") else { return "state not found" };
+    let Ok(state_code) = find_by_key(state, "xplusx", "state_code") else { return "state code not found" };
+    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s") { return "codes don't match" }
+    let Ok(for_user) = find_by_key(state, "xplusx", "for_user") else { return "no user id" };
+    let Ok(auth_code) = find_by_key(query_as_str, "&", "code") else { return "no auth code" };
     
     let params = params(auth_code).await;
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
@@ -46,7 +47,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> &'static str
     let Ok(resp) = r.send().await else { return "token request failed" };
     log::info!(" [:: LOG ::] ... : ( 'resp' of type '{}' is [< {:#?} >]", std::any::type_name::<hyper::Result<hyper::Response<Body>>>(), resp);
     
-    let Ok(access_token) = resp.json::<YouTubeAccessToken>().await  else { return "no auth code" };
+    let Ok(access_token) = resp.json::<YouTubeAccessToken>().await else { return "couldn't get access token" };
     
     let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
