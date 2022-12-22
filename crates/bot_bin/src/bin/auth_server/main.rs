@@ -1,6 +1,6 @@
 use axum::Router;
 use axum::routing::any;
-use bot_lib::net::funcs::{handle_access_token, handle_auth_code, handle_bot_access_token_req, serve_all};
+use bot_lib::net::funcs::{handle_auth_code, serve_all};
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>
@@ -13,8 +13,6 @@ async fn main() -> eyre::Result<()>
     let router: Router =
         Router::new()
             .route("/google_callback_auth_code", any(handle_auth_code))
-            .route("/google_callback_access_token", any(handle_access_token))
-            .route("/bot_access_token_req", any(handle_bot_access_token_req))
             .route("/", any(serve_all));
     
     // run it with hyper on localhost:8443

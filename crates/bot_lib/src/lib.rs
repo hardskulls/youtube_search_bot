@@ -41,7 +41,7 @@ pub mod net
     }
     pub mod funcs
     {
-        pub use crate::mods::net::{handle_access_token, handle_bot_access_token_req, handle_auth_code, serve_all};
+        pub use crate::mods::net::{handle_auth_code, serve_all};
     }
 }
 
