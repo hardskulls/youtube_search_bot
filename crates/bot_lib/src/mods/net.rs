@@ -7,21 +7,17 @@ use time::OffsetDateTime;
 use crate::net::url::find_by_key;
 use crate::StdResult;
 
-async fn params(auth_code: &str) -> Vec<(String, String)>
+async fn params(auth_code: &str) -> [(String, String); 5]
 {
     let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
     let secret = read_application_secret(secret_path).await.unwrap();
-    let arr: &[(&str, &str)] =
-        &[
-            ("client_id", &secret.client_id),
-            ("client_secret", &secret.client_secret),
-            ("code", auth_code),
-            ("grant_type", "authorization_code"),
-            ("redirect_uri", secret.redirect_uris[0].as_str()),
-        ];
-    arr.iter()
-        .map(|&(k, v)| (k.to_string(), v.to_string()))
-        .collect()
+    [
+        ("client_id".to_owned(), secret.client_id),
+        ("client_secret".to_owned(), secret.client_secret),
+        ("code".to_owned(), auth_code.to_owned()),
+        ("grant_type".to_owned(), "authorization_code".to_owned()),
+        ("redirect_uri".to_owned(), secret.redirect_uris[0].clone())
+    ]
 }
 
 pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'static str>
@@ -151,6 +147,25 @@ mod tests
             assert!(matches!(socket_addr, Ok(_)));
             let socket_addr: Result<SocketAddr, _> = "0.0.0.0".parse();
             assert!(matches!(socket_addr, Err(_)));
+        }
+        
+        #[tokio::test]
+        async fn access_token_request_test()
+        {
+            let auth_code = "4/tfi76r7r7uruydyt";
+            let params = params(auth_code).await;
+            dbg!(&params);
+            let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+            dbg!(&uri);
+            let r =
+                reqwest::Client::new()
+                    .post(uri)
+                    .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+                    .header(hyper::header::HOST, "oauth2.googleapis.com")
+                    .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
+            dbg!(&r);
+            log::info!(" [:: LOG ::] ... : ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
+            assert!(!auth_code.contains("hjgjgjg"));
         }
     }
 }

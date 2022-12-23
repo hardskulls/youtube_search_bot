@@ -189,7 +189,7 @@ mod tests
         let contains_code = state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s");
         let extracted_for_user = find_by_key(state, "xplusx", "for_user")?;
         
-        assert_eq!(for_user, &urlencoding::decode(extracted_for_user)?);
+        assert_eq!(for_user, extracted_for_user);
         assert!(decoded_query.contains(for_user));
         assert!(contains_code);
         
