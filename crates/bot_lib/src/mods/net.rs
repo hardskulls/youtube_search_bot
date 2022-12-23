@@ -40,7 +40,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'s
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
     let r =
         reqwest::Client::new()
-            .get(uri)
+            .post(uri)
             .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
             .header(hyper::header::HOST, "oauth2.googleapis.com")
             .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
