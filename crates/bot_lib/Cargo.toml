@@ -16,11 +16,13 @@ google-youtube3 = "4.0.1"
 #==[ NetWork Helpers ]==
 axum = { version = "0.6.1", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
 url = { version = "2.3.1", features = [] }
+form_urlencoded = { version = "1.1.0", features = [] }
 reqwest = { version = "0.11.13", features = ["blocking", "json", "multipart"] }
 hyper = { version = "0.14.23", features = ["client", "http1", "http2", "runtime"] }
 hyper-rustls = { version = "0.23.2", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
 #yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
 time = "0.3.17"
+#urlencoding = { version = "2.1.2", features = [] }
 
 #==[ DB ]==
 redis = { version = "0.22.1", features = ["tokio-comp"] }

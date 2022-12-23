@@ -150,4 +150,51 @@ fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, sear
     }
 }
 
+#[cfg(test)]
+mod tests
+{
+    use axum::http::Request;
+    use crate::net::url::find_by_key;
+    use super::*;
+    
+    #[tokio::test]
+    async fn default_url_test() -> eyre::Result<()>
+    {
+        let for_user = "user 47";
+        let url = default_auth_url(for_user).await?;
+        let query_str = url.query().ok_or(eyre::eyre!("No Query"))?;
+        let q_pairs: Vec<(_, _)> = url.query_pairs().collect();
+        let d_q: Vec<(_, _)> = form_urlencoded::parse(query_str.as_bytes()).collect();
+        let decoded_query: String =
+            form_urlencoded::parse(query_str.as_bytes())
+                .map(|(k, v)| [&k, "=", &v, "&"].concat())
+                .collect();
+        let req = Request::builder().uri(url.as_str()).body(())?;
+        let v: Vec<(_, _)> = form_urlencoded::parse(req.uri().query().unwrap_or("").as_bytes()).collect();
+        let v2: String =
+            form_urlencoded::parse(req.uri().query().unwrap_or("").as_bytes())
+                .map(|(k, v)| [&k, "=", &v, "&"].concat())
+                .collect();
+        
+        dbg!(&url);
+        dbg!(query_str);
+        dbg!(&decoded_query);
+        dbg!(&q_pairs);
+        dbg!(&d_q);
+        dbg!(&req.uri().query().unwrap_or(""));
+        dbg!(&v);
+        
+        let state = find_by_key(&v2, "&", "state")?;
+        let state_code = find_by_key(state, "xplusx", "state_code")?;
+        let contains_code = state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s");
+        let extracted_for_user = find_by_key(state, "xplusx", "for_user")?;
+        
+        assert_eq!(for_user, &urlencoding::decode(extracted_for_user)?);
+        assert!(decoded_query.contains(for_user));
+        assert!(contains_code);
+        
+        Ok(())
+    }
+}
+
 

@@ -5,6 +5,7 @@ use redis::Commands;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use crate::net::url::find_by_key;
+use crate::StdResult;
 
 async fn params(auth_code: &str) -> Vec<(String, String)>
 {
@@ -23,17 +24,21 @@ async fn params(auth_code: &str) -> Vec<(String, String)>
         .collect()
 }
 
-pub async fn handle_auth_code(req: Request<Body>) -> &'static str
+pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'static str>
 {
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' started )");
     log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
     
-    let query_as_str = req.uri().query().unwrap_or("");
-    let Ok(state) = find_by_key(query_as_str, "&", "state") else { return "state not found" };
-    let Ok(state_code) = find_by_key(state, "xplusx", "state_code") else { return "state code not found" };
-    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s") { return "codes don't match" }
-    let Ok(for_user) = find_by_key(state, "xplusx", "for_user") else { return "no user id" };
-    let Ok(auth_code) = find_by_key(query_as_str, "&", "code") else { return "no auth code" };
+    let url_encoded_query = req.uri().query().unwrap_or("");
+    let decoded_query: String =
+        form_urlencoded::parse(url_encoded_query.as_bytes())
+            .map(|(k, v)| [&k, "=", &v, "&"].concat())
+            .collect();
+    let state = find_by_key(&decoded_query, "&", "state").map_err(|_| "state not found")?;
+    let state_code = find_by_key(state, "xplusx", "state_code").map_err(|_| "state code not found")?;
+    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s") { return Err("state codes don't match") }
+    let for_user = find_by_key(state, "xplusx", "for_user").map_err(|_| "for_user not found")?;
+    let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
     
     let params = params(auth_code).await;
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
@@ -44,17 +49,17 @@ pub async fn handle_auth_code(req: Request<Body>) -> &'static str
             .header(hyper::header::HOST, "oauth2.googleapis.com")
             .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
     log::info!(" [:: LOG ::] ... : ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
-    let Ok(resp) = r.send().await else { return "token request failed" };
+    let resp = r.send().await.map_err(|_| "access token request failed")?;
     log::info!(" [:: LOG ::] ... : ( 'resp' of type '{}' is [< {:#?} >]", std::any::type_name::<hyper::Result<hyper::Response<Body>>>(), resp);
     
-    let Ok(access_token) = resp.json::<YouTubeAccessToken>().await else { return "couldn't get access token" };
+    let access_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
     
     let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
     let _: () = con.set(for_user, access_token.access_token.unwrap()).unwrap();
     
     log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' finished )");
-    "success"
+    Ok("success")
 }
 
 pub async fn serve_all(req: Request<Body>) -> &'static str
