@@ -13,8 +13,9 @@ mod mods
         pub(crate) mod types;
         pub(crate) mod traits;
     }
-    pub(crate) mod net;
+    pub(crate) mod auth_server;
     pub(crate) mod db;
+    pub(crate) mod net;
 }
 
 pub mod commands
@@ -38,11 +39,11 @@ pub mod net
 {
     pub mod url
     {
-        pub use crate::mods::youtube::funcs::{query_pairs, find_by_key};
+        pub use crate::mods::net::{query_pairs, find_by_key};
     }
-    pub mod funcs
+    pub mod auth_server
     {
-        pub use crate::mods::net::{handle_auth_code, serve_all};
+        pub use crate::mods::auth_server::{handle_auth_code, serve_all};
     }
 }
 

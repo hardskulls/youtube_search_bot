@@ -1,10 +1,27 @@
-use google_youtube3::YouTube;
-use hyper::client::HttpConnector;
-use hyper_rustls::HttpsConnector;
 use parse_display::Display;
+use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use crate::StdResult;
 
-pub(crate) type YouTubeService = YouTube<HttpsConnector<HttpConnector>>;
+/// Represents a `token` as returned by `OAuth2` servers.
+///
+/// It is produced by all authentication flows.
+/// It authenticates certain operations, and must be refreshed once it reached it's expiry date.
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct YouTubeAccessToken
+{
+    /// used when authorizing calls to `oauth2` enabled services.
+    pub access_token: Option<String>,
+    /// used to refresh an expired `access_token`.
+    pub refresh_token: Option<String>,
+    /// The time when the `token` expires.
+    pub expires_at: Option<OffsetDateTime>,
+    /// Optionally included by the `OAuth2` server and may contain information to verify the identity
+    /// used to obtain the `access token`.
+    /// Specifically `Google API:s` include this if the additional scopes `email` and/or `profile`
+    /// are used. In that case the content is an `JWT token`.
+    pub id_token: Option<String>,
+}
 
 pub(crate) trait MapErrToString<T>
 {
@@ -20,31 +37,14 @@ impl<T, E> MapErrToString<T> for StdResult<T, E>
     }
 }
 
-pub(crate) const AUTH_URL_BASE : &str = "https://accounts.google.com/o/oauth2/v2/auth?";
-/*
-pub(crate) const URL_1 : &str =
-    "\
-        https://accounts.google.com/o/oauth2/auth?\
-        scope=https://www.googleapis.com/auth/youtube%20https://www.googleapis.com/auth/youtube.readonly&\
-        access_type=offline&\
-        redirect_uri=http://127.0.0.1:62320&\
-        response_type=code&\
-        client_id=799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com\
-    ";
-
-pub(crate) const CLIENT_ID: &str = "799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com";
-*/
-pub(crate) const REDIRECT_URI: &str = "code";
+pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
 pub(crate) const RESPONSE_TYPE: &str = "code";
 
-// pub(crate) const SCOPE_YOUTUBE : &str = "https://www.googleapis.com/auth/youtube";
 
 pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
 
-pub(crate) const ACCESS_TYPE : &str = "offline";
-
-pub(crate) struct TelegramBotInstalledFlow;
+pub(crate) const ACCESS_TYPE: &str = "offline";
 
 #[derive(Debug, Display)]
 #[display(style = "snake_case")]
@@ -56,4 +56,5 @@ pub(crate) enum RequiredAuthURLParams
 pub(crate) enum OptionalAuthURLParams
 { AccessType, State, IncludeGrantedScopes, LoginHint, Prompt }
 */
+
 

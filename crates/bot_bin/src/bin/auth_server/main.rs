@@ -1,6 +1,6 @@
 use axum::Router;
 use axum::routing::any;
-use bot_lib::net::funcs::{handle_auth_code, serve_all};
+use bot_lib::net::auth_server::{handle_auth_code, serve_all};
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>

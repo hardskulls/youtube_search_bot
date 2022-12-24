@@ -1,4 +1,5 @@
 use google_youtube3::{api::Subscription, oauth2::read_application_secret};
+
 use teloxide::
 {
     Bot,
@@ -11,9 +12,8 @@ use crate::mods::db::get_access_token;
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
-use crate::mods::youtube::{search_subs, youtube_service};
-use crate::mods::youtube::funcs::make_auth_url;
-use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY, YouTubeService};
+use crate::mods::youtube::{list_subscriptions, make_auth_url};
+use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
 pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
@@ -62,9 +62,7 @@ pub(crate) async fn execute_search
         };
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     
-    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
-    let yt_service = youtube_service(secret_path).await?;
-    let subscription_list = get_subs_list(&yt_service, search_mode, text_to_look_for, &access_token).await?;
+    let subscription_list = get_subs_list(search_mode, text_to_look_for, &access_token, result_lim).await?;
     
     for s in subscription_list.into_iter().take(result_lim as usize)
     {
@@ -94,35 +92,32 @@ async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 
 pub(crate) async fn get_subs_list
 (
-    youtube_hub: &YouTubeService,
     search_mode: &SearchMode,
     text_to_look_for: &str,
     access_token: &str,
+    max_res: u32
 )
     -> eyre::Result<Vec<Subscription>>
 {
-    let (_, subs_list_resp) = search_subs(youtube_hub, 50, access_token).await?;
+    let client = reqwest::Client::new();
+    let subs_list_resp = list_subscriptions(&client, None, access_token).await?;
     let mut store_in: Vec<Subscription> = Vec::with_capacity(20);
     
     if let Some(items) = subs_list_resp.items
     { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
 
     let mut next_page_token = subs_list_resp.next_page_token.clone();
-    while let Some(page) = next_page_token
+    while next_page_token.is_some()
     {
-        let (_, subscription_list_resp) =
-            youtube_hub.subscriptions().list(&vec!["part".into()])
-                .max_results(50)
-                .param("access_token", access_token)
-                .mine(true)
-                .page_token(&page)
-                .doit()
-                .await?;
+        let subscription_list_resp = list_subscriptions(&client, next_page_token, access_token).await?;
 
         next_page_token = subscription_list_resp.next_page_token.clone();
 
         if let Some(items) = subscription_list_resp.items
         { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
+        
+        if store_in.len() >= max_res as usize
+        { next_page_token = None }
     }
     Ok(store_in)
 }
@@ -144,7 +139,7 @@ fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, sear
 mod tests
 {
     use axum::http::Request;
-    use crate::net::url::find_by_key;
+    use crate::mods::net::find_by_key;
     use super::*;
     
     #[tokio::test]
