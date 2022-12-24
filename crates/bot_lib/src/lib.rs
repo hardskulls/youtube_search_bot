@@ -14,6 +14,7 @@ mod mods
         pub(crate) mod traits;
     }
     pub(crate) mod net;
+    pub(crate) mod db;
 }
 
 pub mod commands

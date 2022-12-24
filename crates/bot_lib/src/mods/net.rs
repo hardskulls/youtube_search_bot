@@ -1,9 +1,10 @@
 use axum::http::Request;
 use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
-use redis::Commands;
+use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use crate::mods::db::set_access_token;
 use crate::net::url::find_by_key;
 use crate::StdResult;
 
@@ -20,10 +21,23 @@ async fn params(auth_code: &str) -> [(String, String); 5]
     ]
 }
 
+async fn access_token_req(auth_code: &str) -> RequestBuilder
+{
+    let params = params(auth_code).await;
+    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+    reqwest::Client::new()
+        .post(reqwest::Url::parse("https://oauth2.googleapis.com/token").unwrap())
+        .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+        .header(hyper::header::HOST, "oauth2.googleapis.com")
+        .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(uri.query().unwrap().to_owned())
+}
+
 pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'static str>
 {
-    log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' started )");
-    log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] started [ OK ] )");
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req' is [| '{:#?}' |]", format!("{:#?}", &req));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req.body()' is [| '{:#?}' |]", format!("{:#?}", &req.body()));
     
     let url_encoded_query = req.uri().query().unwrap_or("");
     let decoded_query: String =
@@ -31,38 +45,32 @@ pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'s
             .map(|(k, v)| [&k, "=", &v, "&"].concat())
             .collect();
     let state = find_by_key(&decoded_query, "&", "state").map_err(|_| "state not found")?;
+    
     let state_code = find_by_key(state, "xplusx", "state_code").map_err(|_| "state code not found")?;
     if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s") { return Err("state codes don't match") }
     let for_user = find_by_key(state, "xplusx", "for_user").map_err(|_| "for_user not found")?;
+    
     let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
     
-    let params = params(auth_code).await;
-    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
-    let r =
-        reqwest::Client::new()
-            .post(uri)
-            .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
-            .header(hyper::header::HOST, "oauth2.googleapis.com")
-            .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
-    log::info!(" [:: LOG ::] ... : ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
-    let resp = r.send().await.map_err(|_| "access token request failed")?;
-    log::info!(" [:: LOG ::] ... : ( 'resp' of type '{}' is [< {:#?} >]", std::any::type_name::<hyper::Result<hyper::Response<Body>>>(), resp);
+    let tok_req = access_token_req(auth_code).await;
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'tok_req' is [| '{:#?}' |]", format!("{:#?}", &tok_req));
+    let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |]", format!("{:#?}", &resp));
     
     let access_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
+    set_access_token(for_user, &access_token.access_token.unwrap()).map_err(|_| "db error")?;
     
-    let client = redis::Client::open(std::env::var("REDIS_URL").unwrap()).unwrap();
-    let mut con = client.get_connection().unwrap();
-    let _: () = con.set(for_user, access_token.access_token.unwrap()).unwrap();
-    
-    log::info!(" [:: LOG ::] ... : ( 'handle_auth_code' finished )");
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] finished [ OK ] )");
     Ok("success")
 }
 
 pub async fn serve_all(req: Request<Body>) -> &'static str
 {
-    log::info!(" [:: LOG ::] ... : ( 'serve_all' started )");
-    log::info!(" [:: LOG ::] ... : ( 'req' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), req);
-    log::info!(" [:: LOG ::] ... : ( 'serve_all' finished )");
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] started [ OK ] )");
+    let (p, b) = req.into_parts();
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'p' is [| '{:#?}' |]", format!("{:#?}", &p));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'b' is [| '{:#?}' |]", format!("{:#?}", &b));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] finished [ OK ] )");
     "server is up"
 }
 
@@ -71,7 +79,8 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
 /// It is produced by all authentication flows.
 /// It authenticates certain operations, and must be refreshed once it reached it's expiry date.
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
-pub struct YouTubeAccessToken {
+pub struct YouTubeAccessToken
+{
     /// used when authorizing calls to `oauth2` enabled services.
     pub access_token: Option<String>,
     /// used to refresh an expired `access_token`.

@@ -1,5 +1,4 @@
 use google_youtube3::{api::Subscription, oauth2::read_application_secret};
-use redis::Commands;
 use teloxide::
 {
     Bot,
@@ -8,6 +7,7 @@ use teloxide::
     types::{InlineKeyboardMarkup, Message, ParseMode}
 };
 use url::Url;
+use crate::mods::db::get_access_token;
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
@@ -90,16 +90,6 @@ async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 
     let url = make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?;
     Ok(url)
-}
-
-pub(crate) fn get_access_token(user_id: &str) -> eyre::Result<String>
-{
-    log::info!("getting access_token from a database | (silent on failure)");
-    let client = redis::Client::open(std::env::var("REDIS_URL").unwrap())?;
-    let mut con = client.get_connection()?;
-    let access_token: String = con.get(user_id)?;
-    log::info!("access_token acquired!");
-    Ok(access_token)
 }
 
 pub(crate) async fn get_subs_list
