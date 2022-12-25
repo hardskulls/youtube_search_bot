@@ -56,7 +56,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |]", &resp);
     
-    let serialized_access_token = resp.json::<String>().await.map_err(|_| "couldn't deserialize access token")?;
+    let serialized_access_token = resp.text().await.map_err(|_| "couldn't deserialize access token")?;
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |]", &serialized_access_token);
     log::info!
     (
