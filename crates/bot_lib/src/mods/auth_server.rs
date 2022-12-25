@@ -5,8 +5,7 @@ use reqwest::RequestBuilder;
 
 use crate::mods::db::set_access_token;
 use crate::mods::net::find_by_key;
-use crate::mods::youtube::types::YouTubeAccessToken;
-use crate::StdResult;
+use crate::mods::youtube::types::{MapErrToString, YouTubeAccessToken};
 
 async fn params(auth_code: &str) -> [(String, String); 5]
 {
@@ -27,13 +26,12 @@ async fn access_token_req(auth_code: &str) -> RequestBuilder
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
     reqwest::Client::new()
         .post(reqwest::Url::parse("https://oauth2.googleapis.com/token").unwrap())
-        .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
         .header(hyper::header::HOST, "oauth2.googleapis.com")
         .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(uri.query().unwrap().to_owned())
 }
 
-pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'static str>
+pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] started [ OK ] )");
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req' is [| '{:#?}' |]", format!("{:#?}", &req));
@@ -47,7 +45,8 @@ pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'s
     let state = find_by_key(&decoded_query, "&", "state").map_err(|_| "state not found")?;
     
     let state_code = find_by_key(state, "xplusx", "state_code").map_err(|_| "state code not found")?;
-    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s") { return Err("state codes don't match") }
+    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s")
+    { return Err("state codes don't match".into()) }
     let for_user = find_by_key(state, "xplusx", "for_user").map_err(|_| "for_user not found")?;
     
     let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
@@ -60,8 +59,15 @@ pub async fn handle_auth_code(req: Request<Body>) -> StdResult<&'static str, &'s
     let access_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
     set_access_token(for_user, &access_token.access_token.unwrap()).map_err(|_| "db error")?;
     
+    let redirect =
+        axum::response::Response::builder()
+            .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+            .status(axum::http::status::StatusCode::PERMANENT_REDIRECT)
+            .body(axum::body::BoxBody::default())
+            .map_err_to_str()?;
+    
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] finished [ OK ] )");
-    Ok("success")
+    Ok(redirect)
 }
 
 pub async fn serve_all(req: Request<Body>) -> &'static str
@@ -87,8 +93,10 @@ mod tests
         #[test]
         fn serialize_deserialize_string_test()
         {
-            let (access_token, refresh_token, expires_at, id_token) =
-                (Some("access_token".to_owned()), Some("refresh_token".to_owned()), Some(OffsetDateTime::now_utc()), Some("id_token".to_owned()));
+            let (access_token, refresh_token) =
+                (Some("access_token".to_owned()), Some("refresh_token".to_owned()));
+            let (expires_at, id_token) =
+                (Some(OffsetDateTime::now_utc()), Some("id_token".to_owned()));
             let token = YouTubeAccessToken { access_token, refresh_token, expires_at, id_token };
             let serialized = serde_json::to_string(&token).unwrap();
             dbg!(&serialized);
@@ -108,7 +116,6 @@ mod tests
     
     mod requests_testing
     {
-        use std::net::SocketAddr;
         use super::*;
     
         #[tokio::test]
@@ -130,15 +137,6 @@ mod tests
             assert_eq!(request.method(), hyper::Method::POST)
         }
     
-        #[test]
-        fn create_port_test()
-        {
-            let socket_addr: Result<SocketAddr, _> = "0.0.0.0:443".parse();
-            assert!(matches!(socket_addr, Ok(_)));
-            let socket_addr: Result<SocketAddr, _> = "0.0.0.0".parse();
-            assert!(matches!(socket_addr, Err(_)));
-        }
-        
         #[tokio::test]
         async fn access_token_request_test()
         {
