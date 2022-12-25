@@ -18,10 +18,17 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
     if let Some(page) = next_page_tok
     { req = req.query(&[("pageToken", &page)]) }
     let resp = req.send().await?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |]", &resp);
-    let subscription_list_response = resp.json::<SubscriptionListResponse>().await?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'subscription_list_response' is [| '{:#?}' |]", subscription_list_response);
-    Ok(subscription_list_response)
+    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |]", (&resp.headers(), &resp.status()));
+    let subscr_list_resp = resp.json::<SubscriptionListResponse>().await?;
+    log::info!
+    (
+        " [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'subscription_list_response' is [| '{:#?}' |]",
+        (
+            subscr_list_resp.next_page_token.as_ref(), subscr_list_resp.page_info.as_ref(),
+            subscr_list_resp.items.as_ref().unwrap_or(&vec![]).len()
+        )
+    );
+    Ok(subscr_list_resp)
 }
 
 pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
