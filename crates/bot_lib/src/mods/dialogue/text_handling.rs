@@ -70,7 +70,8 @@ pub(crate) async fn execute_search
         let (title, descr, chan_id) =
             (snip.channel_title.unwrap(), snip.description.unwrap(), snip.resource_id.unwrap().channel_id.unwrap());
         let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title, descr, chan_id);
-        let _ = bot.send_message(msg.chat.id, text).await;
+        let _sent_msg = bot.send_message(msg.chat.id, text).await;
+    log::info!(" [:: LOG ::] ... : ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |]", format!("{:#?}", &_sent_msg));
     }
 
     Ok(("Finished! ✔".to_owned(), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
