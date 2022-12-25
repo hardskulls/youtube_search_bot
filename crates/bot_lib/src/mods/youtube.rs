@@ -12,7 +12,7 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
     let mut req =
         client
             .get(reqwest::Url::parse("https://www.googleapis.com/youtube/v3/subscriptions")?)
-            .query(&[("part", "snippet"), ("maxResults", "50"), ("mine", "true")])
+            .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
             .header(reqwest::header::AUTHORIZATION, format!("Bearer {}", access_token))
             .header(reqwest::header::ACCEPT, "application/json");
     if let Some(page) = next_page_tok
