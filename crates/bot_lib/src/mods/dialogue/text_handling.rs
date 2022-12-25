@@ -13,7 +13,7 @@ use crate::mods::db::{get_access_token, refresh_access_token};
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
-use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY, YouTubeAccessToken};
+use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
 pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
@@ -152,7 +152,7 @@ fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, sear
     {
         log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'sub' is [| '{:#?}' |] )", (&sub));
         let snip = sub.snippet.as_ref().unwrap();
-        let compare_by = if let &SearchMode::Title = search_mode { snip.channel_title.as_ref() } else { snip.description.as_ref() };
+        let compare_by = if let &SearchMode::Title = search_mode { snip.title.as_ref() } else { snip.description.as_ref() };
         log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
 
         if let Some(title_or_descr) = compare_by

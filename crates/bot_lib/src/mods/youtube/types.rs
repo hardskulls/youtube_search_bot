@@ -1,3 +1,4 @@
+use google_youtube3::api::SubscriptionListResponse;
 use parse_display::Display;
 use serde::{Deserialize, Deserializer, Serialize};
 use crate::StdResult;
@@ -80,6 +81,7 @@ pub(crate) enum RequiredAuthURLParams
 #[cfg(test)]
 mod tests
 {
+    use google_youtube3::api::{Subscription, SubscriptionListResponse};
     use time::Duration;
     use super::*;
     
@@ -106,6 +108,21 @@ mod tests
         assert_eq!(deserialized_token.access_token, "token87t877679");
         assert!(matches!(deserialized_token.refresh_token, Some(_)));
         assert_eq!(deserialized_token.refresh_token.unwrap(), "hvliyhgl89y8");
+    }
+    
+    #[test]
+    fn sub_list_resp_deserialize_test()
+    {
+        let path = std::env::var("SUBS_LIST_RESP").unwrap();
+        let subs = std::fs::read_to_string(path).unwrap();
+        let subs_list_resp = serde_json::from_str::<SubscriptionListResponse>(&subs).unwrap();
+        dbg!(subs_list_resp.next_page_token);
+        dbg!(subs_list_resp.page_info);
+        dbg!(subs_list_resp.kind);
+        dbg!(subs_list_resp.etag);
+        let s: &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
+        dbg!(&s.snippet);
+        dbg!(s.snippet.as_ref().unwrap().resource_id.as_ref());
     }
 }
 
