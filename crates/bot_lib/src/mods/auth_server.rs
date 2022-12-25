@@ -34,8 +34,8 @@ async fn access_token_req(auth_code: &str) -> RequestBuilder
 pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] started [ OK ] )");
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req' is [| '{:#?}' |]", &req);
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req.body()' is [| '{:#?}' |]", &req.body());
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req' is [| '{:#?}' |] )", &req);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'req.body()' is [| '{:#?}' |] )", &req.body());
     
     let url_encoded_query = req.uri().query().unwrap_or("");
     let decoded_query: String =
@@ -52,15 +52,15 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
     
     let tok_req = access_token_req(auth_code).await;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'tok_req' is [| '{:#?}' |]", &tok_req);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'tok_req' is [| '{:#?}' |] )", &tok_req);
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |]", &resp);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |] )", &resp);
     
     let serialized_access_token = resp.text().await.map_err(|_| "couldn't deserialize access token")?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |]", &serialized_access_token);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |] )", &serialized_access_token);
     log::info!
     (
-        " [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serde_json::from_str::<YouTubeAccessToken>' is [| '{:#?}' |]",
+        " [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serde_json::from_str::<YouTubeAccessToken>' is [| '{:#?}' |] )",
         serde_json::from_str::<YouTubeAccessToken>(&serialized_access_token)
     );
     set_access_token(for_user, &serialized_access_token).map_err(|_| "db error")?;
@@ -80,8 +80,8 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] started [ OK ] )");
     let (p, b) = req.into_parts();
-    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'p' is [| '{:#?}' |]", &p);
-    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'b' is [| '{:#?}' |]", &b);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'p' is [| '{:#?}' |] )", &p);
+    log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] 'b' is [| '{:#?}' |] )", &b);
     log::info!(" [:: LOG ::] ... : ( @:[fn::serve_all] finished [ OK ] )");
     "server is up"
 }

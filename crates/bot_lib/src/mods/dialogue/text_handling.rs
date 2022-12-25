@@ -71,7 +71,7 @@ pub(crate) async fn execute_search
             (snip.channel_title.unwrap(), snip.description.unwrap(), snip.resource_id.unwrap().channel_id.unwrap());
         let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title, descr, chan_id);
         let _sent_msg = bot.send_message(msg.chat.id, text).await;
-        log::info!(" [:: LOG ::] ... : ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |]", &_sent_msg);
+        log::info!(" [:: LOG ::] ... : ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |] )", &_sent_msg);
     }
 
     Ok(("Finished! ✔".to_owned(), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
@@ -100,8 +100,23 @@ pub(crate) async fn get_subs_list
 )
     -> eyre::Result<Vec<Subscription>>
 {
+    log::info!(" [:: LOG ::] ... : ( @:[fn::get_subs_list] started )");
+    log::info!
+    (
+        " [:: LOG ::] ... : ( @:[fn::get_subs_list] FIRST 'subs_list_resp' is [| '{:?}' |] )",
+        (&search_mode, &text_to_look_for, &max_res)
+    );
     let client = reqwest::Client::new();
-    let subs_list_resp = list_subscriptions(&client, None, access_token).await?;
+    let subs_list_resp =
+        list_subscriptions(&client, None, access_token).await.unwrap_or_default();
+    log::info!
+    (
+        " [:: LOG ::] ... : ( @:[fn::list_subscriptions] FIRST 'subs_list_resp' is [| '{:?}' |] )",
+        (
+            subs_list_resp.next_page_token.as_ref(), subs_list_resp.page_info.as_ref(),
+            subs_list_resp.items.as_ref().unwrap_or(&vec![]).len()
+        )
+    );
     let mut store_in: Vec<Subscription> = Vec::new();
     
     if let Some(items) = subs_list_resp.items
@@ -110,7 +125,8 @@ pub(crate) async fn get_subs_list
     let mut next_page_token = subs_list_resp.next_page_token.clone();
     while next_page_token.is_some()
     {
-        let subscription_list_resp = list_subscriptions(&client, next_page_token, access_token).await?;
+        let subscription_list_resp =
+            list_subscriptions(&client, next_page_token, access_token).await.unwrap_or_default();
 
         next_page_token = subscription_list_resp.next_page_token.clone();
 
@@ -120,20 +136,29 @@ pub(crate) async fn get_subs_list
         if store_in.len() >= max_res as usize
         { next_page_token = None }
     }
+    log::info!(" [:: LOG ::] ... : ( @:[fn::get_subs_list] FINAL 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::get_subs_list] ended )");
     Ok(store_in)
 }
 
 fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)
 {
+    log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] started )");
+    log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
     let text_to_search = text_to_look_for.to_lowercase();
+    log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
     for sub in search_in
     {
+        log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'sub' is [| '{:#?}' |] )", (&sub));
         let snip = sub.snippet.as_ref().unwrap();
         let compare_by = if let &SearchMode::Title = search_mode { snip.channel_title.as_ref() } else { snip.description.as_ref() };
+        log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
 
         if let Some(title_or_descr) = compare_by
         { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(sub) } }
     }
+    log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::find_matches] ended )");
 }
 
 #[cfg(test)]
