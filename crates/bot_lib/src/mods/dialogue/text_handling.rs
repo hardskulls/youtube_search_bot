@@ -101,7 +101,7 @@ pub(crate) async fn get_subs_list
 {
     let client = reqwest::Client::new();
     let subs_list_resp = list_subscriptions(&client, None, access_token).await?;
-    let mut store_in: Vec<Subscription> = Vec::with_capacity(20);
+    let mut store_in: Vec<Subscription> = Vec::new();
     
     if let Some(items) = subs_list_resp.items
     { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
