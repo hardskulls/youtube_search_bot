@@ -100,10 +100,11 @@ mod tests
         fn serialize_deserialize_string_test()
         {
             let (access_token, refresh_token) =
-                (Some("access_token".to_owned()), Some("refresh_token".to_owned()));
-            let (expires_at, id_token) =
-                (Some(OffsetDateTime::now_utc()), Some("id_token".to_owned()));
-            let token = YouTubeAccessToken { access_token, refresh_token, expires_at, id_token };
+                ("access_token".to_owned(), Some("refresh_token".to_owned()));
+            let (scope, token_type) =
+                (vec!["hey".to_owned()], "id_token".to_owned());
+            let expires_in = time::OffsetDateTime::now_utc();
+            let token = YouTubeAccessToken { access_token, expires_in, refresh_token, scope, token_type };
             let serialized = serde_json::to_string(&token).unwrap();
             dbg!(&serialized);
             let deserialized = serde_json::from_str::<YouTubeAccessToken>(&serialized).unwrap();

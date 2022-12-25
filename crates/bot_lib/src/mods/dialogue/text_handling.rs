@@ -8,7 +8,7 @@ use teloxide::
     types::{InlineKeyboardMarkup, Message, ParseMode}
 };
 use url::Url;
-use crate::mods::db::get_access_token;
+use crate::mods::db::{get_access_token, refresh_access_token};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
@@ -48,10 +48,10 @@ pub(crate) async fn execute_search
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
     let user_id = msg.from().unwrap().full_name();
-    let access_token =
+    let token =
         match get_access_token(&user_id)
         {
-            Ok(YouTubeAccessToken { access_token: Some(token), .. }) => token,
+            Ok(token) => token,
             _ =>
                 {
                     let url = default_auth_url(&user_id).await?;
@@ -62,6 +62,7 @@ pub(crate) async fn execute_search
         };
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     
+    let access_token = refresh_access_token(&user_id, token).await?.access_token;
     let subscription_list = get_subs_list(search_mode, text_to_look_for, &access_token, result_lim).await?;
     
     for s in subscription_list.into_iter().take(result_lim as usize)

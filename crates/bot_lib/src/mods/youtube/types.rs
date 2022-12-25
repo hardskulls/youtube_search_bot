@@ -1,6 +1,5 @@
 use parse_display::Display;
-use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use serde::{Deserialize, Deserializer, Serialize};
 use crate::StdResult;
 
 /// Represents a `token` as returned by `OAuth2` servers.
@@ -10,17 +9,44 @@ use crate::StdResult;
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct YouTubeAccessToken
 {
-    /// used when authorizing calls to `oauth2` enabled services.
-    pub access_token: Option<String>,
-    /// used to refresh an expired `access_token`.
+    /// The token that your application sends to authorize a Google API request.
+    pub access_token: String,
+    /// Time when access_token expires (it does so after 1 hour).
+    #[serde(deserialize_with = "time_deserialize")]
+    pub expires_in: time::OffsetDateTime,
+    /// A token that you can use to obtain a new access token. Refresh tokens are valid until
+    /// the user revokes access. Again, this field is only present in this response if you set
+    /// the access_type parameter to offline in the initial request to Google's authorization server.
     pub refresh_token: Option<String>,
-    /// The time when the `token` expires.
-    pub expires_at: Option<OffsetDateTime>,
-    /// Optionally included by the `OAuth2` server and may contain information to verify the identity
-    /// used to obtain the `access token`.
-    /// Specifically `Google API:s` include this if the additional scopes `email` and/or `profile`
-    /// are used. In that case the content is an `JWT token`.
-    pub id_token: Option<String>,
+    /// The scopes of access granted by the access_token expressed as a list of
+    /// space-delimited, case-sensitive strings.
+    #[serde(deserialize_with = "string_of_strings_deserialize")]
+    pub scope: Vec<String>,
+    /// The type of token returned. At this time, this field's value is always set to Bearer.
+    pub token_type: String,
+}
+
+fn string_of_strings_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+    where
+        D: Deserializer<'de>,
+{
+    let str_sequence = String::deserialize(deserializer)?;
+    let vec_of_str =
+        str_sequence
+            .split(' ')
+            .map(|item| item.to_owned())
+            .collect();
+    Ok(vec_of_str)
+}
+
+fn time_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
+    where
+        D: Deserializer<'de>,
+{
+    let expires_after_seconds = Deserialize::deserialize(deserializer)?;
+    let t = time::Duration::seconds(expires_after_seconds);
+    let expires_in = time::OffsetDateTime::now_utc() + t;
+    Ok(expires_in)
 }
 
 pub(crate) trait MapErrToString<T>
@@ -42,7 +68,7 @@ pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/
 pub(crate) const RESPONSE_TYPE: &str = "code";
 
 
-pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
+pub(crate) const SCOPE_YOUTUBE_READONLY: &str = "https://www.googleapis.com/auth/youtube.readonly";
 
 pub(crate) const ACCESS_TYPE: &str = "offline";
 
@@ -50,11 +76,37 @@ pub(crate) const ACCESS_TYPE: &str = "offline";
 #[display(style = "snake_case")]
 pub(crate) enum RequiredAuthURLParams
 { ClientId, RedirectUri, ResponseType, Scope }
-/*
-#[derive(Debug, Display)]
-#[display(style = "snake_case")]
-pub(crate) enum OptionalAuthURLParams
-{ AccessType, State, IncludeGrantedScopes, LoginHint, Prompt }
-*/
+
+#[cfg(test)]
+mod tests
+{
+    use time::Duration;
+    use super::*;
+    
+    #[test]
+    fn string_to_vec_deserialization_test()
+    {
+        let token =
+            r#"
+                {
+                    "access_token":     "token87t877679",
+                    "expires_in":       3600,
+                    "refresh_token":    "hvliyhgl89y8",
+                    "scope":            "jhgf kjhvliyf kvikuf.ugk/jhghk.con khfu",
+                    "token_type":       "Bearer"
+                }
+            "#;
+        let deserialized_token = serde_json::from_str::<YouTubeAccessToken>(token);
+        assert!(matches!(deserialized_token, Ok(_)), "cause: {:?}", deserialized_token);
+        
+        let deserialized_token = deserialized_token.unwrap();
+        assert!(!deserialized_token.scope.is_empty());
+        assert!(deserialized_token.scope.contains(&"kvikuf.ugk/jhghk.con".to_owned()));
+        assert!(deserialized_token.expires_in > time::OffsetDateTime::now_utc() + Duration::minutes(59));
+        assert_eq!(deserialized_token.access_token, "token87t877679");
+        assert!(matches!(deserialized_token.refresh_token, Some(_)));
+        assert_eq!(deserialized_token.refresh_token.unwrap(), "hvliyhgl89y8");
+    }
+}
 
 
