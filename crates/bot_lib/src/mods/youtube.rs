@@ -16,9 +16,9 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
     if let Some(page) = next_page_tok
     { req = req.query(&[("pageToken", &page)]) }
     let resp = req.send().await?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |]", format!("{:#?}", &resp));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |]", &resp);
     let subscription_list_response = resp.json::<SubscriptionListResponse>().await?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'subscription_list_response' is [| '{:#?}' |]", format!("{:#?}", &subscription_list_response));
+    log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'subscription_list_response' is [| '{:#?}' |]", subscription_list_response);
     Ok(subscription_list_response)
 }
 
