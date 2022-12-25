@@ -17,8 +17,12 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
             .header(reqwest::header::ACCEPT, "application/json");
     if let Some(page) = next_page_tok
     { req = req.query(&[("pageToken", &page)]) }
+    
     let resp = req.send().await?;
     log::info!(" [:: LOG ::] ... : ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |]", (&resp.headers(), &resp.status()));
+    if !resp.status().is_success()
+    { return Err(eyre::eyre!("status code is not a success")) }
+    
     let subscr_list_resp = resp.json::<SubscriptionListResponse>().await?;
     log::info!
     (

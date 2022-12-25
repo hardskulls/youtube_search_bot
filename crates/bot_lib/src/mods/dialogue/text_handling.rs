@@ -13,7 +13,7 @@ use crate::mods::db::get_access_token;
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
-use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
+use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY, YouTubeAccessToken};
 
 pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
@@ -51,8 +51,8 @@ pub(crate) async fn execute_search
     let access_token =
         match get_access_token(&user_id)
         {
-            Ok(token) => token,
-            Err(_) =>
+            Ok(YouTubeAccessToken { access_token: Some(token), .. }) => token,
+            _ =>
                 {
                     let url = default_auth_url(&user_id).await?;
                     let auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", url, "Log In");

@@ -56,8 +56,14 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |]", &resp);
     
-    let access_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
-    set_access_token(for_user, &access_token.access_token.unwrap()).map_err(|_| "db error")?;
+    let serialized_access_token = resp.json::<String>().await.map_err(|_| "couldn't deserialize access token")?;
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |]", &serialized_access_token);
+    log::info!
+    (
+        " [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serde_json::from_str::<YouTubeAccessToken>' is [| '{:#?}' |]",
+        serde_json::from_str::<YouTubeAccessToken>(&serialized_access_token)
+    );
+    set_access_token(for_user, &serialized_access_token).map_err(|_| "db error")?;
     
     let redirect =
         axum::response::Response::builder()
