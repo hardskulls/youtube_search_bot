@@ -3,7 +3,7 @@ use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use reqwest::RequestBuilder;
 
-use crate::mods::db::set_access_token;
+use crate::mods::db::{get_access_token, set_access_token};
 use crate::mods::net::find_by_key;
 use crate::mods::youtube::types::{MapErrToString, YouTubeAccessToken};
 
@@ -56,13 +56,14 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
     log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |] )", &resp);
     
-    let serialized_access_token = resp.text().await.map_err(|_| "couldn't deserialize access token")?;
-    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |] )", &serialized_access_token);
-    log::info!
-    (
-        " [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serde_json::from_str::<YouTubeAccessToken>' is [| '{:#?}' |] )",
-        serde_json::from_str::<YouTubeAccessToken>(&serialized_access_token)
-    );
+    let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
+    log::info!(" [:: LOG ::] ... : ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |] )", &new_token);
+    let t =
+        if let Ok(YouTubeAccessToken { refresh_token: Some(refr_token), .. }) = get_access_token(for_user)
+        { YouTubeAccessToken { refresh_token: refr_token.into(), ..new_token } }
+        else
+        { new_token };
+    let serialized_access_token = serde_json::to_string(&t).map_err(|_| "db error")?;
     set_access_token(for_user, &serialized_access_token).map_err(|_| "db error")?;
     
     let redirect =
