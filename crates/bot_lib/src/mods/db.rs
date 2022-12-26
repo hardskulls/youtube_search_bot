@@ -34,7 +34,7 @@ pub(crate) async fn refresh_access_token(user_id: &str, token: YouTubeAccessToke
             [
                 ("client_id", secret.client_id.as_str()),
                 ("client_secret", secret.client_secret.as_str()),
-                ("refresh_token", &token.refresh_token.ok_or(eyre::eyre!("No refresh token"))?),
+                ("refresh_token", token.refresh_token.as_ref().ok_or(eyre::eyre!("No refresh token"))?),
                 ("grant_type", "refresh_token")
             ];
         let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
@@ -46,7 +46,7 @@ pub(crate) async fn refresh_access_token(user_id: &str, token: YouTubeAccessToke
         let resp = req.send().await?;
         let new_token = resp.json::<YouTubeAccessToken>().await?;
         set_access_token(user_id, &serde_json::to_string(&new_token)?)?;
-        Ok(new_token)
+        Ok(YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token })
     }
     else
     { Ok(token) }

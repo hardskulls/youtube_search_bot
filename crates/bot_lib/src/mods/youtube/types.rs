@@ -1,4 +1,3 @@
-use google_youtube3::api::SubscriptionListResponse;
 use parse_display::Display;
 use serde::{Deserialize, Deserializer, Serialize};
 use crate::StdResult;
