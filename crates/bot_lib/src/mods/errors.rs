@@ -50,11 +50,11 @@ pub struct ProjectSetupError;
 
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( Serialization failed )", Self)]
-pub struct SerializeError;
+pub struct SerializationError;
 
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( Deserialization failed )", Self)]
-pub struct DeserializeError;
+pub struct DeserializationError;
 
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( No `MessageWithKB`, or its inner `Option<Message>` is `None`. )", Self)]

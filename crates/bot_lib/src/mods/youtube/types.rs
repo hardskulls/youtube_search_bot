@@ -26,27 +26,52 @@ pub struct YouTubeAccessToken
     pub token_type: String,
 }
 
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
+#[serde(untagged)]
+enum ScopeInternalRepr
+{
+    StringOfStrings(String),
+    V(Vec<String>),
+}
+
 fn string_of_strings_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
     where
         D: Deserializer<'de>,
 {
-    let str_sequence = String::deserialize(deserializer)?;
-    let vec_of_str =
-        str_sequence
-            .split(' ')
-            .map(|item| item.to_owned())
-            .collect();
-    Ok(vec_of_str)
+    match ScopeInternalRepr::deserialize(deserializer)?
+    {
+        ScopeInternalRepr::V(v) => Ok(v),
+        ScopeInternalRepr::StringOfStrings(s) =>
+            {
+                let vec_of_str = s.split(' ').map(|item| item.to_owned()).collect();
+                Ok(vec_of_str)
+            }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
+#[serde(untagged)]
+enum ExpiresInInternalRepr
+{
+    Seconds(i64),
+    TimeOffset(time::OffsetDateTime)
 }
 
 fn time_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
     where
-        D: Deserializer<'de>,
+        D: Deserializer<'de>
 {
-    let expires_after_seconds = Deserialize::deserialize(deserializer)?;
-    let t = time::Duration::seconds(expires_after_seconds);
-    let expires_in = time::OffsetDateTime::now_utc() + t;
-    Ok(expires_in)
+    let seconds_or_date_time = ExpiresInInternalRepr::deserialize(deserializer)?;
+    match seconds_or_date_time
+    {
+        ExpiresInInternalRepr::TimeOffset(offset_date_time) => Ok(offset_date_time),
+        ExpiresInInternalRepr::Seconds(seconds) =>
+            {
+                let t = time::Duration::seconds(seconds);
+                let expires_in = time::OffsetDateTime::now_utc() + t;
+                Ok(expires_in)
+            }
+    }
 }
 
 pub(crate) trait MapErrToString<T>
@@ -85,6 +110,15 @@ mod tests
     use super::*;
     
     #[test]
+    fn enum_deserialize_test()
+    {
+        let s = "3600";
+        let _seconds_or_date_time = dbg!(serde_json::from_str::<ExpiresInInternalRepr>(s).unwrap());
+        let s = "[2022,360,19,23,6,313629700,0,0,0]";
+        let _seconds_or_date_time = dbg!(serde_json::from_str::<ExpiresInInternalRepr>(s).unwrap());
+    }
+    
+    #[test]
     fn string_to_vec_deserialization_test()
     {
         let token =
@@ -100,13 +134,15 @@ mod tests
         let deserialized_token = serde_json::from_str::<YouTubeAccessToken>(token);
         assert!(matches!(deserialized_token, Ok(_)), "cause: {:?}", deserialized_token);
         
-        let deserialized_token = deserialized_token.unwrap();
+        let deserialized_token = dbg!(deserialized_token.unwrap());
         assert!(!deserialized_token.scope.is_empty());
         assert!(deserialized_token.scope.contains(&"kvikuf.ugk/jhghk.con".to_owned()));
         assert!(deserialized_token.expires_in > time::OffsetDateTime::now_utc() + Duration::minutes(59));
         assert_eq!(deserialized_token.access_token, "token87t877679");
         assert!(matches!(deserialized_token.refresh_token, Some(_)));
-        assert_eq!(deserialized_token.refresh_token.unwrap(), "hvliyhgl89y8");
+        assert_eq!(deserialized_token.refresh_token.as_ref().unwrap(), "hvliyhgl89y8");
+        let serialized_token = dbg!(serde_json::to_string(&deserialized_token).unwrap());
+        let _deserialized_again_token = dbg!(serde_json::from_str::<YouTubeAccessToken>(&serialized_token).unwrap());
     }
     
     #[test]
