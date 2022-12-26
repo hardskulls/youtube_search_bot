@@ -8,13 +8,11 @@ pub(crate) fn get_access_token(user_id: &str) -> eyre::Result<YouTubeAccessToken
     let client = redis::Client::open(std::env::var("REDIS_URL")?);
     log::info!(" [:: LOG ::] ... : ( @:[fn::get_access_token] 'client' is [| '{:#?}' |] )", &client);
     let client = client?;
-    let mut con = client.get_connection();
-    log::info!(" [:: LOG ::] ... : ( @:[fn::get_access_token] 'con' is [| '{:#?}' |] )", &con);
-    let con = con?;
+    let mut con = client.get_connection()?;
     let serialized_access_token = con.get::<_, String>(user_id);
     log::info!(" [:: LOG ::] ... : ( @:[fn::get_access_token] 'serialized_access_token' is [| '{:#?}' |] )", &serialized_access_token);
     let serialized_access_token = serialized_access_token?;
-    let youtube_access_token = serde_json::from_str::~YouTubeAccessToken>(&serialized_access_token);
+    let youtube_access_token = serde_json::from_str::<YouTubeAccessToken>(&serialized_access_token);
     log::info!(" [:: LOG ::] ... : ( @:[fn::get_access_token] 'youtube_access_token' is [| '{:#?}' |] )", &youtube_access_token);
     let youtube_access_token = youtube_access_token?;
     log::info!("access_token acquired!");
