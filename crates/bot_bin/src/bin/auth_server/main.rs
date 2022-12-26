@@ -8,7 +8,7 @@ async fn main() -> eyre::Result<()>
     // !! All `logs::info!` work only after this line + env variable `RUST_LOG` set to `INFO`. !!
     simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
     
-    log::info!(" [:: LOG ::] ... : ( ⚙ <| Building 'auth_server'... |> ⚙ )");
+    log::info!(" [:: LOG ::]    ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     // build our application with a single route
     let router: Router =
         Router::new()
@@ -21,7 +21,7 @@ async fn main() -> eyre::Result<()>
         .serve(router.into_make_service())
         .await?;
     
-    log::info!(" [:: LOG ::] ... : ( ❌ <| 'auth_server' finished |> ❌ )");
+    log::info!(" [:: LOG ::]    ( ❌ <| 'auth_server' finished |> ❌ )");
     Ok(())
 }
 
