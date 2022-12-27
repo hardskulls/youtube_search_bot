@@ -47,9 +47,10 @@ pub(crate) async fn execute_search
 )
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
-    let user_id = msg.from().unwrap().full_name();
+    let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+    let redis_url = std::env::var("REDIS_URL")?;
     let token =
-        match get_access_token(&user_id)
+        match get_access_token(&user_id, &redis_url)
         {
             Ok(token) => token,
             _ =>
@@ -60,9 +61,12 @@ pub(crate) async fn execute_search
                     return Ok(("Please, log in first ".to_owned(), None, None))
                 }
         };
-    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     
-    let access_token = refresh_access_token(&user_id, token).await?.access_token;
+    let secret_path = std::env::var("OAUTH_SECRET_PATH")?;
+    let secret = read_application_secret(secret_path).await?;
+    let access_token = refresh_access_token(&user_id, token, &redis_url, secret).await?.access_token;
+    
+    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let subscription_list = get_subs_list(search_mode, text_to_look_for, &access_token, result_lim).await?;
     
     for s in subscription_list.into_iter().take(result_lim as usize)

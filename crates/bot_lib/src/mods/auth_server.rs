@@ -57,14 +57,15 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |] )", &resp);
     
     let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'serialized_access_token' is [| '{:#?}' |] )", &new_token);
+    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'new_token' is [| '{:#?}' |] )", &new_token);
+    let redis_url = std::env::var("REDIS_URL").map_err(|_| "redis url var is missing")?;
     let t =
-        if let Ok(YouTubeAccessToken { refresh_token: Some(refr_token), .. }) = get_access_token(for_user)
+        if let Ok(YouTubeAccessToken { refresh_token: Some(refr_token), .. }) = get_access_token(for_user, &redis_url)
         { YouTubeAccessToken { refresh_token: refr_token.into(), ..new_token } }
         else
         { new_token };
     let serialized_access_token = serde_json::to_string(&t).map_err(|_| "db error")?;
-    set_access_token(for_user, &serialized_access_token).map_err(|_| "db error")?;
+    set_access_token(for_user, &serialized_access_token, &redis_url).map_err(|_| "db error")?;
     
     let redirect =
         axum::response::Response::builder()
