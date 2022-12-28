@@ -62,8 +62,9 @@ pub(crate) async fn refresh_access_token
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'new_token' is [| '{:?}' |] )", &new_token);
         dbg!(&new_token);
         let new_token = new_token?;
-        set_access_token(user_id, &serde_json::to_string(&new_token)?, redis_url)?;
-        Ok(YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token })
+        let combined_token = YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token };
+        set_access_token(user_id, &serde_json::to_string(&combined_token)?, redis_url)?;
+        Ok(combined_token)
     }
     else
     { Ok(token) }
@@ -86,9 +87,9 @@ mod tests
         let token =
             YouTubeAccessToken
             {
-                access_token: "ya29.a0AX9GBdUmplhCJxiwXfKQxJkuXFGljbc1Y4BLLHb4XpRH0xJfmStBZ3geXTkuRtiP-RsYsaI9opw9YuaaHylW9WAnPfq8G26vmaWiPcNjvIzd_nhMBv33h-Z181-z_EzXiqu8Ia4v4liPU2NS5azxarhgXoRxaCgYKAaASARMSFQHUCsbC453qB9CbVF7igPLkpAA0wQ0163".to_owned(),
+                access_token: "ya29.a0AX9GBdUzPUu-EDZTmXR9UT1r-Xejde1307NznIvxpjsl-QnHgtdIFAmyOsgIoUWPpK2s6ETzaTqyWS5P_iVQUjBYmYDAKiHqma9Qe_Ww64FskSS3Ci6wyKsB5GpQ6yf4RB7jkLkB7_DXdl8OGIzUdOPxY0uEaCgYKAb0SARMSFQHUCsbCvMlfMb7ibR6-XQT7XDLtNg0163".to_owned(),
                 expires_in: time::OffsetDateTime::now_utc(),
-                refresh_token: Some("1//04AOacug-qj0pCgYIARAAGAQSNwF-L9Ir48RirxxurCPcZvKuHvHaty_e8nnEq2bCA6af5-cVJIXU0f54-hhYnRRVFwHuaUXPvyc".to_owned()),
+                refresh_token: Some("1//06Slpm3CGx99WCgYIARAAGAYSNwF-L9IrA3zGYcfUtPTCXSDvYbbGy8vMmcINDXNIvL7lFrBbbgxFJrLdjSZQD7eIyettsmgB_aU".to_owned()),
                 scope: vec![],
                 token_type: "Bearer".to_owned()
             };
