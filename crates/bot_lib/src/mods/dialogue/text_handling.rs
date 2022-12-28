@@ -48,6 +48,7 @@ pub(crate) async fn execute_search
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
     let redis_url = std::env::var("REDIS_URL")?;
     let token =
         match get_access_token(&user_id, &redis_url)
@@ -106,11 +107,7 @@ pub(crate) async fn get_subs_list
     -> eyre::Result<Vec<Subscription>>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] started )");
-    log::info!
-    (
-        " [:: LOG ::]    ( @:[fn::get_subs_list] FIRST 'subs_list_resp' is [| '{:?}' |] )",
-        (&search_mode, &text_to_look_for, &max_res)
-    );
+    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] INPUT is [| '{:?}' |] )", (&search_mode, &text_to_look_for, &max_res));
     let client = reqwest::Client::new();
     let subs_list_resp =
         list_subscriptions(&client, None, access_token).await.unwrap_or_default();
@@ -149,12 +146,10 @@ pub(crate) async fn get_subs_list
 fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)
 {
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");
-    log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
     let text_to_search = text_to_look_for.to_lowercase();
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
     for sub in search_in
     {
-        log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'sub' is [| '{:#?}' |] )", (&sub));
         let snip = sub.snippet.as_ref().unwrap();
         let compare_by = if let &SearchMode::Title = search_mode { snip.title.as_ref() } else { snip.description.as_ref() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));

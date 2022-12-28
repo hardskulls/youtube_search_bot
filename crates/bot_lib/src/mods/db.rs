@@ -4,6 +4,7 @@ use crate::mods::youtube::types::YouTubeAccessToken;
 
 pub(crate) fn get_access_token(user_id: &str, redis_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
+    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
     log::info!("getting access_token from a database | (silent on failure)");
     let client = redis::Client::open(redis_url);
     log::info!("[:: LOG ::]    ( @:[fn::get_access_token] 'client' is [| '{:#?}' |] )", &client);
@@ -21,6 +22,7 @@ pub(crate) fn get_access_token(user_id: &str, redis_url: &str) -> eyre::Result<Y
 
 pub(crate) fn set_access_token(user_id: &str, token: &str, redis_url: &str) -> eyre::Result<()>
 {
+    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
     log::info!("saving access_token to a database | (silent on failure)");
     let client = redis::Client::open(redis_url)?;
     let mut con = client.get_connection()?;
