@@ -11,6 +11,7 @@ use url::Url;
 use crate::mods::db::{get_access_token, refresh_access_token};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
+use crate::mods::errors::NoTextError;
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
 use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
@@ -72,9 +73,16 @@ pub(crate) async fn execute_search
     
     for s in subscription_list.into_iter().take(result_lim as usize)
     {
-        let snip = s.snippet.unwrap();
+        let snip = s.snippet.unwrap_or_default();
         let (title, descr, chan_id) =
-            (snip.channel_title.unwrap(), snip.description.unwrap(), snip.resource_id.unwrap().channel_id.unwrap());
+            (
+                snip.title.unwrap_or_else(|| NoTextError.to_string() + "No channel title"),
+                snip.description.unwrap_or_else(|| NoTextError.to_string() + "No channel description"),
+                snip.resource_id
+                    .unwrap_or_default()
+                    .channel_id
+                    .unwrap_or_else(|| NoTextError.to_string() + "No channel id")
+            );
         let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title, descr, chan_id);
         let _sent_msg = bot.send_message(msg.chat.id, text).await;
         log::info!(" [:: LOG ::]    ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |] )", &_sent_msg);
@@ -150,7 +158,8 @@ fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, sear
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
     for sub in search_in
     {
-        let snip = sub.snippet.as_ref().unwrap();
+        let default_snip = Default::default();
+        let snip = sub.snippet.as_ref().unwrap_or(&default_snip);
         let compare_by = if let &SearchMode::Title = search_mode { snip.title.as_ref() } else { snip.description.as_ref() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
 
