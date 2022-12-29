@@ -49,7 +49,6 @@ pub(crate) async fn execute_search
     -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
 {
     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
-    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
     let redis_url = std::env::var("REDIS_URL")?;
     let token =
         match get_access_token(&user_id, &redis_url)
@@ -83,8 +82,8 @@ pub(crate) async fn execute_search
                     .channel_id
                     .unwrap_or_else(|| NoTextError.to_string() + "No channel id")
             );
-        let text = format!("Title: {} \n\n Description: {} \n\n Link: youtube.com/channel/{}", title, descr, chan_id);
-        let _sent_msg = bot.send_message(msg.chat.id, text).await;
+        let text = format!("<b>{}</b>\n\n{}\n\nhttps://youtube.com/channel/{}", title, descr, chan_id);
+        let _sent_msg = bot.send_message(msg.chat.id, text).parse_mode(ParseMode::Html).await;
         log::info!(" [:: LOG ::]    ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |] )", &_sent_msg);
     }
 
