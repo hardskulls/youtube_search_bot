@@ -93,76 +93,42 @@ mod tests
 {
     use super::*;
     
-    mod serialization_testing
+    #[tokio::test]
+    async fn print_request_contents_test()
     {
-        use crate::mods::youtube::types::YouTubeAccessToken;
-        
-        #[test]
-        fn serialize_deserialize_string_test()
-        {
-            let (access_token, refresh_token) =
-                ("access_token".to_owned(), Some("refresh_token".to_owned()));
-            let (scope, token_type) =
-                (vec!["hey".to_owned()], "id_token".to_owned());
-            let expires_in = time::OffsetDateTime::now_utc();
-            let token = YouTubeAccessToken { access_token, expires_in, refresh_token, scope, token_type };
-            let serialized = serde_json::to_string(&token).unwrap();
-            dbg!(&serialized);
-            let deserialized = serde_json::from_str::<YouTubeAccessToken>(&serialized).unwrap();
-            assert_eq!(token, deserialized);
-        }
-        
-        #[test]
-        fn deserialize_from_json_test()
-        {
-            let path = "test_access_token_deserialization.json";
-            let contents = std::fs::read_to_string(path).unwrap();
-            let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
-            assert!(matches!(deserialized_2, Ok(_)));
-        }
+        let (_state, _for_user, auth_code) = ("this_is_state", "this_is_for_user", "this_is_auth_code");
+        let params = params(auth_code).await;
+        let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+        let request =
+            hyper::Request::builder()
+                .uri(uri.as_str())
+                .method(hyper::Method::POST)
+                .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+                .header(hyper::header::HOST, "oauth2.googleapis.com")
+                .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::empty())
+                .unwrap();
+        println!(" [:: LOG ::]    ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
+        assert_eq!(request.method(), hyper::Method::POST)
     }
     
-    mod requests_testing
+    #[tokio::test]
+    async fn access_token_request_test()
     {
-        use super::*;
-    
-        #[tokio::test]
-        async fn print_request_contents_test()
-        {
-            let (_state, _for_user, auth_code) = ("this_is_state", "this_is_for_user", "this_is_auth_code");
-            let params = params(auth_code).await;
-            let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
-            let request =
-                hyper::Request::builder()
-                    .uri(uri.as_str())
-                    .method(hyper::Method::POST)
-                    .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
-                    .header(hyper::header::HOST, "oauth2.googleapis.com")
-                    .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::empty())
-                    .unwrap();
-            println!(" [:: LOG ::]    ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
-            assert_eq!(request.method(), hyper::Method::POST)
-        }
-    
-        #[tokio::test]
-        async fn access_token_request_test()
-        {
-            let auth_code = "4/tfi76r7r7uruydyt";
-            let params = params(auth_code).await;
-            dbg!(&params);
-            let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
-            dbg!(&uri);
-            let r =
-                reqwest::Client::new()
-                    .post(uri)
-                    .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
-                    .header(hyper::header::HOST, "oauth2.googleapis.com")
-                    .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
-            dbg!(&r);
-            log::info!(" [:: LOG ::]    ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
-            assert!(!auth_code.contains("hjgjgjg"));
-        }
+        let auth_code = "4/tfi76r7r7uruydyt";
+        let params = params(auth_code).await;
+        dbg!(&params);
+        let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+        dbg!(&uri);
+        let r =
+            reqwest::Client::new()
+                .post(uri)
+                .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
+                .header(hyper::header::HOST, "oauth2.googleapis.com")
+                .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
+        dbg!(&r);
+        log::info!(" [:: LOG ::]    ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
+        assert!(!auth_code.contains("hjgjgjg"));
     }
 }
 

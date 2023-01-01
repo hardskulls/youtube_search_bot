@@ -119,6 +119,30 @@ mod tests
     }
     
     #[test]
+    fn serialize_deserialize_string_test()
+    {
+        let (access_token, refresh_token) =
+            ("access_token".to_owned(), Some("refresh_token".to_owned()));
+        let (scope, token_type) =
+            (vec!["hey".to_owned()], "id_token".to_owned());
+        let expires_in = time::OffsetDateTime::now_utc();
+        let token = YouTubeAccessToken { access_token, expires_in, refresh_token, scope, token_type };
+        let serialized = serde_json::to_string(&token).unwrap();
+        dbg!(&serialized);
+        let deserialized = serde_json::from_str::<YouTubeAccessToken>(&serialized).unwrap();
+        assert_eq!(token, deserialized);
+    }
+    
+    #[test]
+    fn deserialize_from_json_test()
+    {
+        let path = "test_access_token_deserialization.json";
+        let contents = std::fs::read_to_string(path).unwrap();
+        let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
+        assert!(matches!(deserialized_2, Ok(_)));
+    }
+    
+    #[test]
     fn string_to_vec_deserialization_test()
     {
         let token =
