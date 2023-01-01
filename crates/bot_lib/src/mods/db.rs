@@ -70,31 +70,70 @@ mod tests
     use google_youtube3::oauth2;
     use super::*;
     
+    #[test]
+    fn get_save_token()
+    {
+        simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
+    
+        let redis_url = std::env::var("REDIS_URL").unwrap();
+        let access_token = std::env::var("ACCESS_TOKEN").unwrap();
+        let refresh_token = std::env::var("REFRESH_TOKEN").unwrap().into();
+        
+        let user_id = "Александр Иванов";
+    
+        let token =
+            YouTubeAccessToken
+            {
+                access_token,
+                expires_in: time::OffsetDateTime::now_utc(),
+                refresh_token,
+                scope: vec!["first".to_owned(), "second".to_owned()],
+                token_type: "Bearer".to_owned()
+            };
+    
+        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), &redis_url).unwrap();
+        let saved_token = get_access_token(user_id, &redis_url).unwrap();
+        
+        assert_eq!(token.refresh_token.as_ref().unwrap(), saved_token.refresh_token.as_ref().unwrap());
+        assert_eq!(token.access_token, saved_token.access_token);
+        assert_eq!(token.expires_in, saved_token.expires_in);
+        assert_eq!(token.token_type, saved_token.token_type);
+        assert_eq!(token.scope, saved_token.scope);
+    }
+    
     #[tokio::test]
     async fn get_set_from_to_db()
     {
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
+        
         let redis_url = std::env::var("REDIS_URL").unwrap();
+        let access_token = std::env::var("ACCESS_TOKEN").unwrap();
+        let refresh_token = std::env::var("REFRESH_TOKEN").unwrap().into();
         let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
-        let secret = oauth2::read_application_secret(secret_path).await.unwrap();
+        // api key is required for making calls from anywhere, instead of manually added urls in oauth credentials
+        let oauth_api_key = std::env::var("OAUTH_API_KEY").unwrap();
+        
         let user_id = "Александр Иванов";
+        
         let token =
             YouTubeAccessToken
             {
-                access_token: "ya29.a0AX9GBdUzPUu-EDZTmXR9UT1r-Xejde1307NznIvxpjsl-QnHgtdIFAmyOsgIoUWPpK2s6ETzaTqyWS5P_iVQUjBYmYDAKiHqma9Qe_Ww64FskSS3Ci6wyKsB5GpQ6yf4RB7jkLkB7_DXdl8OGIzUdOPxY0uEaCgYKAb0SARMSFQHUCsbCvMlfMb7ibR6-XQT7XDLtNg0163".to_owned(),
+                access_token,
                 expires_in: time::OffsetDateTime::now_utc(),
-                refresh_token: Some("1//06Slpm3CGx99WCgYIARAAGAYSNwF-L9IrA3zGYcfUtPTCXSDvYbbGy8vMmcINDXNIvL7lFrBbbgxFJrLdjSZQD7eIyettsmgB_aU".to_owned()),
-                scope: vec![],
+                refresh_token,
+                scope: vec!["first".to_owned(), "second".to_owned()],
                 token_type: "Bearer".to_owned()
             };
-        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), &redis_url).unwrap();
-        let saved_token = get_access_token(user_id, &redis_url).unwrap();
-        assert_eq!(token.refresh_token.as_ref().unwrap(), saved_token.refresh_token.as_ref().unwrap());
-        assert_eq!(token.access_token, saved_token.access_token);
-        assert_eq!(token.expires_in, saved_token.expires_in);
-        refresh_access_token(user_id, saved_token, &redis_url, secret).await.unwrap();
-        let refreshed_access_token = get_access_token(user_id, &redis_url).unwrap();
-        assert_eq!(refreshed_access_token.refresh_token, token.refresh_token);
+        
+        let secret = oauth2::read_application_secret(secret_path).await.unwrap();
+        let mut token_req = refresh_token_req(secret, &token).unwrap();
+        token_req = token_req.query(&[("key", &oauth_api_key)]);
+        
+        let refreshed_access_token =
+            refresh_access_token(user_id, token.clone(), &redis_url, token_req).await.unwrap();
+        
+        assert_eq!(token.refresh_token, refreshed_access_token.refresh_token);
+        assert_eq!(token.access_token, refreshed_access_token.access_token);
     }
 }
 
