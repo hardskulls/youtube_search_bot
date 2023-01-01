@@ -118,6 +118,7 @@ mod tests
     
         set_access_token(user_id, &serde_json::to_string(&token).unwrap(), &redis_url).unwrap();
         let saved_token = get_access_token(user_id, &redis_url).unwrap();
+        delete_access_token(user_id, &redis_url).unwrap();
         
         assert_eq!(token.refresh_token.as_ref().unwrap(), saved_token.refresh_token.as_ref().unwrap());
         assert_eq!(token.access_token, saved_token.access_token);
