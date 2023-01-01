@@ -2,62 +2,77 @@ use google_youtube3::oauth2::ApplicationSecret;
 use redis::Commands;
 use crate::mods::youtube::types::YouTubeAccessToken;
 
-pub(crate) fn get_access_token(user_id: &str, redis_url: &str) -> eyre::Result<YouTubeAccessToken>
+const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
+
+pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
-    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
+    let user_id = format!("{TOKEN_PREFIX}{user_id}");
     log::info!("getting access_token from a database | (silent on failure)");
-    let client = redis::Client::open(redis_url)?;
-    let mut con = client.get_connection()?;
-    let serialized_access_token = con.get::<_, String>(user_id)?;
-    let youtube_access_token = serde_json::from_str::<YouTubeAccessToken>(&serialized_access_token)?;
+    let mut con = redis::Client::open(db_url)?.get_connection()?;
+    let serialized_token = con.get::<_, String>(&user_id)?;
+    let token = serde_json::from_str(&serialized_token)?;
     log::info!("access_token acquired!");
-    Ok(youtube_access_token)
+    Ok(token)
 }
 
-pub(crate) fn set_access_token(user_id: &str, token: &str, redis_url: &str) -> eyre::Result<()>
+pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre::Result<()>
 {
-    let user_id = format!("youtube_access_token_rand_fuy6776d75ygku8i7_user_id_{user_id}");
+    let user_id = format!("{TOKEN_PREFIX}{user_id}");
     log::info!("saving access_token to a database | (silent on failure)");
-    let client = redis::Client::open(redis_url)?;
-    let mut con = client.get_connection()?;
-    con.set(user_id, token)?;
+    let mut con = redis::Client::open(db_url)?.get_connection()?;
+    con.set(&user_id, token)?;
     log::info!("access_token saved!");
     Ok(())
+}
+
+pub fn combine_old_new_tokens(old_token_user_id: &str, new_token: YouTubeAccessToken, db_url: &str) -> YouTubeAccessToken
+{
+    match get_access_token(old_token_user_id, db_url)
+    {
+        Ok(YouTubeAccessToken { refresh_token: Some(ref_token), .. }) =>
+            YouTubeAccessToken { refresh_token: ref_token.into(), ..new_token },
+        _ => new_token
+    }
+}
+
+pub(crate) fn refresh_token_req(oauth2_secret: ApplicationSecret, token: &YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
+{
+    let params =
+        [
+            ("client_id", oauth2_secret.client_id.as_str()),
+            ("client_secret", oauth2_secret.client_secret.as_str()),
+            ("refresh_token", token.refresh_token.as_ref().ok_or(eyre::eyre!("No refresh token"))?),
+            ("grant_type", "refresh_token")
+        ];
+    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
+    let req =
+        reqwest::Client::new()
+            .post(reqwest::Url::parse("https://oauth2.googleapis.com/token")?)
+            .header(hyper::header::HOST, "oauth2.googleapis.com")
+            .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body(uri.query().ok_or(eyre::eyre!("No Query!"))?.to_owned());
+    Ok(req)
 }
 
 pub(crate) async fn refresh_access_token
 (
     user_id: &str,
     token: YouTubeAccessToken,
-    redis_url: &str,
-    oauth2_secret: ApplicationSecret
+    db_url: &str,
+    refresh_token_request: reqwest::RequestBuilder
 )
     -> eyre::Result<YouTubeAccessToken>
 {
-    let time_remains = time::OffsetDateTime::now_utc() - token.expires_in;
+    let time_remains = token.expires_in - time::OffsetDateTime::now_utc();
+    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{:?}' |] )", &time_remains);
     if time_remains.whole_minutes() < 10
     {
-        let params =
-            [
-                ("client_id", oauth2_secret.client_id.as_str()),
-                ("client_secret", oauth2_secret.client_secret.as_str()),
-                ("refresh_token", token.refresh_token.as_ref().ok_or(eyre::eyre!("No refresh token"))?),
-                ("grant_type", "refresh_token")
-            ];
-        let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
-        let req = 
-            reqwest::Client::new().post(reqwest::Url::parse("https://oauth2.googleapis.com/token")?)
-                .header(hyper::header::HOST, "oauth2.googleapis.com")
-                .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(uri.query().unwrap().to_owned());
-        let resp = req.send().await?;
+        let resp = refresh_token_request.send().await?;
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'resp' is [| '{:?}' |] )", &resp);
-        let new_token = resp.json::<YouTubeAccessToken>().await;
+        let new_token = resp.json::<YouTubeAccessToken>().await?;
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'new_token' is [| '{:?}' |] )", &new_token);
-        dbg!(&new_token);
-        let new_token = new_token?;
         let combined_token = YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token };
-        set_access_token(user_id, &serde_json::to_string(&combined_token)?, redis_url)?;
+        set_access_token(user_id, &serde_json::to_string(&combined_token)?, db_url)?;
         Ok(combined_token)
     }
     else
