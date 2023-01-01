@@ -8,7 +8,7 @@ use teloxide::
     types::{InlineKeyboardMarkup, Message, ParseMode}
 };
 use url::Url;
-use crate::mods::db::{get_access_token, refresh_access_token};
+use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
 use crate::mods::errors::NoTextError;
@@ -59,13 +59,14 @@ pub(crate) async fn execute_search
                     let url = default_auth_url(&user_id).await?;
                     let auth_url = format!("Use this link to log in <a href=\"{}\">{}</a>", url, "Log In");
                     bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
-                    return Ok(("Please, log in first ".to_owned(), None, None))
+                    return Ok(("Please, log in and send your text again ".to_owned(), None, None))
                 }
         };
     
     let secret_path = std::env::var("OAUTH_SECRET_PATH")?;
     let secret = read_application_secret(secret_path).await?;
-    let access_token = refresh_access_token(&user_id, token, &redis_url, secret).await?.access_token;
+    let token_req = refresh_token_req(secret, &token)?;
+    let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let subscription_list = get_subs_list(search_mode, text_to_look_for, &access_token, result_lim).await?;
@@ -116,16 +117,8 @@ pub(crate) async fn get_subs_list
     log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] started )");
     log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] INPUT is [| '{:?}' |] )", (&search_mode, &text_to_look_for, &max_res));
     let client = reqwest::Client::new();
-    let subs_list_resp =
-        list_subscriptions(&client, None, access_token).await.unwrap_or_default();
-    log::info!
-    (
-        " [:: LOG ::]    ( @:[fn::list_subscriptions] FIRST 'subs_list_resp' is [| '{:?}' |] )",
-        (
-            subs_list_resp.next_page_token.as_ref(), subs_list_resp.page_info.as_ref(),
-            subs_list_resp.items.as_ref().unwrap_or(&vec![]).len()
-        )
-    );
+    let subs_list_resp = list_subscriptions(&client, None, access_token).await.unwrap_or_default();
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] FIRST 'subs_list_resp' is [| '{:?}' |] )", (&subs_list_resp));
     let mut store_in: Vec<Subscription> = Vec::new();
     
     if let Some(items) = subs_list_resp.items
@@ -176,6 +169,7 @@ mod tests
     use crate::mods::net::find_by_key;
     use super::*;
     
+    // TODO: Finish or remove
     #[tokio::test]
     async fn default_url_test() -> eyre::Result<()>
     {
