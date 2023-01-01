@@ -25,6 +25,16 @@ pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre
     Ok(())
 }
 
+pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()>
+{
+    log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure");
+    let user_id = format!("{TOKEN_PREFIX}{user_id}");
+    let mut con = redis::Client::open(db_url)?.get_connection()?;
+    con.del(&user_id)?;
+    log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] access_token deleted!");
+    Ok(())
+}
+
 pub fn combine_old_new_tokens(old_token_user_id: &str, new_token: YouTubeAccessToken, db_url: &str) -> YouTubeAccessToken
 {
     match get_access_token(old_token_user_id, db_url)

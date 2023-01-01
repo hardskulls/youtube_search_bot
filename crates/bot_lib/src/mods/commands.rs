@@ -6,6 +6,7 @@ use teloxide::
     types::{InlineKeyboardMarkup, Me, Message},
     utils::command::BotCommands
 };
+use crate::mods::db::delete_access_token;
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
@@ -23,6 +24,8 @@ pub enum Command
     Search,
     #[command(description = "List Something")]
     List,
+    #[command(description = "List Something")]
+    LogOut,
 }
 
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
@@ -41,6 +44,13 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
                 {
                     let state = State::ListCommandActive(ListConfigData { ..Default::default() });
                     (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                }
+            Command::LogOut =>
+                {
+                    let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+                    let redis_url = std::env::var("REDIS_URL")?;
+                    let _ = delete_access_token(&user_id, &redis_url);
+                    ("Logged Out ✔".to_owned(), None, None)
                 }
         };
     let message_to_send = bot.send_message(msg.chat.id, &message_text);
