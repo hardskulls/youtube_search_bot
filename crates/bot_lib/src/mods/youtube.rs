@@ -23,15 +23,8 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
     if !resp.status().is_success()
     { return Err(eyre::eyre!("status code is not a success")) }
     
-    let subscr_list_resp = resp.json::<SubscriptionListResponse>().await?;
-    log::info!
-    (
-        " [:: LOG ::]    ( @:[fn::list_subscriptions] 'subscription_list_response' is [| '{:#?}' |] )",
-        (
-            subscr_list_resp.next_page_token.as_ref(), subscr_list_resp.page_info.as_ref(),
-            subscr_list_resp.items.as_ref().unwrap_or(&vec![]).len()
-        )
-    );
+    let subscr_list_resp = resp.json().await?;
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'subscr_list_resp' is [| '{:#?}' |] )", subscr_list_resp);
     Ok(subscr_list_resp)
 }
 
