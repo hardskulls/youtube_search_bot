@@ -24,8 +24,8 @@ pub enum Command
     Search,
     #[command(description = "List Something")]
     List,
-    #[command(description = "List Something")]
-    LogOut,
+    #[command(description = "Delete User Data")]
+    LogOut, // TODO: Test how safe is deleting full token from db.
 }
 
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
