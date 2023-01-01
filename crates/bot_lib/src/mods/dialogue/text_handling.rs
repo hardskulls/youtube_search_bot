@@ -16,6 +16,8 @@ use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
 use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
+/// Helper function used for `handle_text` handler.
+/// Parses user input as number in order to set it as `result limit` setting.
 pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {
@@ -37,6 +39,8 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
     }
 }
 
+/// Helper function used for `handle_text` handler.
+/// Final func that does searching when everything is ready. 
 pub(crate) async fn execute_search
 (
     bot: &Bot,
@@ -91,6 +95,7 @@ pub(crate) async fn execute_search
     Ok(("Finished! ✔".to_owned(), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
 }
 
+/// Construct authorization url.
 async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 {
     let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
@@ -105,6 +110,7 @@ async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
     Ok(url)
 }
 
+/// Search and filter subscriptions.
 pub(crate) async fn get_subs_list
 (
     search_mode: &SearchMode,
@@ -143,6 +149,7 @@ pub(crate) async fn get_subs_list
     Ok(store_in)
 }
 
+/// Find matches in a list of subscriptions.
 fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)
 {
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");

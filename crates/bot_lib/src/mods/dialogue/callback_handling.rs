@@ -10,6 +10,7 @@ use crate::mods::
 };
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 
+/// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {
@@ -39,6 +40,7 @@ pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogu
     (search_kb.keyboard_text(), search_kb.create_kb(), opt_dialogue_data)
 }
 
+/// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
     -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
 {

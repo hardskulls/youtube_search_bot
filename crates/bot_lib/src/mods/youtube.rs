@@ -6,6 +6,7 @@ use crate::StdResult;
 
 pub(crate) mod types;
 
+/// Get all subscriptions on user's YouTube channel.
 pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<String>, access_token: &str)
     -> eyre::Result<SubscriptionListResponse>
 {
@@ -28,6 +29,7 @@ pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<
     Ok(subscr_list_resp)
 }
 
+/// Authorization url constructor.
 pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
     -> StdResult<url::Url, url::ParseError>
     where

@@ -7,9 +7,11 @@ use teloxide::
 use teloxide::types::Message;
 use crate::mods::inline_keyboards::types::{ListFilter, ListTarget, SearchMode, SearchTarget, SortMode};
 
-/// Dialogue type available in the handlers that stores all of dialogue state.
+/// Framework wrapper storing all dialogue data.
+/// Available in handlers.
 pub type TheDialogue = Dialogue<DialogueData, ErasedStorage<DialogueData>>;
 
+/// Stores settings for `search` command.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct SearchConfigData
 {
@@ -18,6 +20,7 @@ pub struct SearchConfigData
     pub(crate) result_limit: Option<u32>
 }
 
+/// Stores settings for `list` command.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct ListConfigData
 {
@@ -27,6 +30,7 @@ pub struct ListConfigData
     pub(crate) result_limit: Option<u32>
 }
 
+/// Stores `dialogue state`.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub enum State
 {
@@ -47,6 +51,7 @@ impl AsRef<State> for State
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct MessageWithKB { pub opt_message: Option<Message> }
 
+/// Stores dialogue state and other required data.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct DialogueData
 {

@@ -12,6 +12,7 @@ use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, 
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 
+/// List of commands available in the bot.
 #[derive(Clone, BotCommands)]
 #[command(rename_rule = "snake_case", description = "These commands are available")]
 pub enum Command
@@ -28,6 +29,7 @@ pub enum Command
     LogOut, // TODO: Test how safe is deleting full token from db.
 }
 
+/// Main command handler.
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
 {
     let (message_text, opt_keyboard, opt_dialogue_data): (_, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
@@ -75,6 +77,7 @@ pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
     { false }
 }
 
+/// Tell user that an unknown command was received.
 #[inline]
 pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 {

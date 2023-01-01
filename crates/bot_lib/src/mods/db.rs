@@ -4,6 +4,7 @@ use crate::mods::youtube::types::YouTubeAccessToken;
 
 const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
 
+/// Gets a token by `user id` with a prefix.
 pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
     let user_id = format!("{TOKEN_PREFIX}{user_id}");
@@ -15,6 +16,7 @@ pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouT
     Ok(token)
 }
 
+/// Sets a token by `user id` with a prefix.
 pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre::Result<()>
 {
     let user_id = format!("{TOKEN_PREFIX}{user_id}");
@@ -25,6 +27,7 @@ pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre
     Ok(())
 }
 
+/// Deletes a token by `user id` with a prefix.
 pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure");
@@ -35,6 +38,7 @@ pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<(
     Ok(())
 }
 
+/// Because `refresh token` is received only once, it needs to be moved from old token to a new one.
 pub fn combine_old_new_tokens(old_token_user_id: &str, new_token: YouTubeAccessToken, db_url: &str) -> YouTubeAccessToken
 {
     match get_access_token(old_token_user_id, db_url)
@@ -45,6 +49,7 @@ pub fn combine_old_new_tokens(old_token_user_id: &str, new_token: YouTubeAccessT
     }
 }
 
+/// Constructs request for acquiring new `access token`.
 pub(crate) fn refresh_token_req(oauth2_secret: ApplicationSecret, token: &YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
     let params =
@@ -64,6 +69,7 @@ pub(crate) fn refresh_token_req(oauth2_secret: ApplicationSecret, token: &YouTub
     Ok(req)
 }
 
+/// Makes request for new `access token` if needed, then saves and returns it.
 pub(crate) async fn refresh_access_token
 (
     user_id: &str,

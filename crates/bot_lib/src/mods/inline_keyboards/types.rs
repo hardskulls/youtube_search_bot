@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use parse_display::Display;
 
+/// Target to search for. Used in `SearchCommandKB`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum SearchTarget
 {
@@ -10,6 +11,7 @@ pub(crate) enum SearchTarget
     PlayList,
 }
 
+/// Defines ~~how~~ to search. Used in `SearchCommandKB`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum SearchMode
 {
@@ -19,6 +21,7 @@ pub(crate) enum SearchMode
     Description,
 }
 
+/// TODO: Document and simplify this thing.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum SearchCommandKB
 {
@@ -56,6 +59,7 @@ pub(crate) enum SortMode
     Alphabet,
 }
 
+// TODO: Finish
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum ListTarget
 {
@@ -65,6 +69,7 @@ pub(crate) enum ListTarget
     PlayList,
 }
 
+/// TODO: Document and simplify this thing.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum ListCommandKB
 {
@@ -86,6 +91,7 @@ pub(crate) enum ListCommandKB
     SortContent(SortMode),
 }
 
+/// Main wrapper that includes all available keyboards.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum KeyBoard
 {

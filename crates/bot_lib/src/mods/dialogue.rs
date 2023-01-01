@@ -21,7 +21,7 @@ pub(crate) mod types;
 pub(crate) mod text_handling;
 pub(crate) mod callback_handling;
 
-
+/// Main `text` handler.
 pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: TheDialogue) -> eyre::Result<()>
 {
     let dialogue_data = get_dialogue_data(&dialogue).await?;
@@ -38,7 +38,7 @@ pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: T
     Ok(())
 }
 
-
+/// Main `callback` handler.
 pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> eyre::Result<()>
 {
     let dialogue_data = get_dialogue_data(&dialogue).await?;
