@@ -11,8 +11,8 @@ pub struct YouTubeAccessToken
 {
     /// The token that your application sends to authorize a Google API request.
     pub access_token: String,
-    /// Time when access_token expires (it does so after 1 hour).
-    #[serde(deserialize_with = "time_deserialize")]
+    /// Date and time when access_token expires (it does so after 1 hour).
+    #[serde(deserialize_with = "expires_in_field_deserialize")]
     pub expires_in: time::OffsetDateTime,
     /// A token that you can use to obtain a new access token. Refresh tokens are valid until
     /// the user revokes access. Again, this field is only present in this response if you set
@@ -20,28 +20,31 @@ pub struct YouTubeAccessToken
     pub refresh_token: Option<String>,
     /// The scopes of access granted by the access_token expressed as a list of
     /// space-delimited, case-sensitive strings.
-    #[serde(deserialize_with = "string_of_strings_deserialize")]
+    #[serde(deserialize_with = "scope_field_deserialize")]
     pub scope: Vec<String>,
     /// The type of token returned. At this time, this field's value is always set to Bearer.
     pub token_type: String,
 }
 
+/// One of two internal representations of `YouTubeAccessToken` `scope` field.
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
 #[serde(untagged)]
 enum ScopeInternalRepr
 {
-    StringOfStrings(String),
-    V(Vec<String>),
+    SpaceSeparatedScopes(String),
+    VecOfScopes(Vec<String>),
 }
 
-fn string_of_strings_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+/// Custom serde deserialization helper function for `YouTubeAccessToken` `scope` field.
+/// Serialized representation might be a string of space separated scopes or vector of scopes.
+fn scope_field_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
     where
         D: Deserializer<'de>,
 {
     match ScopeInternalRepr::deserialize(deserializer)?
     {
-        ScopeInternalRepr::V(v) => Ok(v),
-        ScopeInternalRepr::StringOfStrings(s) =>
+        ScopeInternalRepr::VecOfScopes(vec_of_scopes) => Ok(vec_of_scopes),
+        ScopeInternalRepr::SpaceSeparatedScopes(s) =>
             {
                 let vec_of_str = s.split(' ').map(|item| item.to_owned()).collect();
                 Ok(vec_of_str)
@@ -49,23 +52,26 @@ fn string_of_strings_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>,
     }
 }
 
+/// One of two internal representations of `YouTubeAccessToken` `expires_in` field.
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
 #[serde(untagged)]
 enum ExpiresInInternalRepr
 {
-    Seconds(i64),
-    TimeOffset(time::OffsetDateTime)
+    ExpiresAfterSeconds(i64),
+    ExpiresAt(time::OffsetDateTime)
 }
 
-fn time_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
+/// Custom serde deserialization helper function for `YouTubeAccessToken` `expires_in` field.
+/// Serialized representation might be a string of space separated scopes or vector of scopes.
+fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
     where
         D: Deserializer<'de>
 {
     let seconds_or_date_time = ExpiresInInternalRepr::deserialize(deserializer)?;
     match seconds_or_date_time
     {
-        ExpiresInInternalRepr::TimeOffset(offset_date_time) => Ok(offset_date_time),
-        ExpiresInInternalRepr::Seconds(seconds) =>
+        ExpiresInInternalRepr::ExpiresAt(offset_date_time) => Ok(offset_date_time),
+        ExpiresInInternalRepr::ExpiresAfterSeconds(seconds) =>
             {
                 let t = time::Duration::seconds(seconds);
                 let expires_in = time::OffsetDateTime::now_utc() + t;
@@ -74,6 +80,7 @@ fn time_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::
     }
 }
 
+/// Turns error into a string.
 pub(crate) trait MapErrToString<T>
 {
     fn map_err_to_str(self) -> Result<T, String>;
@@ -90,11 +97,12 @@ impl<T, E> MapErrToString<T> for StdResult<T, E>
 
 pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
+/// Asks for code to be exchanged for `access token`.
 pub(crate) const RESPONSE_TYPE: &str = "code";
-
 
 pub(crate) const SCOPE_YOUTUBE_READONLY: &str = "https://www.googleapis.com/auth/youtube.readonly";
 
+/// Required in token request to get `refresh token`.
 pub(crate) const ACCESS_TYPE: &str = "offline";
 
 #[derive(Debug, Display)]
