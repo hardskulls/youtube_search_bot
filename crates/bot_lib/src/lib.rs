@@ -21,7 +21,7 @@ mod mods
 pub mod commands
 {
     pub mod types { pub use crate::mods::commands::Command; }
-    pub mod funcs { pub use crate::mods::commands::{handle_unknown_command, handle_commands, is_other_command}; }
+    pub mod funcs { pub use crate::mods::commands::{funcs::handle_unknown_command, handle_commands, funcs::is_other_command}; }
 }
 
 pub mod dialogue

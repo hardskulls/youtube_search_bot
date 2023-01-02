@@ -3,14 +3,17 @@ use teloxide::
     Bot,
     payloads::SendMessageSetters,
     requests::Requester,
-    types::{InlineKeyboardMarkup, Me, Message},
+    types::{InlineKeyboardMarkup, Message},
     utils::command::BotCommands
 };
-use crate::mods::db::delete_access_token;
+use crate::mods::commands::funcs::log_out;
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
+use crate::mods::errors::MergeOkErr;
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
+
+pub(crate) mod funcs;
 
 /// List of commands available in the bot.
 #[derive(Clone, BotCommands)]
@@ -26,13 +29,13 @@ pub enum Command
     #[command(description = "List Something")]
     List,
     #[command(description = "Delete User Data")]
-    LogOut, // TODO: Test how safe is deleting full token from db.
+    LogOut,
 }
 
 /// Main command handler.
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
 {
-    let (message_text, opt_keyboard, opt_dialogue_data): (_, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
+    let (message_text, opt_keyboard, opt_dialogue_data): (String, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
         match cmd
         {
             Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".to_owned(), None, None),
@@ -51,8 +54,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
                 {
                     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
                     let redis_url = std::env::var("REDIS_URL")?;
-                    let _ = delete_access_token(&user_id, &redis_url);
-                    ("Logged Out ✔".to_owned(), None, None)
+                    log_out(&user_id, &redis_url).await.merge_ok_err()
                 }
         };
     let message_to_send = bot.send_message(msg.chat.id, &message_text);
@@ -64,24 +66,6 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
     }
     else
     { message_to_send.await?; }
-    Ok(())
-}
-
-#[inline]
-pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
-{
-    let bot_name = me.user.username.expect("Bots must have a username");
-    if let Some(text) = msg.text()
-    { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name.as_str()).is_err() }
-    else
-    { false }
-}
-
-/// Tell user that an unknown command was received.
-#[inline]
-pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
-{
-    bot.send_message(msg.chat.id, "Unknown command 🤷‍♀️").await?;
     Ok(())
 }
 
