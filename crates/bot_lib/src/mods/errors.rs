@@ -99,6 +99,21 @@ impl<T> MergeOkErr<T> for StdResult<T, T>
     }
 }
 
+/// This trait provides little helper method that replaces error completely ignoring it.
+/// Required in order to get rid of ugly `.map_err(|_| bar)` calls.
+pub trait MapErrBy<T, N>
+{
+    fn map_err_by(self, f: fn() -> N) -> StdResult<T, N>;
+}
+
+impl<T, E, N> MapErrBy<T, N> for StdResult<T, E>
+{
+    fn map_err_by(self, f: fn() -> N) -> StdResult<T, N>
+    {
+        self.map_err(|_| f())
+    }
+}
+
 #[cfg(test)]
 mod tests
 {

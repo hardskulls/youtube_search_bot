@@ -4,7 +4,7 @@ use teloxide::types::{InlineKeyboardMarkup, Me, Message};
 use teloxide::utils::command::BotCommands;
 use crate::dialogue::types::DialogueData;
 use crate::mods::db::{delete_access_token, get_access_token};
-use crate::mods::errors::NoTextError;
+use crate::mods::errors::{NoTextError, MapErrBy};
 use crate::mods::youtube::types::YouTubeAccessToken;
 use crate::StdResult;
 
@@ -30,12 +30,12 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> StdResult<MessageCon
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
     if let Ok(token) = get_access_token(user_id, db_url)
     {
-        let req = build_log_out_req(token).map_err(|_| err())?;
-        let resp = req.send().await.map_err(|_| err())?;
+        let req = build_log_out_req(token).map_err_by(err)?;
+        let resp = req.send().await.map_err_by(err)?;
         if !resp.status().is_success()
         { return Err(err()) }
         
-        delete_access_token(user_id, db_url).map_err(|_| err())?;
+        delete_access_token(user_id, db_url).map_err_by(err)?;
         
         Ok(("Logged out successfully ✔".to_owned(), None, None))
     }
