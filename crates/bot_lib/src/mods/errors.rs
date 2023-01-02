@@ -3,6 +3,7 @@ use std::future::Future;
 use teloxide::{requests::Requester, Bot, types::ChatId};
 
 use thiserror::Error;
+use crate::StdResult;
 
 #[derive(Error, Debug, Clone)]
 pub enum NetworkError
@@ -76,6 +77,25 @@ pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot,
                 let _ = bot.send_message(send_to, text).await;
                 Err(err)
             }
+    }
+}
+
+/// When `Ok()` and `Err` variants of `Result` are the same
+/// type, it returns this type whether it's an error, or not.
+pub trait MergeOkErr<T>
+{
+    fn merge_ok_err(self) -> T;
+}
+
+impl<T> MergeOkErr<T> for StdResult<T, T>
+{
+    fn merge_ok_err(self) -> T
+    {
+        match self
+        {
+            Ok(ok) => ok,
+            Err(err) => err
+        }
     }
 }
 
