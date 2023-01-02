@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use teloxide::Bot;
 use teloxide::requests::Requester;
 use teloxide::types::{InlineKeyboardMarkup, Me, Message};
@@ -45,37 +45,47 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> StdResult<MessageCon
     { Err(err()) }
 }
 
-fn maybe_print<T: Display>(prefix: &str, printable: &Option<T>, default: &str) -> String
+fn maybe_print<T: Display + Debug>(prefix: &str, printable: &Option<T>, default: &str) -> String
 {
     if let Some(p) = printable
-    { format!("{prefix}{p}") }
+    { format!("{prefix}{p:#?}") }
     else
     { default.to_owned() }
 }
 
-fn print_search_config(c: SearchConfigData) -> String
+fn print_search_config(c: &SearchConfigData) -> String
 {
     let SearchConfigData { target, search_by, result_limit } = c;
-    format!
-    (
-        "Your search config is {} {} {}",
-        maybe_print("\ntarget: ", &target, ""),
-        maybe_print("\nsearch_by: ", &search_by, ""),
-        maybe_print("\nresult_limit: ", &result_limit, "")
-    )
+    let t =
+        format!
+        (
+            "{}{}{}",
+            maybe_print("\ntarget   ", target, ""),
+            maybe_print("\nsearch_by: ", search_by, ""),
+            maybe_print("\nresult_limit: ", result_limit, "")
+        );
+    if t.is_empty()
+    { "You've activated 'search command'".to_owned() }
+    else
+    { format!("Your search config is{t}") }
 }
 
-fn print_list_config(c: ListConfigData) -> String
+fn print_list_config(c: &ListConfigData) -> String
 {
     let ListConfigData { target, result_limit, sort_by, filter } = c;
-    format!
-    (
-        "Your search config is {} {} {} {}",
-        maybe_print("\ntarget: ", &target, ""),
-        maybe_print("\nfilter: ", &filter, ""),
-        maybe_print("\nsearch_by: ", &sort_by, ""),
-        maybe_print("\nresult_limit: ", &result_limit, "")
-    )
+    let t =
+        format!
+        (
+            "{}{}{}{}",
+            maybe_print("\ntarget   ", target, ""),
+            maybe_print("\nfilter   ", filter,  ""),
+            maybe_print("\nsort_by   ", sort_by, ""),
+            maybe_print("\nresult_limit   ", result_limit, "")
+        );
+    if t.is_empty()
+    { "You've activated 'list command'".to_owned() }
+    else
+    { format!("Your list config is{t}") }
 }
 
 pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageContents, MessageContents>
@@ -87,8 +97,8 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageContents, M
     match d_data.state
     {
         State::Starting => Ok(create_msg("Bot just started 🚀")),
-        State::SearchCommandActive(search_config) => Ok(create_msg(&print_search_config(search_config))),
-        State::ListCommandActive(list_config) => Ok(create_msg(&print_list_config(list_config)))
+        State::SearchCommandActive(search_config) => Ok(create_msg(&print_search_config(&search_config))),
+        State::ListCommandActive(list_config) => Ok(create_msg(&print_list_config(&list_config)))
     }
 }
 
@@ -108,6 +118,26 @@ pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 {
     bot.send_message(msg.chat.id, "Unknown command 🤷‍♀️").await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests
+{
+    use crate::mods::inline_keyboards::types::ListTarget;
+    use super::*;
+    
+    #[test]
+    fn printable_test()
+    {
+        let c = SearchConfigData::default();
+        assert_eq!(print_search_config(&c), "You've activated 'search command'");
+        
+        let mut c = ListConfigData::default();
+        assert_eq!(print_list_config(&c), "You've activated 'list command'");
+        
+        c.target = ListTarget::Subscription.into();
+        assert_eq!(print_list_config(&c), "Your list config is\ntarget   Subscription");
+    }
 }
 
 
