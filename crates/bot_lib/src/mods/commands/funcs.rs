@@ -1,10 +1,12 @@
+use std::fmt::Display;
 use teloxide::Bot;
 use teloxide::requests::Requester;
 use teloxide::types::{InlineKeyboardMarkup, Me, Message};
 use teloxide::utils::command::BotCommands;
-use crate::dialogue::types::DialogueData;
+use crate::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
-use crate::mods::errors::{NoTextError, MapErrBy};
+use crate::mods::dialogue::funcs::get_dialogue_data;
+use crate::mods::errors::{NoTextError, MapErrBy, LogErr};
 use crate::mods::youtube::types::YouTubeAccessToken;
 use crate::StdResult;
 
@@ -41,6 +43,53 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> StdResult<MessageCon
     }
     else
     { Err(err()) }
+}
+
+fn maybe_print<T: Display>(prefix: &str, printable: &Option<T>, default: &str) -> String
+{
+    if let Some(p) = printable
+    { format!("{prefix}{p}") }
+    else
+    { default.to_owned() }
+}
+
+fn print_search_config(c: SearchConfigData) -> String
+{
+    let SearchConfigData { target, search_by, result_limit } = c;
+    format!
+    (
+        "Your search config is {} {} {}",
+        maybe_print("\ntarget: ", &target, ""),
+        maybe_print("\nsearch_by: ", &search_by, ""),
+        maybe_print("\nresult_limit: ", &result_limit, "")
+    )
+}
+
+fn print_list_config(c: ListConfigData) -> String
+{
+    let ListConfigData { target, result_limit, sort_by, filter } = c;
+    format!
+    (
+        "Your search config is {} {} {} {}",
+        maybe_print("\ntarget: ", &target, ""),
+        maybe_print("\nfilter: ", &filter, ""),
+        maybe_print("\nsearch_by: ", &sort_by, ""),
+        maybe_print("\nresult_limit: ", &result_limit, "")
+    )
+}
+
+pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageContents, MessageContents>
+{
+    let log_msg = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
+    let create_msg = |m: &str| (m.to_owned(), None, None);
+    let default_err: fn() -> MessageContents = || ("Info command failed ❌".to_owned(), None, None);
+    let d_data = get_dialogue_data(dialogue).await.log_err(log_msg).map_err_by(default_err)?;
+    match d_data.state
+    {
+        State::Starting => Ok(create_msg("Bot just started 🚀")),
+        State::SearchCommandActive(search_config) => Ok(create_msg(&print_search_config(search_config))),
+        State::ListCommandActive(list_config) => Ok(create_msg(&print_list_config(list_config)))
+    }
 }
 
 #[inline]

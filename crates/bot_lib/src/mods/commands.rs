@@ -6,7 +6,7 @@ use teloxide::
     types::{InlineKeyboardMarkup, Message},
     utils::command::BotCommands
 };
-use crate::mods::commands::funcs::log_out;
+use crate::mods::commands::funcs::{info, log_out};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::errors::MergeOkErr;
@@ -39,7 +39,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
         match cmd
         {
             Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".to_owned(), None, None),
-            Command::Info => ("This Bot lets you search stuff on your YouTube channel 🔎 \n Use /search or /list commands 🚀".to_owned(), None, None),
+            Command::Info => info(&dialogue).await.merge_ok_err(),
             Command::Search =>
                 {
                     let state = State::SearchCommandActive(SearchConfigData { ..Default::default() });
