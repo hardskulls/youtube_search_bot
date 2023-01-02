@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::future::Future;
 use teloxide::{requests::Requester, Bot, types::ChatId};
 
@@ -111,6 +111,30 @@ impl<T, E, N> MapErrBy<T, N> for StdResult<T, E>
     fn map_err_by(self, f: fn() -> N) -> StdResult<T, N>
     {
         self.map_err(|_| f())
+    }
+}
+
+/// If error is present, this trait logs it and returns back.
+pub trait LogErr
+{
+    fn log_err(self, log_msg: &str) -> Self;
+}
+
+impl<T, E> LogErr for StdResult<T, E>
+    where
+        E: Display
+{
+    fn log_err(self, log_msg: &str) -> Self
+    {
+        match self
+        {
+            Ok(ok) => Ok(ok),
+            Err(e) =>
+                {
+                    log::error!("{log_msg}{e}");
+                    Err(e)
+                }
+        }
     }
 }
 
