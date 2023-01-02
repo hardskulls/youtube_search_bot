@@ -80,64 +80,6 @@ pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot,
     }
 }
 
-/// When `Ok()` and `Err` variants of `Result` are the same
-/// type, it returns this type whether it's an error, or not.
-pub trait MergeOkErr<T>
-{
-    fn merge_ok_err(self) -> T;
-}
-
-impl<T> MergeOkErr<T> for StdResult<T, T>
-{
-    fn merge_ok_err(self) -> T
-    {
-        match self
-        {
-            Ok(ok) => ok,
-            Err(err) => err
-        }
-    }
-}
-
-/// This trait provides little helper method that replaces error completely ignoring it.
-/// Required in order to get rid of ugly `.map_err(|_| bar)` calls.
-pub trait MapErrBy<T, N>
-{
-    fn map_err_by(self, f: fn() -> N) -> StdResult<T, N>;
-}
-
-impl<T, E, N> MapErrBy<T, N> for StdResult<T, E>
-{
-    fn map_err_by(self, f: fn() -> N) -> StdResult<T, N>
-    {
-        self.map_err(|_| f())
-    }
-}
-
-/// If error is present, this trait logs it and returns back.
-pub trait LogErr
-{
-    fn log_err(self, log_msg: &str) -> Self;
-}
-
-impl<T, E> LogErr for StdResult<T, E>
-    where
-        E: Display
-{
-    fn log_err(self, log_msg: &str) -> Self
-    {
-        match self
-        {
-            Ok(ok) => Ok(ok),
-            Err(e) =>
-                {
-                    log::error!("{log_msg}{e}");
-                    Err(e)
-                }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests
 {

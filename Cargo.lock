@@ -39,9 +39,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.66"
+version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
+checksum = "2cb2f989d18dd141ab8ae82f64d1a8cdd37e0840f73a406896cf5e99502fab61"
 
 [[package]]
 name = "aquamarine"
@@ -239,18 +239,11 @@ dependencies = [
  "axum 0.6.1",
  "bot_lib",
  "eyre",
- "hyper",
  "log 0.4.17",
- "redis 0.22.1",
  "reqwest",
- "serde",
- "serde_json",
  "simple_logger",
  "teloxide",
- "time",
  "tokio",
- "url 2.3.1",
- "yup-oauth2",
 ]
 
 [[package]]
@@ -258,6 +251,7 @@ name = "bot_lib"
 version = "0.1.0"
 dependencies = [
  "axum 0.6.1",
+ "error_traits",
  "eyre",
  "form_urlencoded",
  "google-youtube3",
@@ -336,14 +330,6 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-util",
-]
-
-[[package]]
-name = "conv_to_report"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "error-stack",
 ]
 
 [[package]]
@@ -488,6 +474,16 @@ dependencies = [
  "anyhow",
  "owo-colors",
  "rustc_version",
+]
+
+[[package]]
+name = "error_traits"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "error-stack",
+ "log 0.4.17",
+ "thiserror",
 ]
 
 [[package]]
@@ -1658,9 +1654,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.89"
+version = "1.0.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "020ff22c755c2ed3f8cf162dbb41a7268d934702f3ed3631656ea597e08fc3db"
+checksum = "877c235533714907a8c2464236f5c4b2a17262ef1bd71f38f35ea592c8da6883"
 dependencies = [
  "itoa",
  "ryu",
@@ -1982,18 +1978,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.37"
+version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10deb33631e3c9018b9baf9dcbbc4f737320d2b576bac10f6aefa048fa407e3e"
+checksum = "6a9cd18aa97d5c45c6603caea1da6628790b37f7a34b6ca89522331c5180fed0"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.37"
+version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "982d17546b47146b28f7c22e3d08465f6b8903d0ea13c1660d9d84a6e7adcdbb"
+checksum = "1fb327af4685e4d03fa8cbcf1716380da910eeb2bb8be417e7f9fd3fb164f36f"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,0 +1,18 @@
+[package]
+name = "error_traits"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#[:: Main ::]
+error-stack = { version = "0.2.4", features = ["anyhow"], optional = true }
+anyhow = "1.0.68"
+thiserror = "1.0.38"
+log = "0.4.17"
+
+[features]
+error-stack = ["dep:error-stack"]
+
+

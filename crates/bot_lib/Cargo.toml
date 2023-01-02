@@ -6,14 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#==[ Local ]==
+#[:: Local ::]
 #conv_to_report = { path = "../conv_to_report" }
+error_traits = { path = "../error_traits" }
 
-# ==[ Main ]==
+#[:: Main ::]
 teloxide = { version = "0.11.3", features = ["macros"] }
 google-youtube3 = "4.0.1"
 
-#==[ NetWork Helpers ]==
+#[:: Net ::]
 axum = { version = "0.6.1", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
 url = { version = "2.3.1", features = [] }
 form_urlencoded = { version = "1.1.0", features = [] }
@@ -24,26 +25,26 @@ hyper-rustls = { version = "0.23.2", features = ["http1", "http2", "tokio-runtim
 time = "0.3.17"
 #urlencoding = { version = "2.1.2", features = [] }
 
-#==[ DB ]==
+#[:: DB ::]
 redis = { version = "0.22.1", features = ["tokio-comp", "tls", "tokio-native-tls-comp"] }
 #redis-derive = { version = "0.1.6", features = [] }
 #postgres = { version = "0.19.4", features = [] }
 
-#==[ Errors ]==
-thiserror = "1.0.37"
+#[:: Errors ::]
+thiserror = "1.0.38"
 #error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
 
-#====[ Errors ]====
+#[:: Logs ::]
 log = "0.4.17"
 
-#==[ Serialization ]==
+#[:: Serialization ::]
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
 parse-display = { version = "0.8.0", features = ["std"] }
 to_debug = "0.1.0"
 serde = { version = "1.0.151", features = ["derive"] }
-serde_json = { version = "1.0.89", features = ["std"] }
+serde_json = { version = "1.0.91", features = ["std"] }
 
 [dev-dependencies]
 tokio = { version = "1.23.0", features = ["macros"] }

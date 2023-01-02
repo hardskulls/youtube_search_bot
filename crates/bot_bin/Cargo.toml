@@ -6,39 +6,38 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#====[ Local ]====
+#[:: Local ::]
 bot_lib = { path = "../bot_lib" }
 
-#====[ Main ]====
+#[:: Main ::]
 teloxide = { version = "0.11.3", features = ["webhooks-axum", "redis-storage"] }
 
-#====[ Net ]====
+#[:: Net ::]
 tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
 reqwest = "0.11.13"
 axum = { version = "0.6.1", features = ["macros", "form", "http1", "http2", "json", "multipart", "query"] }
-url = { version = "2.3.1", features = [] }
-hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
-yup-oauth2 = "=7.0.1"
+#url = { version = "2.3.1", features = [] }
+#hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
 
-time = { version = "0.3.17", features = [] }
+#time = { version = "0.3.17", features = [] }
 
-#====[ Errors ]====
+#[:: Errors ::]
 eyre = { version = "0.6.8", features = [] }
 
-#====[ Logging ]====
+#[:: Logging ::]
 log = "0.4.17"
 simple_logger = { version = "4.0.0", features = [] }
 
-#==[ DB ]==
-redis = { version = "0.22.1", features = ["tokio-comp"] }
+#[:: DB ::]
+#redis = { version = "0.22.1", features = ["tokio-comp"] }
 #redis-derive = { version = "0.1.6", features = [] }
 
-#==[ Serialization ]==
+#[:: Serialization ::]
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
 #parse-display = { version = "0.7.0", features = ["std"] }
 #to_debug = "0.1.0"
-serde = { version = "1.0.151", features = ["derive"] }
-serde_json = { version = "1.0.89", features = ["std"] }
+#serde = { version = "1.0.151", features = ["derive"] }
+#serde_json = { version = "1.0.89", features = ["std"] }
 
 

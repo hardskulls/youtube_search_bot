@@ -6,10 +6,10 @@ use teloxide::
     types::{InlineKeyboardMarkup, Message},
     utils::command::BotCommands
 };
+use error_traits::MergeOkErr;
 use crate::mods::commands::funcs::{info, log_out};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
-use crate::mods::errors::MergeOkErr;
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 

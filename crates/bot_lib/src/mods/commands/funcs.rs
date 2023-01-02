@@ -3,10 +3,11 @@ use teloxide::Bot;
 use teloxide::requests::Requester;
 use teloxide::types::{InlineKeyboardMarkup, Me, Message};
 use teloxide::utils::command::BotCommands;
+use error_traits::{LogErr, MapErrBy};
 use crate::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
 use crate::mods::dialogue::funcs::get_dialogue_data;
-use crate::mods::errors::{NoTextError, MapErrBy, LogErr};
+use crate::mods::errors::{NoTextError};
 use crate::mods::youtube::types::YouTubeAccessToken;
 use crate::StdResult;
 
