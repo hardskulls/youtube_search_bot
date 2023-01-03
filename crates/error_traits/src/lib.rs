@@ -115,3 +115,49 @@ impl<T, E> LogErr for StdResult<T, E>
 }
 
 
+/// Turns error into a string.
+pub trait MapErrToString<T>
+{
+    fn map_err_to_str(self) -> Result<T, String>;
+}
+
+impl<T, E> MapErrToString<T> for StdResult<T, E>
+    where E: ToString
+{
+    fn map_err_to_str(self) -> StdResult<T, String>
+    {
+        self.map_err(|e| e.to_string())
+    }
+}
+
+
+/// Wraps any type into `Ok()` variant of `Result`.
+pub trait IntoOk<T, E>
+{
+    fn into_ok(self) -> StdResult<T, E>;
+}
+
+impl<T, E> IntoOk<T, E> for T
+{
+    fn into_ok(self) -> StdResult<T, E>
+    {
+        Ok(self)
+    }
+}
+
+
+/// Wraps any type into `Ok()` variant of `Result`.
+pub trait IntoErr<T, E>
+{
+    fn into_err(self) -> StdResult<T, E>;
+}
+
+impl<T, E> IntoErr<T, E> for E
+{
+    fn into_err(self) -> StdResult<T, E>
+    {
+        Err(self)
+    }
+}
+
+
