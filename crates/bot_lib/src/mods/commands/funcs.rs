@@ -61,9 +61,9 @@ fn print_search_config(c: &SearchConfigData) -> String
         format!
         (
             "{}{}{}",
-            maybe_print("\ntarget   ", target, ""),
-            maybe_print("\nsearch_by: ", search_by, ""),
-            maybe_print("\nresult_limit: ", result_limit, "")
+            maybe_print("\nTarget  is  ", target, ""),
+            maybe_print("\nSearch By  is  ", search_by, ""),
+            maybe_print("\nResult Limit  is  ", result_limit, "")
         );
     if t.is_empty()
     { "You've activated 'search command'".to_owned() }
@@ -78,10 +78,10 @@ fn print_list_config(c: &ListConfigData) -> String
         format!
         (
             "{}{}{}{}",
-            maybe_print("\ntarget   ", target, ""),
-            maybe_print("\nfilter   ", filter,  ""),
-            maybe_print("\nsort_by   ", sort_by, ""),
-            maybe_print("\nresult_limit   ", result_limit, "")
+            maybe_print("\nTarget  is  ", target, ""),
+            maybe_print("\nFilter  is  ", filter,  ""),
+            maybe_print("\nSort By  is  ", sort_by, ""),
+            maybe_print("\nResult Limit  is  ", result_limit, "")
         );
     if t.is_empty()
     { "You've activated 'list command'".to_owned() }
