@@ -11,9 +11,9 @@ use url::Url;
 use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
 
 use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
-use crate::mods::errors::NoTextError;
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
+use crate::mods::youtube::traits::Searcheable;
 use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
 /// Helper function used for `handle_text` handler.
@@ -77,17 +77,13 @@ pub(crate) async fn execute_search
     
     for s in subscription_list.into_iter().take(result_lim as usize)
     {
-        let snip = s.snippet.unwrap_or_default();
         let (title, descr, chan_id) =
             (
-                snip.title.unwrap_or_else(|| NoTextError.to_string() + "No channel title"),
-                snip.description.unwrap_or_else(|| NoTextError.to_string() + "No channel description"),
-                snip.resource_id
-                    .unwrap_or_default()
-                    .channel_id
-                    .unwrap_or_else(|| NoTextError.to_string() + "No channel id")
+                s.title().unwrap_or("No channel title"),
+                s.description().unwrap_or("No channel description"),
+                s.link().unwrap_or_else(|| "No channel id".to_owned())
             );
-        let text = format!("<b>{}</b>\n\n{}\n\nhttps://youtube.com/channel/{}", title, descr, chan_id);
+        let text = format!("<b>{}</b> \n\n{} \n\n{}", title, descr, chan_id);
         let _sent_msg = bot.send_message(msg.chat.id, text).parse_mode(ParseMode::Html).await;
         log::info!(" [:: LOG ::]    ( @:[fn::execute_search] '_sent_msg' is [| '{:#?}' |] )", &_sent_msg);
     }
@@ -150,20 +146,17 @@ pub(crate) async fn get_subs_list
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches(search_mode: &SearchMode, store_in: &mut Vec<Subscription>, search_in: Vec<Subscription>, text_to_look_for: &str)
+fn find_matches<S: Searcheable>(search_mode: &SearchMode, store_in: &mut Vec<S>, search_in: Vec<S>, text_to_look_for: &str)
 {
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");
     let text_to_search = text_to_look_for.to_lowercase();
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
-    for sub in search_in
+    for item in search_in
     {
-        let default_snip = Default::default();
-        let snip = sub.snippet.as_ref().unwrap_or(&default_snip);
-        let compare_by = if let &SearchMode::Title = search_mode { snip.title.as_ref() } else { snip.description.as_ref() };
+        let compare_by = if let &SearchMode::Title = search_mode { item.title() } else { item.description() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
-
         if let Some(title_or_descr) = compare_by
-        { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(sub) } }
+        { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(item) } }
     }
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] ended )");

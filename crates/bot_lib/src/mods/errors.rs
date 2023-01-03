@@ -1,9 +1,8 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::future::Future;
 use teloxide::{requests::Requester, Bot, types::ChatId};
 
 use thiserror::Error;
-use crate::StdResult;
 
 #[derive(Error, Debug, Clone)]
 pub enum NetworkError

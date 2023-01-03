@@ -5,6 +5,7 @@ use crate::mods::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
 use crate::StdResult;
 
 pub(crate) mod types;
+pub(crate) mod traits;
 
 /// Get all subscriptions on user's YouTube channel.
 pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<String>, access_token: &str)
