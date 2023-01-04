@@ -1,6 +1,5 @@
 use parse_display::Display;
 use serde::{Deserialize, Deserializer, Serialize};
-use crate::StdResult;
 
 /// Represents a `token` as returned by `OAuth2` servers.
 ///
@@ -77,21 +76,6 @@ fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetD
                 let expires_in = time::OffsetDateTime::now_utc() + t;
                 Ok(expires_in)
             }
-    }
-}
-
-/// Turns error into a string.
-pub(crate) trait MapErrToString<T>
-{
-    fn map_err_to_str(self) -> Result<T, String>;
-}
-
-impl<T, E> MapErrToString<T> for StdResult<T, E>
-    where E: ToString
-{
-    fn map_err_to_str(self) -> StdResult<T, String>
-    {
-        self.map_err(|e| e.to_string())
     }
 }
 

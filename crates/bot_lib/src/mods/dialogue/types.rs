@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
-use teloxide::
-{
-    dispatching::dialogue::{ErasedStorage, Dialogue},
-    types::CallbackQuery,
-};
-use teloxide::types::Message;
+use teloxide::dispatching::dialogue::{Dialogue, ErasedStorage};
+use teloxide::types::{CallbackQuery, InlineKeyboardMarkup, Message};
+
 use crate::mods::inline_keyboards::types::{ListFilter, ListTarget, SearchMode, SearchTarget, SortMode};
+
+/// A type that is returned in the end of handlers.
+pub type MessageContents = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
 
 /// Framework wrapper storing all dialogue data.
 /// Available in handlers.

@@ -1,16 +1,12 @@
 use google_youtube3::{api::Subscription, oauth2::read_application_secret};
-
-use teloxide::
-{
-    Bot,
-    payloads::SendMessageSetters,
-    requests::Requester,
-    types::{InlineKeyboardMarkup, Message, ParseMode}
-};
+use teloxide::Bot;
+use teloxide::payloads::SendMessageSetters;
+use teloxide::requests::Requester;
+use teloxide::types::{Message, ParseMode};
 use url::Url;
-use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
 
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, Either};
+use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
+use crate::mods::dialogue::types::{DialogueData, Either, ListConfigData, MessageContents, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}};
 use crate::mods::inline_keyboards::types::SearchMode;
 use crate::mods::youtube::{list_subscriptions, make_auth_url};
 use crate::mods::youtube::traits::Searcheable;
@@ -19,7 +15,7 @@ use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READ
 /// Helper function used for `handle_text` handler.
 /// Parses user input as number in order to set it as `result limit` setting.
 pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
-    -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
+    -> MessageContents
 {
     match text.parse::<u32>()
     {
@@ -50,7 +46,7 @@ pub(crate) async fn execute_search
     result_lim: u32,
     search_mode: &SearchMode,
 )
-    -> eyre::Result<(String, Option<InlineKeyboardMarkup>, Option<DialogueData>)>
+    -> eyre::Result<MessageContents>
 {
     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
     let redis_url = std::env::var("REDIS_URL")?;
@@ -166,7 +162,9 @@ fn find_matches<S: Searcheable>(search_mode: &SearchMode, store_in: &mut Vec<S>,
 mod tests
 {
     use axum::http::Request;
+    
     use crate::mods::net::find_by_key;
+    
     use super::*;
     
     // TODO: Finish or remove

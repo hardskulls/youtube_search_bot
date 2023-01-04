@@ -1,20 +1,18 @@
-use teloxide::
-{
-    Bot,
-    dispatching::dialogue::GetChatId,
-    requests::Requester,
-    types::{CallbackQuery, InlineKeyboardMarkup, Message},
-};
+use teloxide::Bot;
+use teloxide::dispatching::dialogue::GetChatId;
+use teloxide::requests::Requester;
+use teloxide::types::{CallbackQuery, Message};
 
 use crate::mods::
 {
     dialogue::callback_handling::{callback_helper_for_list_kb, callback_helper_for_search_kb},
     dialogue::funcs::{get_callback_data, get_dialogue_data, get_text, update_optionally_and_send_message},
     dialogue::text_handling::{execute_search, parse_number},
-    dialogue::types::{DialogueData, Either, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, TheDialogue},
-    errors::{EndpointErrors, DialogueStateStorageError},
+    dialogue::types::{Either, ListConfigData, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}, TheDialogue},
+    errors::{DialogueStateStorageError, EndpointErrors},
     inline_keyboards::types::{KeyBoard::{self, ListCommand, SearchCommand}, ListCommandKB, SearchCommandKB, SearchMode},
 };
+use crate::mods::dialogue::types::MessageContents;
 
 pub(crate) mod funcs;
 pub(crate) mod types;
@@ -28,7 +26,7 @@ pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: T
     let chat_id = callback.chat_id().ok_or(EndpointErrors::GameError)?;
     let keyboard: KeyBoard = serde_json::from_str(&get_callback_data(&callback).await?)?;
     let (message_text, opt_keyboard, opt_dialogue_data):
-        (String, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
+        MessageContents =
         match &keyboard
         {
             SearchCommand(search_kb) => callback_helper_for_search_kb(search_kb, dialogue_data, callback),
@@ -50,7 +48,7 @@ pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> eyre:
     let text = get_text(&msg).await?;
 
     let (message_text, opt_keyboard, opt_dialogue_data):
-        (String, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
+        MessageContents =
         match (dialogue_data.state.as_ref(), keyboard)
         {
             (State::Starting, ..) => ("Bot is running! 🚀 \nSend /start command to start a game 🕹".to_owned(), None, None),

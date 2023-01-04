@@ -1,17 +1,19 @@
 use std::fmt::{Debug, Display};
+
 use teloxide::Bot;
 use teloxide::requests::Requester;
-use teloxide::types::{InlineKeyboardMarkup, Me, Message};
+use teloxide::types::{Me, Message};
 use teloxide::utils::command::BotCommands;
-use error_traits::{LogErr, MapErrBy};
-use crate::dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State, TheDialogue};
+
+use error_traits::{InErr, LogErr, MapErrBy};
+
+use crate::dialogue::types::{ListConfigData, SearchConfigData, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
 use crate::mods::dialogue::funcs::get_dialogue_data;
-use crate::mods::errors::{NoTextError};
+use crate::mods::dialogue::types::MessageContents;
+use crate::mods::errors::NoTextError;
 use crate::mods::youtube::types::YouTubeAccessToken;
 use crate::StdResult;
-
-type MessageContents = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
@@ -36,14 +38,14 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> StdResult<MessageCon
         let req = build_log_out_req(token).map_err_by(err)?;
         let resp = req.send().await.map_err_by(err)?;
         if !resp.status().is_success()
-        { return Err(err()) }
+        { return err().in_err() }
         
         delete_access_token(user_id, db_url).map_err_by(err)?;
         
         Ok(("Logged out successfully ✔".to_owned(), None, None))
     }
     else
-    { Err(err()) }
+    { err().in_err() }
 }
 
 fn maybe_print<T: Display + Debug>(prefix: &str, printable: &Option<T>, default: &str) -> String
@@ -125,6 +127,7 @@ pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 mod tests
 {
     use crate::mods::inline_keyboards::types::ListTarget;
+    
     use super::*;
     
     #[test]
@@ -137,7 +140,7 @@ mod tests
         assert_eq!(print_list_config(&c), "You've activated 'list command'");
         
         c.target = ListTarget::Subscription.into();
-        assert_eq!(print_list_config(&c), "Your list config is\ntarget   Subscription");
+        assert_eq!(print_list_config(&c), "Your list config is\nTarget  is  Subscription");
     }
 }
 

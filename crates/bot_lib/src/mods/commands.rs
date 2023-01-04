@@ -1,15 +1,13 @@
-use teloxide::
-{
-    Bot,
-    payloads::SendMessageSetters,
-    requests::Requester,
-    types::{InlineKeyboardMarkup, Message},
-    utils::command::BotCommands
-};
-use error_traits::MergeOkErr;
-use crate::mods::commands::funcs::{info, log_out};
+use teloxide::Bot;
+use teloxide::payloads::SendMessageSetters;
+use teloxide::requests::Requester;
+use teloxide::types::Message;
+use teloxide::utils::command::BotCommands;
 
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
+use error_traits::MergeOkErr;
+
+use crate::mods::commands::funcs::{info, log_out};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageContents, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 
@@ -35,7 +33,7 @@ pub enum Command
 /// Main command handler.
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
 {
-    let (message_text, opt_keyboard, opt_dialogue_data): (String, Option<InlineKeyboardMarkup>, Option<DialogueData>) =
+    let (message_text, opt_keyboard, opt_dialogue_data): MessageContents =
         match cmd
         {
             Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".to_owned(), None, None),

@@ -1,18 +1,15 @@
-use teloxide::types::{CallbackQuery, InlineKeyboardMarkup};
+use teloxide::types::CallbackQuery;
 
 use State::{ListCommandActive, SearchCommandActive};
 
-use crate::mods::
-{
-    dialogue::funcs::{list_config_update_or_default, search_config_update_or_default},
-    dialogue::types::{DialogueData, ListConfigData, SearchConfigData, State},
-    inline_keyboards::types::{ListCommandKB, SearchCommandKB},
-};
+use crate::mods::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageContents, SearchConfigData, State};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
+use crate::mods::inline_keyboards::types::{ListCommandKB, SearchCommandKB};
 
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
-    -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
+    -> MessageContents
 {
     let opt_dialogue_data =
         match search_kb
@@ -42,7 +39,7 @@ pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogu
 
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
-    -> (String, Option<InlineKeyboardMarkup>, Option<DialogueData>)
+    -> MessageContents
 {
     let opt_dialogue_data =
         match list_kb

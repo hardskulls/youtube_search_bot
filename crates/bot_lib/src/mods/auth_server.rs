@@ -6,7 +6,8 @@ use reqwest::RequestBuilder;
 
 use crate::mods::db::{combine_old_new_tokens, set_access_token};
 use crate::mods::net::find_by_key;
-use crate::mods::youtube::types::{MapErrToString, YouTubeAccessToken};
+use crate::mods::youtube::types::YouTubeAccessToken;
+use error_traits::MapErrToString;
 use crate::StdResult;
 
 async fn params(auth_code: &str) -> [(String, String); 5]

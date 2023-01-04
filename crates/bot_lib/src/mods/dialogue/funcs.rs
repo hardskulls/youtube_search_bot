@@ -1,12 +1,9 @@
-use teloxide::
-{
-    Bot,
-    requests::Requester,
-    types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message},
-    payloads::EditMessageTextSetters
-};
+use teloxide::Bot;
+use teloxide::payloads::EditMessageTextSetters;
+use teloxide::requests::Requester;
+use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message};
 
-use crate::mods::dialogue::types::{DialogueData, State, ListConfigData, SearchConfigData, TheDialogue, MessageWithKB};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
 use crate::mods::errors::NoMessageWithKB;
 use crate::StdResult;
@@ -54,8 +51,7 @@ pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
 {
     match (opt_keyboard, opt_dialogue, opt_dialogue_data)
     {
-        (Some(kb), Some(dialogue), Some(d_data))
-            =>
+        (Some(kb), Some(dialogue), Some(d_data)) =>
             {
                 edit_keyboard(&bot, text_to_send, kb, &d_data.message_with_kb).await?;
                 dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;

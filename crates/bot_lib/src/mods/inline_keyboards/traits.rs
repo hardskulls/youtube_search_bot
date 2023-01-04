@@ -1,7 +1,8 @@
 use std::fmt::Display;
 use teloxide::types::InlineKeyboardMarkup;
 use crate::mods::inline_keyboards::funcs::{button, inline_button};
-use crate::mods::inline_keyboards::types::{KeyBoard, ListCommandKB, ListFilter, ListTarget, SearchCommandKB, SearchMode, SearchTarget, SortMode};
+use crate::mods::inline_keyboards::types::{KeyBoard, ListCommandKB, ListFilter, ListTarget};
+use crate::mods::inline_keyboards::types::{SearchCommandKB, SearchMode, SearchTarget, SortMode};
 
 /// Creates `InlineKeyboardMarkup`.
 pub trait CreateKB

@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 #[:: Local ::]
 #conv_to_report = { path = "../conv_to_report" }
-error_traits = { path = "../error_traits" }
+error_traits = { path = "../error_traits", features = ["log_err"] }
 
 #[:: Main ::]
 teloxide = { version = "0.11.3", features = ["macros"] }
