@@ -40,12 +40,12 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::Info => info(&dialogue).await.merge_ok_err(),
             Command::Search =>
                 {
-                    let state = State::SearchCommandActive(SearchConfigData { ..Default::default() });
+                    let state = State::SearchCommandActive(SearchConfigData::default());
                     (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::List =>
                 {
-                    let state = State::ListCommandActive(ListConfigData { ..Default::default() });
+                    let state = State::ListCommandActive(ListConfigData::default());
                     (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::LogOut =>
