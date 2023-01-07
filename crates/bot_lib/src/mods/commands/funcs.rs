@@ -153,7 +153,8 @@ mod tests
         assert_eq!(req.headers().get(hyper::header::HOST).unwrap().to_str().unwrap(), "oauth2.googleapis.com");
         assert_eq!(req.headers().get(hyper::header::CONTENT_TYPE).unwrap().to_str().unwrap(), "application/x-www-form-urlencoded");
         assert_eq!(req.url().as_str(), "https://oauth2.googleapis.com/revoke");
-        assert_eq!(req.body().unwrap().as_bytes().unwrap(), token.access_token.as_bytes());
+        let expected_body = reqwest::Body::from(format!("token={t}", t = token.refresh_token.unwrap()));
+        assert_eq!(req.body().unwrap().as_bytes().unwrap(), expected_body.as_bytes().unwrap());
     }
 }
 
