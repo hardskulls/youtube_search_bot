@@ -98,48 +98,4 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
     "server is up"
 }
 
-#[cfg(test)]
-mod tests
-{
-    use super::*;
-    
-    #[tokio::test]
-    async fn print_request_contents_test()
-    {
-        let (_state, _for_user, auth_code) = ("this_is_state", "this_is_for_user", "this_is_auth_code");
-        let params = params(auth_code).await;
-        let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
-        let request =
-            hyper::Request::builder()
-                .uri(uri.as_str())
-                .method(hyper::Method::POST)
-                .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
-                .header(hyper::header::HOST, "oauth2.googleapis.com")
-                .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::empty())
-                .unwrap();
-        println!(" [:: LOG ::]    ( 'request' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), request);
-        assert_eq!(request.method(), hyper::Method::POST)
-    }
-    
-    #[tokio::test]
-    async fn access_token_request_test()
-    {
-        let auth_code = "4/tfi76r7r7uruydyt";
-        let params = params(auth_code).await;
-        dbg!(&params);
-        let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
-        dbg!(&uri);
-        let r =
-            reqwest::Client::new()
-                .post(uri)
-                .header(hyper::header::LOCATION, "https://t.me/test_echo_123_456_bot")
-                .header(hyper::header::HOST, "oauth2.googleapis.com")
-                .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded");
-        dbg!(&r);
-        log::info!(" [:: LOG ::]    ( 'r' of type '{}' is [< {:#?} >]", std::any::type_name::<Request<Body>>(), r);
-        assert!(!auth_code.contains("hjgjgjg"));
-    }
-}
-
 

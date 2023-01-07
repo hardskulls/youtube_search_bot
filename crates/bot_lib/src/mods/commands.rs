@@ -7,7 +7,7 @@ use teloxide::utils::command::BotCommands;
 use error_traits::MergeOkErr;
 
 use crate::mods::commands::funcs::{info, log_out};
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageContents, MessageWithKB, SearchConfigData, State, TheDialogue};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageTriplet, MessageWithKB, SearchConfigData, State, TheDialogue};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::SearchCommandKB::SearchConfig;
 
@@ -33,7 +33,7 @@ pub enum Command
 /// Main command handler.
 pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd: Command) -> eyre::Result<()>
 {
-    let (message_text, opt_keyboard, opt_dialogue_data): MessageContents =
+    let (message_text, opt_keyboard, opt_dialogue_data): MessageTriplet =
         match cmd
         {
             Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".to_owned(), None, None),
@@ -41,12 +41,12 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::Search =>
                 {
                     let state = State::SearchCommandActive(SearchConfigData::default());
-                    (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (SearchConfig.kb_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::List =>
                 {
                     let state = State::ListCommandActive(ListConfigData::default());
-                    (SearchConfig.keyboard_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (SearchConfig.kb_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::LogOut =>
                 {

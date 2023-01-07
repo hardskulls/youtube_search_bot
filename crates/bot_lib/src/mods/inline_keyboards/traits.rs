@@ -78,11 +78,11 @@ impl CreateKB for ListCommandKB
 
 /// Text to show in message with inline keyboard.
 pub trait KeyboardText
-{ fn keyboard_text(&self) -> String; }
+{ fn kb_text(&self) -> String; }
 
 impl KeyboardText for SearchCommandKB
 {
-    fn keyboard_text(&self) -> String
+    fn kb_text(&self) -> String
     {
         match *self
         {
@@ -97,7 +97,7 @@ impl KeyboardText for SearchCommandKB
 
 impl KeyboardText for ListCommandKB
 {
-    fn keyboard_text(&self) -> String
+    fn kb_text(&self) -> String
     {
         match *self
         {
@@ -188,5 +188,11 @@ impl ButtonText for ListTarget {}
         InlineKeyboardMarkup { inline_keyboard: vec![row_1, row_2] }
     }
 }*/
+
+#[cfg(test)]
+mod tests
+{
+    
+}
 
 

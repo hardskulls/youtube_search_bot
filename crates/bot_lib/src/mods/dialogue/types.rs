@@ -5,7 +5,7 @@ use teloxide::types::{CallbackQuery, InlineKeyboardMarkup, Message};
 use crate::mods::inline_keyboards::types::{ListFilter, ListTarget, SearchMode, SearchTarget, SortMode};
 
 /// A type that is returned in the end of handlers.
-pub type MessageContents = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
+pub type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
 
 /// Framework wrapper storing all dialogue data.
 /// Available in handlers.

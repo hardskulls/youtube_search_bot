@@ -10,10 +10,10 @@ use error_traits::{InErr, LogErr, MapErrBy};
 use crate::dialogue::types::{ListConfigData, SearchConfigData, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
 use crate::mods::dialogue::funcs::get_dialogue_data;
-use crate::mods::dialogue::types::MessageContents;
+use crate::mods::dialogue::types::MessageTriplet;
 use crate::mods::errors::NoTextError;
 use crate::mods::youtube::types::YouTubeAccessToken;
-use crate::StdResult;
+use crate::{FlatRes, StdResult};
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
@@ -30,7 +30,7 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 }
 
 /// Revoke `refresh token` and delete token from db.
-pub(crate) async fn log_out(user_id: &str, db_url: &str) -> StdResult<MessageContents, MessageContents>
+pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
 {
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
     if let Ok(token) = get_access_token(user_id, db_url)
@@ -91,12 +91,12 @@ fn print_list_config(c: &ListConfigData) -> String
     { format!("Your list config is{t}") }
 }
 
-pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageContents, MessageContents>
+pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
-    let log_msg = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
+    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
     let create_msg = |m: &str| (m.to_owned(), None, None);
-    let default_err: fn() -> MessageContents = || ("Info command failed ❌".to_owned(), None, None);
-    let d_data = get_dialogue_data(dialogue).await.log_err(log_msg).map_err_by(default_err)?;
+    let default_err: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
+    let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(default_err)?;
     match d_data.state
     {
         State::Starting => Ok(create_msg("Bot just started 🚀")),
@@ -141,6 +141,19 @@ mod tests
         
         c.target = ListTarget::Subscription.into();
         assert_eq!(print_list_config(&c), "Your list config is\nTarget  is  Subscription");
+    }
+    
+    #[test]
+    fn request_build_test()
+    {
+        let (access_token, refresh_token) = ("acc_tok_653654265432".into(), "ref_tok_76876576345".to_owned().into());
+        let (expires_in, scope, token_type) = (time::OffsetDateTime::now_utc(), vec![], "Bearer".to_owned());
+        let token = YouTubeAccessToken { access_token, expires_in, refresh_token, scope, token_type };
+        let req = build_log_out_req(token.clone()).unwrap().build().unwrap();
+        assert_eq!(req.headers().get(hyper::header::HOST).unwrap().to_str().unwrap(), "oauth2.googleapis.com");
+        assert_eq!(req.headers().get(hyper::header::CONTENT_TYPE).unwrap().to_str().unwrap(), "application/x-www-form-urlencoded");
+        assert_eq!(req.url().as_str(), "https://oauth2.googleapis.com/revoke");
+        assert_eq!(req.body().unwrap().as_bytes().unwrap(), token.access_token.as_bytes());
     }
 }
 

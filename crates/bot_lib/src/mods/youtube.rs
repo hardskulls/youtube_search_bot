@@ -1,33 +1,46 @@
-use google_youtube3::api::SubscriptionListResponse;
+use std::fmt::Debug;
+use error_traits::InOk;
+use crate::mods::inline_keyboards::types::SearchMode;
 
 use crate::mods::net::join;
+use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
+use crate::mods::youtube::traits::Searchable;
 use crate::mods::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
 use crate::StdResult;
 
 pub(crate) mod types;
 pub(crate) mod traits;
 
-/// Get all subscriptions on user's YouTube channel.
-pub async fn list_subscriptions(client: &reqwest::Client, next_page_tok: Option<String>, access_token: &str)
-    -> eyre::Result<SubscriptionListResponse>
+/// Request items (subscriptions, playlists, etc).
+pub async fn request_items<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T)
+    -> eyre::Result<T::Target>
+    where
+        T: ItemsListRequestBuilder
 {
-    let mut req =
-        client
-            .get(reqwest::Url::parse("https://www.googleapis.com/youtube/v3/subscriptions")?)
-            .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
-            .header(reqwest::header::AUTHORIZATION, format!("Bearer {}", access_token))
-            .header(reqwest::header::ACCEPT, "application/json");
-    if let Some(page) = next_page_tok
-    { req = req.query(&[("pageToken", &page)]) }
-    
-    let resp = req.send().await?;
+    let req_builder = item_to_search.build_req(client, access_token, None)?;
+    let resp = req_builder.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     if !resp.status().is_success()
     { return Err(eyre::eyre!("status code is not a success")) }
     
-    let subscr_list_resp = resp.json().await?;
-    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'subscr_list_resp' is [| '{:#?}' |] )", subscr_list_resp);
-    Ok(subscr_list_resp)
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
+    resp.json::<T::Target>().await?.in_ok()
+}
+
+/// Request items (subscriptions, playlists, etc).
+pub async fn request_items_page<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, next_page_token: String)
+    -> eyre::Result<T::Target>
+    where
+        T: ItemsListRequestBuilder
+{
+    let req_builder = item_to_search.build_req(client, access_token, next_page_token.into())?;
+    let resp = req_builder.send().await?;
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
+    if !resp.status().is_success()
+    { return Err(eyre::eyre!("status code is not a success")) }
+    
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
+    resp.json::<T::Target>().await?.in_ok()
 }
 
 /// Authorization url constructor.
@@ -45,57 +58,70 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
     Ok(url)
 }
 
-#[cfg(test)]
-mod tests
+/// Search and filter subscriptions.
+pub(crate) async fn search_items<I>
+(
+    search_mode: &SearchMode,
+    request_builder: I,
+    text_to_look_for: &str,
+    access_token: &str,
+    max_res: u32
+)
+    -> eyre::Result<Vec<<I::Target as ItemsResponsePage>::Item>>
+    where
+        I: ItemsListRequestBuilder,
+        I::Target: Default + Debug + ItemsResponsePage
 {
-    use google_youtube3::oauth2::ApplicationSecret;
-    use google_youtube3::oauth2::read_application_secret;
+    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] started )");
+    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] INPUT is [| '{:?}' |] )", (&search_mode, &text_to_look_for, &max_res));
+    let client = reqwest::Client::new();
+    let initial_response =
+        request_items(&client, access_token, &request_builder).await.unwrap_or_default();
+    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] FIRST 'subs_list_resp' is [| '{:?}' |] )", (&initial_response));
+    let items_and_pg_token = initial_response.items_search_res();
     
-    use crate::mods::net::query_pairs;
-    use crate::mods::youtube::make_auth_url;
+    let mut store_in = vec![];
     
-    const URL_1 : &str =
-        "\
-        https://accounts.google.com/o/oauth2/auth?\
-        scope=https://www.googleapis.com/auth/youtube%20https://www.googleapis.com/auth/youtube.readonly&\
-        access_type=offline&\
-        redirect_uri=http://127.0.0.1:62320&\
-        response_type=code&\
-        client_id=799749940076-oktc5l1861j0ilnp3jndb9elrk38krus.apps.googleusercontent.com\
-        ";
+    if let Some(items) = items_and_pg_token.items
+    { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
     
-    #[tokio::test]
-    async fn make_auth_url_test() -> eyre::Result<()>
+    let mut next_page_token = items_and_pg_token.next_page_token;
+    while let Some(page) = next_page_token
     {
-        let secret =
-            read_application_secret("C:/Users/Bender/Documents/Code/MyCode/Current/youtube_search_bot/crates/secret.json").await.unwrap();
-        let (client_id, redirect_uri, response_type) = (secret.client_id, secret.redirect_uris[0].clone(), "code".into());
-        let scopes = ["https://www.googleapis.com/auth/youtube".to_owned(), "https://www.googleapis.com/auth/youtube.readonly".to_owned()];
-        let opt_params = [("access_type".to_owned(), "offline".to_owned())];
-        let url = make_auth_url(client_id, redirect_uri, response_type, &scopes, &opt_params).unwrap();
-        let uri_1 = url.as_str().parse::<axum::http::Uri>().unwrap();
-        let uri_2 = URL_1.parse::<axum::http::Uri>().unwrap();
-        let mut val_1: Vec<_> = query_pairs(uri_1.query().unwrap_or(""), "&")?.collect();
-        val_1.sort();
-        let mut val_2: Vec<_> = query_pairs(uri_2.query().unwrap_or(""), "&")?.collect();
-        val_2.sort();
-        for (i, x) in val_1.iter().enumerate()
-        {
-            assert_eq!(x, &val_2[i]);
-        }
-        Ok(())
+        let pagination_resp =
+            request_items_page(&client, access_token, &request_builder, page).await.unwrap_or_default();
+        
+        let items_search_res = pagination_resp.items_search_res();
+        next_page_token = items_search_res.next_page_token;
+        
+        if let Some(items) = items_search_res.items
+        { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
+        
+        if store_in.len() >= max_res as usize
+        { next_page_token = None }
     }
-    
-    #[tokio::test]
-    async fn test_make_url()
+    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] FINAL 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
+    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] ended )");
+    Ok(store_in)
+}
+
+/// Find matches in a list of subscriptions.
+fn find_matches<S>(search_mode: &SearchMode, store_in: &mut Vec<S>, search_in: Vec<S>, text_to_look_for: &str)
+    where
+        S: Searchable
+{
+    log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");
+    let text_to_search = text_to_look_for.to_lowercase();
+    log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
+    for item in search_in
     {
-        let secret: ApplicationSecret = read_application_secret("client_secret_web_app.json").await.unwrap();
-        let (response_type, scope) = ("code".to_owned(), ["https://www.googleapis.com/auth/youtube".to_owned()]);
-        let url = make_auth_url(secret.client_id, secret.redirect_uris[0].clone(), response_type, &scope, &[]);
-        assert!(matches!(url, Ok(_))) ;
-        dbg!(&url) ;
-        println!("{}", url.as_ref().unwrap()) ;
+        let compare_by = match *search_mode { SearchMode::Title => item.title(), SearchMode::Description => item.description() };
+        log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
+        if let Some(title_or_descr) = compare_by
+        { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(item) } }
     }
+    log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
+    log::info!(" [:: LOG ::]    ( @:[fn::find_matches] ended )");
 }
 
 

@@ -79,24 +79,4 @@ pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot,
     }
 }
 
-#[cfg(test)]
-mod tests
-{
-    use miette::Diagnostic;
-    use super::*;
-
-    #[derive(Error, Debug, Clone, Diagnostic)]
-    #[error("[ {:?} ] : ( Failed to parse value. )", Self)]
-    struct TestError;
-
-    #[test]
-    fn miette_lib_test() -> miette::Result<()>
-    {
-        let maybe_number = "not a number".parse::<u8>().ok();
-        let maybe_number = maybe_number.ok_or(TestError)?;
-        assert_eq!(maybe_number, 8);
-        Ok(())
-    }
-}
-
 

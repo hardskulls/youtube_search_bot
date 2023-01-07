@@ -3,13 +3,13 @@ use teloxide::types::CallbackQuery;
 use State::{ListCommandActive, SearchCommandActive};
 
 use crate::mods::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageContents, SearchConfigData, State};
+use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageTriplet, SearchConfigData, State};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
 use crate::mods::inline_keyboards::types::{ListCommandKB, SearchCommandKB};
 
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
-    -> MessageContents
+    -> MessageTriplet
 {
     let opt_dialogue_data =
         match search_kb
@@ -34,12 +34,12 @@ pub(crate) fn callback_helper_for_search_kb(search_kb: &SearchCommandKB, dialogu
                 }
             _ => dialogue_data.into()
         };
-    (search_kb.keyboard_text(), search_kb.create_kb(), opt_dialogue_data)
+    (search_kb.kb_text(), search_kb.create_kb(), opt_dialogue_data)
 }
 
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data: DialogueData, callback: CallbackQuery)
-    -> MessageContents
+    -> MessageTriplet
 {
     let opt_dialogue_data =
         match list_kb
@@ -70,7 +70,7 @@ pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandKB, dialogue_data
                 }
             _ => dialogue_data.into()
         };
-    (list_kb.keyboard_text(), list_kb.create_kb(), opt_dialogue_data)
+    (list_kb.kb_text(), list_kb.create_kb(), opt_dialogue_data)
 }
 
 

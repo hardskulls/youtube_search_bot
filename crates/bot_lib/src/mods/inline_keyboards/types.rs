@@ -21,7 +21,7 @@ pub(crate) enum SearchMode
     Description,
 }
 
-/// TODO: Document and simplify this thing.
+/// List of `Inline Keyboard` buttons for `search` bot command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum SearchCommandKB
 {
@@ -69,7 +69,7 @@ pub(crate) enum ListTarget
     PlayList,
 }
 
-/// TODO: Document and simplify this thing.
+/// List of `Inline Keyboard` buttons for `list` bot command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum ListCommandKB
 {

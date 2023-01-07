@@ -1,6 +1,8 @@
 use crate::errors::types::ParseError;
 use crate::StdResult;
 
+pub(crate) mod traits;
+
 pub(crate) fn join<T>(pieces: &[T], separator: &str) -> String
     where T: AsRef<str>,
 {

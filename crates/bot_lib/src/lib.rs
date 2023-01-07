@@ -1,6 +1,8 @@
 
 pub(crate) type StdResult<T, E> = Result<T, E>;
 
+pub(crate) type FlatRes<T> = StdResult<T, T>;
+
 mod mods
 {
     pub(crate) mod errors;

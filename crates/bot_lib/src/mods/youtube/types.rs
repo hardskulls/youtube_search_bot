@@ -128,7 +128,7 @@ mod tests
     #[test]
     fn deserialize_from_json_test()
     {
-        let path = "test_access_token_deserialization.json";
+        let path = std::env::var("ACCESS_TOKEN_EXAMPLE").unwrap();
         let contents = std::fs::read_to_string(path).unwrap();
         let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
         assert!(matches!(deserialized_2, Ok(_)));
@@ -148,7 +148,7 @@ mod tests
                 }
             "#;
         let deserialized_token = serde_json::from_str::<YouTubeAccessToken>(token);
-        assert!(matches!(deserialized_token, Ok(_)), "cause: {:?}", deserialized_token);
+        assert!(matches!(deserialized_token, Ok(_)), "cause: {deserialized_token:?}");
         
         let deserialized_token = dbg!(deserialized_token.unwrap());
         assert!(!deserialized_token.scope.is_empty());
