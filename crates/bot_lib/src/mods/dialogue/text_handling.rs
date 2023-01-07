@@ -44,14 +44,18 @@ async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T, result_lim: u
 {
     for s in list.into_iter().take(result_lim as _)
     {
-        let (title, descr, chan_id) =
+        let (title, descr, link) =
             (
-                s.title().unwrap_or("No channel title").to_owned(),
-                s.description().unwrap_or("No channel description").to_owned(),
-                s.link().unwrap_or_else(|| "No channel id".to_owned())
+                s.title().unwrap_or("No title 🤷‍♂️").to_owned(),
+                s.description().unwrap_or("No description 🤷‍♂️️").to_owned(),
+                s.link().unwrap_or_else(|| "No link 🤷‍♂️".to_owned())
             );
-        let text = format!("<b>{}</b>{}{}", title + " \n\n", descr + " \n\n", chan_id);
-        let _sent_msg = bot.send_message(msg.chat.id, text).parse_mode(ParseMode::Html).await;
+        let text = format!("<b>{}</b>{}{}", title + " \n\n", descr + " \n\n", link);
+        let _sent_msg =
+            bot.send_message(msg.chat.id, text)
+                .parse_mode(ParseMode::Html)
+                .disable_web_page_preview(true)
+                .await;
         log::info!(" [:: LOG ::]    ( @:[fn::text_handling::send_results] '_sent_msg' is [| '{:#?}' |] )", &_sent_msg);
     }
 }
@@ -66,7 +70,7 @@ pub(crate) async fn execute_search<T>
     text_to_look_for: &str,
     result_lim: u32,
     search_mode: &SearchMode,
-    what_to_search: T
+    request_builder: T
 )
     -> eyre::Result<MessageTriplet>
     where
@@ -92,7 +96,7 @@ pub(crate) async fn execute_search<T>
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let subscription_list =
-        search_items(search_mode, what_to_search, text_to_look_for, &access_token, result_lim).await?;
+        search_items(search_mode, request_builder, text_to_look_for, &access_token, result_lim).await?;
     
     send_results(bot, msg, &subscription_list, result_lim).await;
     let result_count = subscription_list.iter().take(result_lim as _).count();

@@ -27,13 +27,13 @@ pub async fn request_items<T>(client: &reqwest::Client, access_token: &str, item
     resp.json::<T::Target>().await?.in_ok()
 }
 
-/// Request items (subscriptions, playlists, etc).
-pub async fn request_items_page<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, next_page_token: String)
+/// Request a certain page of items (subscriptions, playlists, etc).
+pub async fn request_items_page<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, page_token: String)
     -> eyre::Result<T::Target>
     where
         T: ItemsListRequestBuilder
 {
-    let req_builder = item_to_search.build_req(client, access_token, next_page_token.into())?;
+    let req_builder = item_to_search.build_req(client, access_token, Some(page_token))?;
     let resp = req_builder.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     if !resp.status().is_success()

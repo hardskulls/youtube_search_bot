@@ -13,14 +13,14 @@ pub trait ItemsListRequestBuilder
 {
     type Target: serde::de::DeserializeOwned;
     
-    fn build_req(&self, client: &Client, access_token: &str, next_page_tok: Option<String>) -> eyre::Result<RequestBuilder>;
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
 impl ItemsListRequestBuilder for ListSubscriptions
 {
     type Target = SubscriptionListResponse;
     
-    fn build_req(&self, client: &Client, access_token: &str, next_page_tok: Option<String>)
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -29,7 +29,7 @@ impl ItemsListRequestBuilder for ListSubscriptions
                 .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
                 .header(reqwest::header::AUTHORIZATION, format!("Bearer {access_token}"))
                 .header(reqwest::header::ACCEPT, "application/json");
-        if let Some(page) = next_page_tok
+        if let Some(page) = page_token
         { req = req.query(&[("pageToken", &page)]) }
         req.in_ok()
     }
@@ -39,7 +39,7 @@ impl ItemsListRequestBuilder for ListPlaylists
 {
     type Target = PlaylistListResponse;
     
-    fn build_req(&self, client: &Client, access_token: &str, next_page_tok: Option<String>)
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -48,7 +48,7 @@ impl ItemsListRequestBuilder for ListPlaylists
                 .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
                 .header(reqwest::header::AUTHORIZATION, format!("Bearer {access_token}"))
                 .header(reqwest::header::ACCEPT, "application/json");
-        if let Some(page) = next_page_tok
+        if let Some(page) = page_token
         { req = req.query(&[("pageToken", &page)]) }
         req.in_ok()
     }
