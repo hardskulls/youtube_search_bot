@@ -5,6 +5,7 @@ use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
 use teloxide::types::{Message, ParseMode};
 use url::Url;
+use error_traits::InOk;
 
 use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
 use crate::mods::dialogue::types::{DialogueData, Either, ListConfigData, MessageTriplet, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}};
@@ -100,8 +101,8 @@ pub(crate) async fn execute_search<T>
     
     send_results(bot, msg, &subscription_list, result_lim).await;
     let result_count = subscription_list.iter().take(result_lim as _).count();
-
-    Ok((format!("Finished! ✔ \nFound {result_count} results"), None, Some(DialogueData { state: State::Starting, ..dialogue_data.clone() })))
+    
+    (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
 }
 
 /// Construct authorization url.
