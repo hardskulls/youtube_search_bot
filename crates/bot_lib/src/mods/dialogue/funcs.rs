@@ -3,7 +3,7 @@ use teloxide::payloads::EditMessageTextSetters;
 use teloxide::requests::Requester;
 use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message};
 
-use crate::mods::dialogue::types::{DialogueData, ListConfigData, MessageWithKB, SearchConfigData, State, TheDialogue};
+use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageWithKB, SearchCommandSettings, State, TheDialogue};
 use crate::mods::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
 use crate::mods::errors::NoMessageWithKB;
 use crate::StdResult;
@@ -20,20 +20,20 @@ pub(crate) async fn edit_keyboard<S: Into<String>>(bot: &Bot, text: S, inline_ke
     Ok(())
 }
 
-pub(crate) fn search_config_update_or_default(d_state: State) -> SearchConfigData
+pub(crate) fn search_config_update_or_default(d_state: State) -> SearchCommandSettings
 {
     if let State::SearchCommandActive(search_config) = d_state
     { search_config }
     else
-    { SearchConfigData::default() }
+    { SearchCommandSettings::default() }
 }
 
-pub(crate) fn list_config_update_or_default(d_state: State) -> ListConfigData
+pub(crate) fn list_config_update_or_default(d_state: State) -> ListCommandSettings
 {
     if let State::ListCommandActive(list_config) = d_state
     { list_config }
     else
-    { ListConfigData::default() }
+    { ListCommandSettings::default() }
 }
 
 /// Used in the end of main handlers.

@@ -29,7 +29,7 @@ pub mod commands
 pub mod dialogue
 {
     pub mod funcs { pub use crate::mods::dialogue::{handle_callback_data, handle_text}; }
-    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListConfigData, SearchConfigData}; }
+    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListCommandSettings, SearchCommandSettings}; }
 }
 
 pub mod errors

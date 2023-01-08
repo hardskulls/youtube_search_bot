@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use parse_display::Display;
 
-/// Target to search for. Used in `SearchCommandKB`.
+/// Target of `list` or `search` commands. 
+/// Used in `SearchCommandButtons` and `ListCommandButtons`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum SearchTarget
+pub(crate) enum Target
 {
     #[display("{} 🎫")]
     Subscription,
@@ -11,9 +12,9 @@ pub(crate) enum SearchTarget
     PlayList,
 }
 
-/// Defines ~~how~~ to search. Used in `SearchCommandKB`.
+/// Defines where to search. Used in `SearchCommandKB`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum SearchMode
+pub(crate) enum SearchIn
 {
     #[display("By {} 📋")]
     Title,
@@ -23,82 +24,62 @@ pub(crate) enum SearchMode
 
 /// List of `Inline Keyboard` buttons for `search` bot command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
-pub(crate) enum SearchCommandKB
+pub(crate) enum SearchCommandButtons
 {
     #[display("{} 🔎")] #[display(style = "Title Case")] #[default]
     SearchConfig,
     #[display(style = "Title Case")] #[display("{} 📤")]
     ResultLimit,
     #[display("{} 🗳")]
-    Target,
+    TargetOptions,
+    #[display("{0}")]
+    Target(Target),
     #[display(style = "Title Case")] #[display("{} 📡")]
-    SearchBy,
+    SearchInOptions,
     #[display("{0}")]
-    SearchByContent(SearchMode),
-    #[display("{0}")]
-    TargetContent(SearchTarget)
+    SearchIn(SearchIn)
 }
 
 // TODO: Finish
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum ListFilter
-{
-    #[display("By {} 📊")]
-    Hey,
-    #[display("By {} 📑")]
-    Ho, 
-}
-
-// TODO: Finish
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum SortMode
+pub(crate) enum Sorting
 {
     #[display("{} 📊")]
     Date,
     #[display("{} 📑")]
-    Alphabet,
-}
-
-// TODO: Finish
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum ListTarget
-{
-    #[display("{} 🎫")]
-    Subscription,
-    #[display("{} 📺")]
-    PlayList,
+    Alphabetical,
 }
 
 /// List of `Inline Keyboard` buttons for `list` bot command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
-pub(crate) enum ListCommandKB
+pub(crate) enum ListCommandButtons
 {
     #[display("{} 🧾")] #[display(style = "Title Case")] #[default]
     ListConfig,
-    #[display(style = "Title Case")] #[display("{} 📤")]
-    ResultLimit,
+    //#[display(style = "Title Case")] #[display("{} 📤")]
+    //ResultLimit,
     #[display("{} 🗳")]
-    Target,
-    #[display("{} 📊")]
-    Filter,
+    TargetOptions,
+    #[display("{0}")]
+    Target(Target),
     #[display(style = "Title Case")] #[display("{} 📤")]
-    SortBy,
-    #[display("{0}")]
-    TargetContent(ListTarget),
-    #[display("{0}")]
-    FilterContent(ListFilter),
+    SortingOptions,
     #[display("By {0}")]
-    SortContent(SortMode),
+    Sorting(Sorting),
+    //#[display("{} 📊")]
+    //Filter,
+    //#[display("{0}")]
+    //FilterContent(ListFilter),
 }
 
 /// Main wrapper that includes all available keyboards.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum KeyBoard
+pub(crate) enum Buttons
 {
     #[display("{0}")]
-    SearchCommand(SearchCommandKB),
+    SearchButtons(SearchCommandButtons),
     #[display("{0}")]
-    ListCommand(ListCommandKB),
+    ListButtons(ListCommandButtons),
 }
 
 
@@ -106,22 +87,22 @@ pub(crate) enum KeyBoard
 mod tests
 {
     // use to_debug::ToDebug;
-    use crate::mods::inline_keyboards::types::SearchCommandKB::{SearchBy, SearchConfig};
+    use crate::mods::inline_keyboards::types::SearchCommandButtons::{SearchInOptions, SearchConfig};
     use super::*;
 
     #[test]
     fn serialize_enum_test()
     {
-        assert_eq!(SearchBy.to_string(), "Search By 📡");
+        assert_eq!(SearchInOptions.to_string(), "Search By 📡");
         assert_eq!(SearchConfig.to_string(), "Search Config 🔎");
     }
 
     #[test]
     fn display_derive_test()
     {
-        let serialized_enum: String = serde_json::to_string(&KeyBoard::SearchCommand(SearchBy)).unwrap();
-        let deserialized_enum: KeyBoard = serde_json::from_str(&serialized_enum).unwrap();
-        assert_eq!(deserialized_enum, KeyBoard::SearchCommand(SearchBy));
+        let serialized_enum: String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
+        let deserialized_enum: Buttons = serde_json::from_str(&serialized_enum).unwrap();
+        assert_eq!(deserialized_enum, Buttons::SearchButtons(SearchInOptions));
     }
 }
 

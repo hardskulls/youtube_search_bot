@@ -7,7 +7,7 @@ use teloxide::utils::command::BotCommands;
 
 use error_traits::{InErr, LogErr, MapErrBy};
 
-use crate::dialogue::types::{ListConfigData, SearchConfigData, State, TheDialogue};
+use crate::dialogue::types::{ListCommandSettings, SearchCommandSettings, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
 use crate::mods::dialogue::funcs::get_dialogue_data;
 use crate::mods::dialogue::types::MessageTriplet;
@@ -56,9 +56,9 @@ fn maybe_print<T: Display + Debug>(prefix: &str, printable: &Option<T>, default:
     { default.to_owned() }
 }
 
-fn print_search_config(c: &SearchConfigData) -> String
+fn print_search_config(c: &SearchCommandSettings) -> String
 {
-    let SearchConfigData { target, search_by, result_limit } = c;
+    let SearchCommandSettings { target, search_by, result_limit } = c;
     let t =
         format!
         (
@@ -73,15 +73,14 @@ fn print_search_config(c: &SearchConfigData) -> String
     { format!("Your search config is{t}") }
 }
 
-fn print_list_config(c: &ListConfigData) -> String
+fn print_list_config(c: &ListCommandSettings) -> String
 {
-    let ListConfigData { target, result_limit, sort_by, filter } = c;
+    let ListCommandSettings { target, result_limit, sort_by } = c;
     let t =
         format!
         (
-            "{}{}{}{}",
+            "{}{}{}",
             maybe_print("\nTarget  is  ", target, ""),
-            maybe_print("\nFilter  is  ", filter,  ""),
             maybe_print("\nSort By  is  ", sort_by, ""),
             maybe_print("\nResult Limit  is  ", result_limit, "")
         );
@@ -126,20 +125,20 @@ pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 #[cfg(test)]
 mod tests
 {
-    use crate::mods::inline_keyboards::types::ListTarget;
+    use crate::mods::inline_keyboards::types::Target;
     
     use super::*;
     
     #[test]
     fn printable_test()
     {
-        let c = SearchConfigData::default();
+        let c = SearchCommandSettings::default();
         assert_eq!(print_search_config(&c), "You've activated 'search command'");
         
-        let mut c = ListConfigData::default();
+        let mut c = ListCommandSettings::default();
         assert_eq!(print_list_config(&c), "You've activated 'list command'");
         
-        c.target = ListTarget::Subscription.into();
+        c.target = Target::Subscription.into();
         assert_eq!(print_list_config(&c), "Your list config is\nTarget  is  Subscription");
     }
     

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use error_traits::InOk;
-use crate::mods::inline_keyboards::types::SearchMode;
+use crate::mods::inline_keyboards::types::SearchIn;
 
 use crate::mods::net::join;
 use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
@@ -11,29 +11,13 @@ use crate::StdResult;
 pub(crate) mod types;
 pub(crate) mod traits;
 
-/// Request items (subscriptions, playlists, etc).
-pub async fn request_items<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T)
+/// Makes a single call to `YouTube API` go get one page of items.
+pub(crate) async fn req_items<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, page_token: Option<String>)
     -> eyre::Result<T::Target>
     where
         T: ItemsListRequestBuilder
 {
-    let req_builder = item_to_search.build_req(client, access_token, None)?;
-    let resp = req_builder.send().await?;
-    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
-    if !resp.status().is_success()
-    { return Err(eyre::eyre!("status code is not a success")) }
-    
-    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
-    resp.json::<T::Target>().await?.in_ok()
-}
-
-/// Request a certain page of items (subscriptions, playlists, etc).
-pub async fn request_items_page<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, page_token: String)
-    -> eyre::Result<T::Target>
-    where
-        T: ItemsListRequestBuilder
-{
-    let req_builder = item_to_search.build_req(client, access_token, Some(page_token))?;
+    let req_builder = item_to_search.build_req(client, access_token, page_token)?;
     let resp = req_builder.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     if !resp.status().is_success()
@@ -58,55 +42,104 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
     Ok(url)
 }
 
-/// Search and filter subscriptions.
+/// Search and filter items (subscriptions, playlists, etc).
 pub(crate) async fn search_items<I>
 (
-    search_mode: &SearchMode,
+    search_mode: &SearchIn,
     request_builder: I,
     text_to_look_for: &str,
     access_token: &str,
     max_res: u32
 )
-    -> eyre::Result<Vec<<I::Target as ItemsResponsePage>::Item>>
+    -> Vec<<I::Target as ItemsResponsePage>::Item>
     where
         I: ItemsListRequestBuilder,
         I::Target: Default + Debug + ItemsResponsePage
 {
-    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] started )");
-    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] INPUT is [| '{:?}' |] )", (&search_mode, &text_to_look_for, &max_res));
-    let client = reqwest::Client::new();
-    let initial_response =
-        request_items(&client, access_token, &request_builder).await.unwrap_or_default();
-    log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] FIRST 'subs_list_resp' is [| '{:?}' |] )", (&initial_response));
-    let items_and_pg_token = initial_response.items_search_res();
-    
+    log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
+    log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_mode, &text_to_look_for, &max_res));
     let mut store_in = vec![];
+    let mut current_cap = store_in.len();
     
-    if let Some(items) = items_and_pg_token.items
-    { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
+    let stop_if = move |_: &_| current_cap > max_res as usize;
+    let f =
+        |item: I::Target|
+            {
+                if let Some(i) = item.items()
+                { find_matches(search_mode, &mut store_in, i, text_to_look_for) }
+                current_cap = store_in.len()
+            };
+    pagination(request_builder, access_token, stop_if, f).await;
+    log::info!(" [:: LOG ::]    ( @:[fn::search_items] 'current_cap' is [ '{:?}' ] )", current_cap);
+    log::info!(" [:: LOG ::]    ( @:[fn::search_items] ended )");
+    store_in
+}
+
+/// Returns all items on user's channel.
+pub(crate) async fn list_items<I>
+(
+    request_builder: I,
+    access_token: &str,
+) 
+    -> Vec<<I::Target as ItemsResponsePage>::Item>
+    where
+        I: ItemsListRequestBuilder,
+        I::Target: Default + Debug + ItemsResponsePage,
+{
+    log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
     
-    let mut next_page_token = items_and_pg_token.next_page_token;
-    while let Some(page) = next_page_token
+    let client = reqwest::Client::new();
+    let resp = req_items(&client, access_token, &request_builder, None).await;
+    let search_res = resp.unwrap_or_default();
+    let cap = search_res.total_results().unwrap_or(50) as usize;
+    
+    let mut store_in = Vec::<<I::Target as ItemsResponsePage>::Item>::with_capacity(cap);
+    let stop_if = |_: &_| false;
+    let f =
+        |item: I::Target|
+            {
+                if let Some(mut i) = item.items()
+                { store_in.append(&mut i) }
+            };
+    
+    pagination(request_builder, access_token, stop_if, f).await;
+    log::info!(" [:: LOG ::]    ( @:[fn::list_items] ended )");
+    store_in
+}
+
+/// Gives full access to each page of request.
+/// Stop condition can be set using `stop_if`.
+pub(crate) async fn pagination<I, F, S>(request_builder: I, access_token: &str, stop_if: S, f: F)
+    where
+        I: ItemsListRequestBuilder,
+        I::Target: Default + Debug + ItemsResponsePage,
+        F: FnMut(I::Target),
+        S: Fn(&I::Target) -> bool,
+{
+    log::info!(" [:: LOG ::]    ( @:[fn::pagination] started )");
+    let mut f = f;
+    let client = reqwest::Client::new();
+    
+    let mut next_page_token = None;
+    loop
     {
-        let pagination_resp =
-            request_items_page(&client, access_token, &request_builder, page).await.unwrap_or_default();
+        let resp = req_items(&client, access_token, &request_builder, next_page_token).await;
+        let search_res = resp.unwrap_or_default();
+        next_page_token = search_res.next_page_token();
+    
+        if stop_if(&search_res)
+        { break }
         
-        let items_search_res = pagination_resp.items_search_res();
-        next_page_token = items_search_res.next_page_token;
+        f(search_res);
         
-        if let Some(items) = items_search_res.items
-        { find_matches(search_mode, &mut store_in, items, text_to_look_for); }
-        
-        if store_in.len() >= max_res as usize
-        { next_page_token = None }
+        if next_page_token.is_none()
+        { break }
     }
-    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] FINAL 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
-    log::info!(" [:: LOG ::]    ( @:[fn::get_subs_list] ended )");
-    Ok(store_in)
+    log::info!(" [:: LOG ::]    ( @:[fn::pagination] ended )");
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches<S>(search_mode: &SearchMode, store_in: &mut Vec<S>, search_in: Vec<S>, text_to_look_for: &str)
+fn find_matches<S>(search_mode: &SearchIn, store_in: &mut Vec<S>, search_in: Vec<S>, text_to_look_for: &str)
     where
         S: Searchable
 {
@@ -115,13 +148,30 @@ fn find_matches<S>(search_mode: &SearchMode, store_in: &mut Vec<S>, search_in: V
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
     for item in search_in
     {
-        let compare_by = match *search_mode { SearchMode::Title => item.title(), SearchMode::Description => item.description() };
+        let compare_by = match *search_mode { SearchIn::Title => item.title(), SearchIn::Description => item.description() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
         if let Some(title_or_descr) = compare_by
         { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(item) } }
     }
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] ended )");
+}
+
+#[cfg(test)]
+mod tests
+{
+    use crate::mods::net::traits::ListSubscriptions;
+    use super::*;
+    
+    #[tokio::test]
+    async fn trythat()
+    {
+        let access_token = "kmkpmpmp";
+        //let mut v = vec![];
+        let f = |x| drop(x);
+        pagination(ListSubscriptions, access_token, |_| false, f).await;
+    }
+    
 }
 
 

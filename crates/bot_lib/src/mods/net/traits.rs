@@ -65,16 +65,30 @@ pub trait ItemsResponsePage
 {
     type Item: Searchable;
     
-    fn items_search_res(self) -> ItemSearchRes<Self::Item>;
+    fn next_page_token(&self) -> Option<String>;
+    
+    fn total_results(&self) -> Option<u32>;
+    
+    fn items(self) -> Option<Vec<Self::Item>>;
 }
 
 impl ItemsResponsePage for SubscriptionListResponse
 {
     type Item = Subscription;
     
-    fn items_search_res(self) -> ItemSearchRes<Self::Item>
+    fn next_page_token(&self) -> Option<String>
     {
-        ItemSearchRes { items: self.items, next_page_token: self.next_page_token }
+        self.next_page_token.clone()
+    }
+    
+    fn total_results(&self) -> Option<u32>
+    {
+        self.page_info.as_ref()?.total_results?.try_into().ok()
+    }
+    
+    fn items(self) -> Option<Vec<Self::Item>>
+    {
+        self.items
     }
 }
 
@@ -82,9 +96,19 @@ impl ItemsResponsePage for PlaylistListResponse
 {
     type Item = Playlist;
     
-    fn items_search_res(self) -> ItemSearchRes<Self::Item>
+    fn next_page_token(&self) -> Option<String>
     {
-        ItemSearchRes { items: self.items, next_page_token: self.next_page_token }
+        self.next_page_token.clone()
+    }
+    
+    fn total_results(&self) -> Option<u32>
+    {
+        self.page_info.as_ref()?.total_results?.try_into().ok()
+    }
+    
+    fn items(self) -> Option<Vec<Self::Item>>
+    {
+        self.items
     }
 }
 

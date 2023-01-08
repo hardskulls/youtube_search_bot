@@ -8,16 +8,17 @@ use url::Url;
 use error_traits::InOk;
 
 use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
-use crate::mods::dialogue::types::{DialogueData, Either, ListConfigData, MessageTriplet, SearchConfigData, State::{self, ListCommandActive, SearchCommandActive}};
-use crate::mods::inline_keyboards::types::SearchMode;
+use crate::mods::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet};
+use crate::mods::dialogue::types::{SearchCommandSettings, State::{ListCommandActive, SearchCommandActive}};
+use crate::mods::inline_keyboards::types::SearchIn;
 use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
-use crate::mods::youtube::{search_items, make_auth_url};
+use crate::mods::youtube::{search_items, make_auth_url, list_items};
 use crate::mods::youtube::traits::Searchable;
 use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
 /// Helper function used for `handle_text` handler.
 /// Parses user input as number in order to set it as `result limit` setting.
-pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListConfigData>, dialogue_data: &DialogueData)
+pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &ListCommandSettings>, dialogue_data: &DialogueData)
     -> MessageTriplet
 {
     match text.parse::<u16>()
@@ -28,9 +29,9 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
                     match configs
                     {
                         Either::First(search_config) =>
-                            SearchCommandActive(SearchConfigData { result_limit: (num as u32).into(), ..search_config.clone() }),
+                            SearchCommandActive(SearchCommandSettings { result_limit: (num as u32).into(), ..search_config.clone() }),
                         Either::Last(list_config) =>
-                            ListCommandActive(ListConfigData { result_limit: (num as u32).into(), ..list_config.clone() })
+                            ListCommandActive(ListCommandSettings { result_limit: (num as u32).into(), ..list_config.clone() })
                     };
                 ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
             }
@@ -38,12 +39,12 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchConfigData, &ListC
     }
 }
 
-async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T, result_lim: u32)
+async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
     where
         S: Searchable + 'i,
         T: IntoIterator<Item = &'i S>
 {
-    for s in list.into_iter().take(result_lim as _)
+    for s in list.into_iter()
     {
         let (title, descr, link) =
             (
@@ -63,14 +64,14 @@ async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T, result_lim: u
 
 /// Helper function used for `handle_text` handler.
 /// Final func that does searching when everything is ready. 
-pub(crate) async fn execute_search<T>
+pub(crate) async fn execute_search_command<T>
 (
     bot: &Bot,
     msg: &Message,
     dialogue_data: &DialogueData,
     text_to_look_for: &str,
     result_lim: u32,
-    search_mode: &SearchMode,
+    search_mode: &SearchIn,
     request_builder: T
 )
     -> eyre::Result<MessageTriplet>
@@ -96,11 +97,48 @@ pub(crate) async fn execute_search<T>
     let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
-    let subscription_list =
-        search_items(search_mode, request_builder, text_to_look_for, &access_token, result_lim).await?;
+    let results =
+        search_items(search_mode, request_builder, text_to_look_for, &access_token, result_lim).await;
     
-    send_results(bot, msg, &subscription_list, result_lim).await;
-    let result_count = subscription_list.iter().take(result_lim as _).count();
+    send_results(bot, msg, results.iter().take(result_lim as _)).await;
+    let result_count = results.iter().take(result_lim as _).count();
+    
+    (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
+}
+
+pub(crate) async fn execute_list_command<T>
+(
+    bot: &Bot,
+    msg: &Message,
+    request_builder: T
+)
+    -> eyre::Result<MessageTriplet>
+    where
+        T: ItemsListRequestBuilder,
+        T::Target: Default + Debug + ItemsResponsePage
+{
+    let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+    let redis_url = std::env::var("REDIS_URL")?;
+    let Ok(token) =
+        get_access_token(&user_id, &redis_url)
+        else
+        {
+            let url = default_auth_url(&user_id).await?;
+            let auth_url = format!("Use this link to log in <a href=\"{url}\">Log In</a>");
+            bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
+            return Ok(("Please, log in and send your text again ".to_owned(), None, None))
+        };
+    
+    let secret_path = std::env::var("OAUTH_SECRET_PATH")?;
+    let secret = read_application_secret(secret_path).await?;
+    let token_req = refresh_token_req(secret, &token)?;
+    let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
+    
+    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
+    let results = list_items(request_builder, &access_token).await;
+    
+    send_results(bot, msg, &results).await;
+    let result_count = results.len();
     
     (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
 }
@@ -125,7 +163,7 @@ mod tests
 {
     use std::default::Default;
     use axum::http::Request;
-    use crate::mods::inline_keyboards::types::SearchTarget;
+    use crate::mods::inline_keyboards::types::Target;
     
     use crate::mods::net::find_by_key;
     
@@ -176,13 +214,13 @@ mod tests
     {
         let text = "48";
         let d_data = DialogueData::default();
-        let search_config = SearchConfigData { target: SearchTarget::Subscription.into(), ..Default::default() };
-        let config = Either::<_, &ListConfigData>::First(&search_config);
+        let search_config = SearchCommandSettings { target: Target::Subscription.into(), ..Default::default() };
+        let config = Either::<_, &ListCommandSettings>::First(&search_config);
         let res = parse_number(text, config, &d_data);
         let expected = "Accepted! ✅".to_owned();
         assert_eq!(res.0, expected);
         assert!(matches!(res.1, None));
-        assert!(matches!(res.2, Some(DialogueData { state: SearchCommandActive(SearchConfigData { target: Some(SearchTarget::Subscription), result_limit: Some(48), .. }), ..})));
+        assert!(matches!(res.2, Some(DialogueData { state: SearchCommandActive(SearchCommandSettings { target: Some(Target::Subscription), result_limit: Some(48), .. }), ..})));
     }
 }
 

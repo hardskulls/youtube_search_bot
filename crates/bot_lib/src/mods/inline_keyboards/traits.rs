@@ -1,75 +1,59 @@
 use std::fmt::Display;
 use teloxide::types::InlineKeyboardMarkup;
 use crate::mods::inline_keyboards::funcs::{button, inline_button};
-use crate::mods::inline_keyboards::types::{KeyBoard, ListCommandKB, ListFilter, ListTarget};
-use crate::mods::inline_keyboards::types::{SearchCommandKB, SearchMode, SearchTarget, SortMode};
+use crate::mods::inline_keyboards::types::{Buttons, ListCommandButtons};
+use crate::mods::inline_keyboards::types::{SearchCommandButtons, SearchIn, Target, Sorting};
 
 /// Creates `InlineKeyboardMarkup`.
 pub trait CreateKB
 { fn create_kb(&self) -> Option<InlineKeyboardMarkup>; }
 
-impl CreateKB for SearchCommandKB
+impl CreateKB for SearchCommandButtons
 {
     fn create_kb(&self) -> Option<InlineKeyboardMarkup>
     {
         match *self
         {
-            SearchCommandKB::ResultLimit => None,
-            SearchCommandKB::Target =>
+            SearchCommandButtons::ResultLimit => None,
+            SearchCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::TargetContent(SearchTarget::Subscription))))
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::TargetContent(SearchTarget::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::Subscription))))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::PlayList))))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
                     .into(),
-            SearchCommandKB::SearchBy =>
+            SearchCommandButtons::SearchInOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::SearchByContent(SearchMode::Title))))
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::SearchByContent(SearchMode::Description))))
-                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Title))))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Description))))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
                     .into(),
             _ =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::ResultLimit)))
-                    .append_to_row(0, button(KeyBoard::SearchCommand(SearchCommandKB::Target)))
-                    .append_to_row(1, button(KeyBoard::SearchCommand(SearchCommandKB::SearchBy)))
-                    .append_to_row(2, inline_button("Cancel ❌", KeyBoard::SearchCommand(SearchCommandKB::SearchConfig)))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::TargetOptions)))
+                    .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::SearchInOptions)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
                     .into(),
         }
     }
 }
 
-impl CreateKB for ListCommandKB
+impl CreateKB for ListCommandButtons
 {
     fn create_kb(&self) -> Option<InlineKeyboardMarkup>
     {
         match *self
         {
-            ListCommandKB::ResultLimit => None,
-            ListCommandKB::Target =>
+            ListCommandButtons::SortingOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::TargetContent(ListTarget::Subscription))))
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::TargetContent(ListTarget::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
-                    .into(),
-            ListCommandKB::Filter =>
-                InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::FilterContent(ListFilter::Hey))))
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::FilterContent(ListFilter::Ho))))
-                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
-                    .into(),
-            ListCommandKB::SortBy =>
-                InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::SortContent(SortMode::Date))))
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::SortContent(SortMode::Alphabet))))
-                    .append_to_row(1, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Date))))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Alphabetical))))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListConfig)))
                     .into(),
             _ =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::ResultLimit)))
-                    .append_to_row(0, button(KeyBoard::ListCommand(ListCommandKB::Target)))
-                    .append_to_row(1, button(KeyBoard::ListCommand(ListCommandKB::SortBy)))
-                    .append_to_row(1, button(KeyBoard::ListCommand(ListCommandKB::Filter)))
-                    .append_to_row(2, inline_button("Cancel ❌", KeyBoard::ListCommand(ListCommandKB::ListConfig)))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::TargetOptions)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListConfig)))
                     .into()
         }
     }
@@ -80,31 +64,29 @@ impl CreateKB for ListCommandKB
 pub trait KeyboardText
 { fn kb_text(&self) -> String; }
 
-impl KeyboardText for SearchCommandKB
+impl KeyboardText for SearchCommandButtons
 {
     fn kb_text(&self) -> String
     {
         match *self
         {
-            SearchCommandKB::ResultLimit => "Choose result limit 📇",
-            SearchCommandKB::Target => "Choose what you want to search 🔎",
-            SearchCommandKB::SearchBy => "Choose how you want to search 📋",
+            SearchCommandButtons::ResultLimit => "Choose result limit 📇",
+            SearchCommandButtons::TargetOptions => "Choose what you want to search 🔎",
+            SearchCommandButtons::SearchInOptions => "Choose how you want to search 📋",
             _ => "Set up your search query ⚙",
         }
         .to_owned()
     }
 }
 
-impl KeyboardText for ListCommandKB
+impl KeyboardText for ListCommandButtons
 {
     fn kb_text(&self) -> String
     {
         match *self
         {
-            ListCommandKB::ResultLimit => "Choose result limit 📇",
-            ListCommandKB::Target => "Choose what you want to search 🔎",
-            ListCommandKB::SortBy => "Choose result sorting 📋",
-            ListCommandKB::Filter => "Choose result filtering 📊",
+            ListCommandButtons::TargetOptions => "Choose what you want to search 🔎",
+            ListCommandButtons::SortingOptions => "Choose result sorting 📋",
             _ => "Set up your list query ⚙",
         }
         .to_owned()
@@ -121,25 +103,22 @@ pub trait ButtonText: Display
 }
 
 
-impl ButtonText for KeyBoard {}
+impl ButtonText for Buttons {}
 
 
 
-impl ButtonText for SearchCommandKB {}
+impl ButtonText for SearchCommandButtons {}
 
-impl ButtonText for SearchMode {}
+impl ButtonText for SearchIn {}
 
-impl ButtonText for SearchTarget {}
+impl ButtonText for Target {}
 
 
 
-impl ButtonText for ListCommandKB {}
+impl ButtonText for ListCommandButtons {}
 
-impl ButtonText for SortMode {}
+impl ButtonText for Sorting {}
 
-impl ButtonText for ListFilter {}
-
-impl ButtonText for ListTarget {}
 
 
 // TODO: This trait gives strange error when used.

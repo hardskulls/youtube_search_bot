@@ -14,41 +14,26 @@ impl Searchable for Subscription
 {
     fn title(&self) -> Option<&str>
     {
-        if let Some(snip) = self.snippet.as_ref()
-        {
-            if let Some(title) = snip.title.as_ref()
-            {
-                if !title.is_empty()
-                { return title.as_str().into(); }
-            }
-        }
-        None
+        let title = self.snippet.as_ref()?.title.as_ref()?;
+        if title.is_empty()
+        { None }
+        else
+        { title.as_str().into() }
     }
     
     fn description(&self) -> Option<&str>
     {
-        if let Some(snip) = self.snippet.as_ref()
-        {
-            if let Some(description) = snip.description.as_ref()
-            {
-                if !description.is_empty()
-                { return description.as_str().into(); }
-            }
-        }
-        None
+        let description = self.snippet.as_ref()?.description.as_ref()?;
+        if description.is_empty()
+        { None }
+        else
+        { description.as_str().into() }
     }
     
     fn link(&self) -> Option<String>
     {
-        if let Some(snip) = self.snippet.as_ref()
-        {
-            if let Some(resource_id) = snip.resource_id.as_ref()
-            {
-                if let Some(chan_id) = resource_id.channel_id.as_ref()
-                { return Some(format!("https://youtube.com/channel/{chan_id}")) }
-            }
-        }
-        None
+        let chan_id = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
+        format!("https://youtube.com/channel/{chan_id}").into()
     }
 }
 
@@ -56,35 +41,26 @@ impl Searchable for Playlist
 {
     fn title(&self) -> Option<&str>
     {
-        if let Some(snip) = self.snippet.as_ref()
-        {
-            if let Some(title) = snip.title.as_ref()
-            {
-                if !title.is_empty()
-                { return title.as_str().into(); }
-            }
-        }
-        None
+        let title = self.snippet.as_ref()?.title.as_ref()?;
+        if title.is_empty()
+        { None }
+        else
+        { title.as_str().into() }
     }
     
     fn description(&self) -> Option<&str>
     {
-        if let Some(snip) = self.snippet.as_ref()
-        {
-            if let Some(description) = snip.description.as_ref()
-            {
-                if !description.is_empty()
-                { return description.as_str().into(); }
-            }
-        }
-        None
+        let description = self.snippet.as_ref()?.description.as_ref()?;
+        if description.is_empty()
+        { None }
+        else
+        { description.as_str().into() }
     }
     
     fn link(&self) -> Option<String>
     {
-        if let Some(id) = self.id.as_ref()
-        { return format!("https://youtube.com/playlist?list={id}").into() }
-        None
+        let id = self.id.as_ref()?;
+        format!("https://youtube.com/playlist?list={id}").into()
     }
 }
 
