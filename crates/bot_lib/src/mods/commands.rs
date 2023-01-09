@@ -7,8 +7,10 @@ use teloxide::utils::command::BotCommands;
 use error_traits::MergeOkErr;
 
 use crate::mods::commands::funcs::{info, log_out};
-use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, MessageWithKB, SearchCommandSettings, State, TheDialogue};
+use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, MessageWithKB};
+use crate::mods::dialogue::types::{SearchCommandSettings, State, TheDialogue};
 use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
+use crate::mods::inline_keyboards::types::ListCommandButtons::ListConfig;
 use crate::mods::inline_keyboards::types::SearchCommandButtons::SearchConfig;
 
 pub(crate) mod funcs;
@@ -46,7 +48,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::List =>
                 {
                     let state = State::ListCommandActive(ListCommandSettings::default());
-                    (SearchConfig.kb_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (SearchConfig.kb_text(), ListConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::LogOut =>
                 {
