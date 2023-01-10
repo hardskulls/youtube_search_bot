@@ -48,7 +48,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::List =>
                 {
                     let state = State::ListCommandActive(ListCommandSettings::default());
-                    (SearchConfig.kb_text(), ListConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (ListConfig.kb_text(), ListConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::LogOut =>
                 {

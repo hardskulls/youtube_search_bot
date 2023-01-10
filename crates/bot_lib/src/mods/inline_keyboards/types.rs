@@ -62,10 +62,10 @@ pub(crate) enum ListCommandButtons
     TargetOptions,
     #[display("{0}")]
     Target(Target),
-    #[display(style = "Title Case")] #[display("{} 📤")]
-    SortingOptions,
-    #[display("By {0}")]
-    Sorting(Sorting),
+    //#[display(style = "Title Case")] #[display("{} 📤")]
+    //SortingOptions,
+    //#[display("By {0}")]
+    //Sorting(Sorting),
     //#[display("{} 📊")]
     //Filter,
     //#[display("{0}")]

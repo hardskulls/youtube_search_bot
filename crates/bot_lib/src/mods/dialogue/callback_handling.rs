@@ -50,12 +50,6 @@ pub(crate) fn callback_helper_for_list_kb(list_kb: &ListCommandButtons, dialogue
                     let state = ListCommandActive(ListCommandSettings { target, ..list_config_update_or_default(dialogue_data.state) });
                     DialogueData { state, ..dialogue_data }.into()
                 }
-            ListCommandButtons::Sorting(sort_by) =>
-                {
-                    let sort_by = sort_by.clone().into();
-                    let state = ListCommandActive(ListCommandSettings { sort_by, ..list_config_update_or_default(dialogue_data.state) });
-                    DialogueData { state, ..dialogue_data }.into()
-                }
             _ => dialogue_data.into()
         };
     (list_kb.kb_text(), list_kb.create_kb(), opt_dialogue_data)

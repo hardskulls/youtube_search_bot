@@ -44,10 +44,10 @@ impl CreateKB for ListCommandButtons
     {
         match *self
         {
-            ListCommandButtons::SortingOptions =>
+            ListCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Date))))
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Alphabetical))))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::Subscription))))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::PlayList))))
                     .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListConfig)))
                     .into(),
             _ =>
@@ -86,7 +86,7 @@ impl KeyboardText for ListCommandButtons
         match *self
         {
             ListCommandButtons::TargetOptions => "Choose what you want to search 🔎",
-            ListCommandButtons::SortingOptions => "Choose result sorting 📋",
+            //ListCommandButtons::SortingOptions => "Choose result sorting 📋",
             _ => "Set up your list query ⚙",
         }
         .to_owned()
