@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Display;
 
 pub fn print_if_none<T>(option: Option<T>, text: &str) -> &str
 {

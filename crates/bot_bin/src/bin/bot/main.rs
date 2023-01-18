@@ -15,14 +15,11 @@ use teloxide::
 };
 use teloxide::types::{CallbackQuery, Message};
 
-use bot_lib::
-{
-    commands::funcs::{handle_commands, handle_unknown_command, is_other_command},
-    commands::types::Command,
-    dialogue::funcs::{handle_callback_data, handle_text},
-    dialogue::types::DialogueData,
-    errors::types::NetworkError,
-};
+use bot_lib::commands::{Command, handle_commands};
+use bot_lib::commands::funcs::{handle_unknown_command, is_other_command};
+use bot_lib::dialogue::{handle_callback_data, handle_text};
+use bot_lib::dialogue::types::DialogueData;
+use bot_lib::errors::NetworkError;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>

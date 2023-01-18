@@ -1,21 +1,23 @@
-use std::fmt::{Debug};
+use std::fmt::Debug;
+
 use google_youtube3::oauth2::read_application_secret;
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
 use teloxide::types::{Message, ParseMode};
 use url::Url;
+
 use error_traits::WrapInOk;
 
-use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
-use crate::mods::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet};
-use crate::mods::dialogue::types::{SearchCommandSettings, State::{ListCommandActive, SearchCommandActive}};
-use crate::mods::keyboards::types::{SearchIn, Sorting};
-use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
-use crate::mods::utils::HTMLise;
-use crate::mods::youtube::{search_items, make_auth_url, list_items};
-use crate::mods::youtube::traits::Searchable;
-use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
+use crate::db::{get_access_token, refresh_access_token, refresh_token_req};
+use crate::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet, SearchCommandSettings};
+use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
+use crate::keyboards::types::{SearchIn, Sorting};
+use crate::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
+use crate::utils::HTMLise;
+use crate::youtube::{list_items, make_auth_url, search_items};
+use crate::youtube::traits::Searchable;
+use crate::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 
 /// Helper function used for `handle_text` handler.
 /// Parses user input as number in order to set it as `result limit` setting.
@@ -170,10 +172,12 @@ async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 mod tests
 {
     use std::default::Default;
-    use axum::http::Request;
-    use crate::mods::keyboards::types::Target;
     
-    use crate::mods::net::find_by_key;
+    use axum::http::Request;
+    
+    use crate::dialogue::types::{DialogueData, Either, ListCommandSettings, SearchCommandSettings};
+    use crate::keyboards::types::Target;
+    use crate::net::find_by_key;
     
     use super::*;
     

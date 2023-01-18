@@ -1,16 +1,16 @@
 use teloxide::Bot;
 use teloxide::types::{CallbackQuery, Message};
+
 use error_traits::WrapInOk;
 
-use State::{ListCommandActive, SearchCommandActive};
+use crate::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
+use crate::dialogue::text_handling::{execute_list_command, execute_search_command};
+use crate::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, SearchCommandSettings};
+use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
 use crate::FlatRes;
-
-use crate::mods::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
-use crate::mods::dialogue::text_handling::{execute_list_command, execute_search_command};
-use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, SearchCommandSettings, State};
-use crate::mods::keyboards::traits::{CreateKB, KeyboardText};
-use crate::mods::keyboards::types::{ListCommandButtons, SearchCommandButtons, Target};
-use crate::mods::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
+use crate::keyboards::traits::{CreateKB, KeyboardText};
+use crate::keyboards::types::{ListCommandButtons, SearchCommandButtons, Target};
+use crate::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
 
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) async fn callback_helper_for_search_kb

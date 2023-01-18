@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use teloxide::dispatching::dialogue::{Dialogue, ErasedStorage};
 use teloxide::types::{CallbackQuery, InlineKeyboardMarkup, Message};
-use error_traits::{WrapInErr};
 
-use crate::mods::keyboards::types::{SearchIn, Target, Sorting};
-use crate::mods::utils::print_if_none;
+use error_traits::WrapInErr;
+
+use crate::keyboards::types::{SearchIn, Sorting, Target};
 use crate::StdResult;
+use crate::utils::print_if_none;
 
 /// A type that is returned in the end of handlers.
 pub type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);

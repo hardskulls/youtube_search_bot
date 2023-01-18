@@ -1,6 +1,7 @@
 use google_youtube3::oauth2::ApplicationSecret;
 use redis::Commands;
-use crate::mods::youtube::types::YouTubeAccessToken;
+
+use crate::youtube::types::YouTubeAccessToken;
 
 const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
 
@@ -99,6 +100,9 @@ pub(crate) async fn refresh_access_token
 mod tests
 {
     use google_youtube3::oauth2;
+    
+    use crate::youtube::types::YouTubeAccessToken;
+    
     use super::*;
     
     #[test]

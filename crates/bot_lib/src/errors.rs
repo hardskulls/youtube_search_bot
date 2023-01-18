@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::future::Future;
-use teloxide::{requests::Requester, Bot, types::ChatId};
 
+use teloxide::{Bot, requests::Requester, types::ChatId};
 use thiserror::Error;
 
 #[derive(Error, Debug, Clone)]

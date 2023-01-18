@@ -3,9 +3,8 @@ use teloxide::payloads::EditMessageTextSetters;
 use teloxide::requests::Requester;
 use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message};
 
-use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageWithKB, SearchCommandSettings, State, TheDialogue};
-use crate::mods::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
-use crate::mods::errors::NoMessageWithKB;
+use crate::dialogue::types::{DialogueData, ListCommandSettings, MessageWithKB, SearchCommandSettings, State, TheDialogue};
+use crate::errors::{DialogueStateStorageError, NoCallbackDataError, NoMessageWithKB, NoTextError};
 use crate::StdResult;
 
 /// Edits `InlineKeyboard` in a certain message.

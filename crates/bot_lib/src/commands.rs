@@ -6,14 +6,13 @@ use teloxide::utils::command::BotCommands;
 
 use error_traits::MergeOkErr;
 
-use crate::mods::commands::funcs::{info, log_out};
-use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, MessageWithKB};
-use crate::mods::dialogue::types::{SearchCommandSettings, State, TheDialogue};
-use crate::mods::keyboards::traits::{CreateKB, KeyboardText};
-use crate::mods::keyboards::types::ListCommandButtons::ListSettings;
-use crate::mods::keyboards::types::SearchCommandButtons::SearchSettings;
+use crate::commands::funcs::{info, log_out};
+use crate::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, MessageWithKB, SearchCommandSettings, State, TheDialogue};
+use crate::keyboards::traits::{CreateKB, KeyboardText};
+use crate::keyboards::types::ListCommandButtons::ListSettings;
+use crate::keyboards::types::SearchCommandButtons::SearchSettings;
 
-pub(crate) mod funcs;
+pub mod funcs;
 
 /// List of commands available in the bot.
 #[derive(Clone, BotCommands)]
@@ -22,13 +21,13 @@ pub enum Command
 {
     #[command(description = "Start Bot")]
     Start,
-    #[command(description = "Show Bot Status")]
+    #[command(description = "Info")]
     Info,
     #[command(description = "Search Something")]
     Search,
     #[command(description = "List Something")]
     List,
-    #[command(description = "Delete User Data")]
+    #[command(description = "Log Out")]
     LogOut,
 }
 

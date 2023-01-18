@@ -90,8 +90,8 @@ pub(crate) enum Buttons
 #[cfg(test)]
 mod tests
 {
+    use crate::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
     // use to_debug::ToDebug;
-    use crate::mods::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
     use super::*;
 
     #[test]

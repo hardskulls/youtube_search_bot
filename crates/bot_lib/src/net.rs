@@ -1,4 +1,4 @@
-use crate::errors::types::ParseError;
+use crate::errors::ParseError;
 use crate::StdResult;
 
 pub(crate) mod traits;

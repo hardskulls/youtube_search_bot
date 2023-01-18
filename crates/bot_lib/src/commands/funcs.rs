@@ -5,15 +5,14 @@ use teloxide::requests::Requester;
 use teloxide::types::{Me, Message};
 use teloxide::utils::command::BotCommands;
 
-use error_traits::{WrapInErr, LogErr, MapErrBy};
+use error_traits::{LogErr, MapErrBy, WrapInErr};
 
-use crate::mods::dialogue::types::{ListCommandSettings, SearchCommandSettings, State, TheDialogue};
-use crate::mods::db::{delete_access_token, get_access_token};
-use crate::mods::dialogue::funcs::get_dialogue_data;
-use crate::mods::dialogue::types::MessageTriplet;
-use crate::mods::errors::NoTextError;
-use crate::mods::youtube::types::YouTubeAccessToken;
 use crate::{FlatRes, StdResult};
+use crate::db::{delete_access_token, get_access_token};
+use crate::dialogue::funcs::get_dialogue_data;
+use crate::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
+use crate::errors::NoTextError;
+use crate::youtube::types::YouTubeAccessToken;
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
@@ -125,7 +124,9 @@ pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 #[cfg(test)]
 mod tests
 {
-    use crate::mods::keyboards::types::Target;
+    use crate::dialogue::types::{ListCommandSettings, SearchCommandSettings};
+    use crate::keyboards::types::Target;
+    use crate::youtube::types::YouTubeAccessToken;
     
     use super::*;
     

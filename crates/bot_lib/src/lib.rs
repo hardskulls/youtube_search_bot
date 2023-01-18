@@ -3,52 +3,19 @@ pub(crate) type StdResult<T, E> = Result<T, E>;
 
 pub(crate) type FlatRes<T> = StdResult<T, T>;
 
-mod mods
+pub mod errors;
+pub mod commands;
+pub mod dialogue;
+mod youtube;
+mod keyboards
 {
-    pub(crate) mod errors;
-    pub(crate) mod commands;
-    pub(crate) mod dialogue;
-    pub(crate) mod youtube;
-    pub(crate) mod keyboards
-    {
-        pub(crate) mod funcs; 
-        pub(crate) mod types;
-        pub(crate) mod traits;
-    }
-    pub(crate) mod auth_server;
-    pub(crate) mod db;
-    pub(crate) mod net;
-    pub(crate) mod utils;
+    pub(crate) mod funcs;
+    pub(crate) mod types;
+    pub(crate) mod traits;
 }
-
-
-pub mod commands
-{
-    pub mod types { pub use crate::mods::commands::Command; }
-    pub mod funcs { pub use crate::mods::commands::{funcs::handle_unknown_command, handle_commands, funcs::is_other_command}; }
-}
-
-pub mod dialogue
-{
-    pub mod funcs { pub use crate::mods::dialogue::{handle_callback_data, handle_text}; }
-    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State}; }
-}
-
-pub mod errors
-{
-    pub mod types { pub use crate::mods::errors::*; }
-}
-
-pub mod net
-{
-    pub mod url
-    {
-        pub use crate::mods::net::{query_pairs, find_by_key};
-    }
-    pub mod auth_server
-    {
-        pub use crate::mods::auth_server::{handle_auth_code, serve_all};
-    }
-}
+pub mod auth_server;
+mod db;
+mod net;
+mod utils;
 
 

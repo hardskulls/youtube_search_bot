@@ -1,8 +1,9 @@
 use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
 use reqwest::{Client, RequestBuilder};
-use error_traits::WrapInOk;
-use crate::mods::youtube::traits::Searchable;
 
+use error_traits::WrapInOk;
+
+use crate::youtube::traits::Searchable;
 
 pub struct RespTargetSubscriptions;
 

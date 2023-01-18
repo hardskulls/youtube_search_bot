@@ -5,21 +5,17 @@ use teloxide::types::{CallbackQuery, Message};
 
 use error_traits::MergeOkErr;
 
-use crate::mods::
-{
-    dialogue::callback_handling::{callback_helper_for_list_kb, callback_helper_for_search_kb},
-    dialogue::funcs::{get_callback_data, get_dialogue_data, get_text, update_optionally_and_send_message},
-    dialogue::text_handling::parse_number,
-    dialogue::types::{Either, State::{self, ListCommandActive, SearchCommandActive}, TheDialogue},
-    errors::{DialogueStateStorageError, EndpointErrors},
-    keyboards::types::{Buttons::{self, ListButtons, SearchButtons}, SearchCommandButtons},
-};
-use crate::mods::dialogue::text_handling::save_text;
-use crate::mods::dialogue::types::MessageTriplet;
-use crate::mods::keyboards::types::ListCommandButtons;
+use crate::dialogue::callback_handling::{callback_helper_for_list_kb, callback_helper_for_search_kb};
+use crate::dialogue::funcs::{get_callback_data, get_dialogue_data, get_text, update_optionally_and_send_message};
+use crate::dialogue::text_handling::{parse_number, save_text};
+use crate::dialogue::types::{Either, MessageTriplet, State, TheDialogue};
+use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
+use crate::errors::{DialogueStateStorageError, EndpointErrors};
+use crate::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons};
+use crate::keyboards::types::Buttons::{ListButtons, SearchButtons};
 
-pub(crate) mod funcs;
-pub(crate) mod types;
+pub mod funcs;
+pub mod types;
 pub(crate) mod text_handling;
 pub(crate) mod callback_handling;
 

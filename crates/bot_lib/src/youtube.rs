@@ -1,12 +1,13 @@
 use std::fmt::Debug;
-use error_traits::WrapInOk;
-use crate::mods::keyboards::types::{SearchIn, Sorting};
 
-use crate::mods::net::join;
-use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
-use crate::mods::youtube::traits::Searchable;
-use crate::mods::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
+use error_traits::WrapInOk;
+
+use crate::keyboards::types::{SearchIn, Sorting};
+use crate::net::join;
+use crate::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
 use crate::StdResult;
+use crate::youtube::traits::Searchable;
+use crate::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
 
 pub(crate) mod types;
 pub(crate) mod traits;
@@ -166,7 +167,8 @@ fn find_matches<S>(search_mode: &SearchIn, store_in: &mut Vec<S>, search_in: Vec
 #[cfg(test)]
 mod tests
 {
-    use crate::mods::net::traits::RespTargetSubscriptions;
+    use crate::net::traits::RespTargetSubscriptions;
+    
     use super::*;
     
     #[tokio::test]
