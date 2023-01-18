@@ -2,8 +2,15 @@
 name = "bot_lib"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+#dotenv = "0.15.0"
+dotenv-build = "0.1.1"
+#dotenv_codegen = "0.15.0"
+#dotenvy_macro = "0.15.1"
 
 [dependencies]
 #[:: Local ::]
@@ -11,7 +18,7 @@ edition = "2021"
 error_traits = { path = "../error_traits", features = ["log_err"] }
 
 #[:: Main ::]
-teloxide = { version = "0.11.3", features = ["macros"] }
+teloxide = { version = "0.12.0", features = ["macros"] }
 google-youtube3 = "4.0.1"
 
 #[:: Net ::]

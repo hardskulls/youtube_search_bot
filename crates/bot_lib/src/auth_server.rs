@@ -13,7 +13,7 @@ use crate::youtube::types::YouTubeAccessToken;
 
 async fn params(auth_code: &str) -> [(String, String); 5]
 {
-    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+    let secret_path = env!("OAUTH_SECRET_PATH");
     let secret = read_application_secret(secret_path).await.unwrap();
     [
         ("client_id".to_owned(), secret.client_id),
@@ -76,10 +76,10 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     
     let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'new_token' is [| '{:#?}' |] )", &new_token);
-    let db_url = std::env::var("REDIS_URL").map_err(|_| "redis url var is missing")?;
-    let t = combine_old_new_tokens(for_user, new_token, &db_url);
+    let db_url = env!("REDIS_URL");
+    let t = combine_old_new_tokens(for_user, new_token, db_url);
     let serialized_access_token = serde_json::to_string(&t).map_err(|_| "db error")?;
-    set_access_token(for_user, &serialized_access_token, &db_url).map_err(|_| "db error")?;
+    set_access_token(for_user, &serialized_access_token, db_url).map_err(|_| "db error")?;
     
     let redirect = redirect_user("https://t.me/test_echo_123_456_bot")?;
     

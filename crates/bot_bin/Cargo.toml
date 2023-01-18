@@ -10,7 +10,7 @@ edition = "2021"
 bot_lib = { path = "../bot_lib" }
 
 #[:: Main ::]
-teloxide = { version = "0.11.3", features = ["webhooks-axum", "redis-storage"] }
+teloxide = { version = "0.12.0", features = ["webhooks-axum", "redis-storage"] }
 
 #[:: Net ::]
 tokio = { version = "1.24.2", features = ["macros", "rt-multi-thread"] }

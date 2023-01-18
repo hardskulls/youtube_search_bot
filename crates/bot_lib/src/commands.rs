@@ -52,8 +52,8 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::LogOut =>
                 {
                     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
-                    let redis_url = std::env::var("REDIS_URL")?;
-                    log_out(&user_id, &redis_url).await.merge_ok_err()
+                    let redis_url = env!("REDIS_URL");
+                    log_out(&user_id, redis_url).await.merge_ok_err()
                 }
         };
     let message_to_send = bot.send_message(msg.chat.id, &message_text);

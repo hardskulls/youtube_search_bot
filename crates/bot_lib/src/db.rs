@@ -110,9 +110,9 @@ mod tests
     {
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
     
-        let redis_url = std::env::var("REDIS_URL").unwrap();
-        let access_token = std::env::var("ACCESS_TOKEN").unwrap();
-        let refresh_token = std::env::var("REFRESH_TOKEN").unwrap().into();
+        let redis_url = env!("REDIS_URL");
+        let access_token = env!("ACCESS_TOKEN").to_owned();
+        let refresh_token = env!("REFRESH_TOKEN").to_owned().into();
         
         let user_id = "Александр Иванов";
     
@@ -126,9 +126,9 @@ mod tests
                 token_type: "Bearer".to_owned()
             };
     
-        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), &redis_url).unwrap();
-        let saved_token = get_access_token(user_id, &redis_url).unwrap();
-        delete_access_token(user_id, &redis_url).unwrap();
+        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), redis_url).unwrap();
+        let saved_token = get_access_token(user_id, redis_url).unwrap();
+        delete_access_token(user_id, redis_url).unwrap();
         
         assert_eq!(token.refresh_token.as_ref().unwrap(), saved_token.refresh_token.as_ref().unwrap());
         assert_eq!(token.access_token, saved_token.access_token);
@@ -142,12 +142,12 @@ mod tests
     {
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
         
-        let redis_url = std::env::var("REDIS_URL").unwrap();
-        let access_token = std::env::var("ACCESS_TOKEN").unwrap();
-        let refresh_token = std::env::var("REFRESH_TOKEN").unwrap().into();
-        let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+        let redis_url = env!("REDIS_URL");
+        let access_token = env!("ACCESS_TOKEN").to_owned();
+        let refresh_token = env!("REFRESH_TOKEN").to_owned().into();
+        let secret_path = env!("OAUTH_SECRET_PATH");
         // api key is required for making calls from anywhere, instead of manually added urls in oauth credentials
-        let oauth_api_key = std::env::var("OAUTH_API_KEY").unwrap();
+        let oauth_api_key = env!("OAUTH_API_KEY");
         
         let user_id = "Александр Иванов";
         
@@ -166,7 +166,7 @@ mod tests
         token_req = token_req.query(&[("key", &oauth_api_key)]);
         
         let refreshed_access_token =
-            refresh_access_token(user_id, token.clone(), &redis_url, token_req).await.unwrap();
+            refresh_access_token(user_id, token.clone(), redis_url, token_req).await.unwrap();
         
         assert_eq!(token.refresh_token, refreshed_access_token.refresh_token);
         assert_eq!(token.access_token, refreshed_access_token.access_token);

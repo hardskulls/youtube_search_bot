@@ -89,9 +89,9 @@ pub(crate) async fn execute_search_command<T>
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
-    let redis_url = std::env::var("REDIS_URL")?;
+    let redis_url = env!("REDIS_URL");
     let Ok(token) =
-        get_access_token(&user_id, &redis_url)
+        get_access_token(&user_id, redis_url)
         else
         {
             let auth_url = default_auth_url(&user_id).await?;
@@ -100,10 +100,10 @@ pub(crate) async fn execute_search_command<T>
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
-    let secret_path = std::env::var("OAUTH_SECRET_PATH")?;
+    let secret_path = env!("OAUTH_SECRET_PATH");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
-    let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
+    let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let results =
@@ -129,9 +129,9 @@ pub(crate) async fn execute_list_command<T>
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
-    let redis_url = std::env::var("REDIS_URL")?;
+    let redis_url = env!("REDIS_URL");
     let Ok(token) =
-        get_access_token(&user_id, &redis_url)
+        get_access_token(&user_id, redis_url)
         else
         {
             let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
@@ -139,10 +139,10 @@ pub(crate) async fn execute_list_command<T>
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
-    let secret_path = std::env::var("OAUTH_SECRET_PATH")?;
+    let secret_path = env!("OAUTH_SECRET_PATH");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
-    let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
+    let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let results = list_items(request_builder, &access_token, sorting, res_limit).await;
@@ -156,7 +156,7 @@ pub(crate) async fn execute_list_command<T>
 /// Construct authorization url.
 async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 {
-    let secret_path = std::env::var("OAUTH_SECRET_PATH").unwrap();
+    let secret_path = env!("OAUTH_SECRET_PATH");
     let secret = read_application_secret(secret_path).await?;
 
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());

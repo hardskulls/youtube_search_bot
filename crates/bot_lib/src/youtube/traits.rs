@@ -16,20 +16,20 @@ impl Searchable for Subscription
 {
     fn title(&self) -> Option<&str>
     {
-        let title = self.snippet.as_ref()?.title.as_ref()?;
+        let title: &str = self.snippet.as_ref()?.title.as_ref()?;
         if title.is_empty()
         { None }
         else
-        { title.as_str().into() }
+        { title.into() }
     }
     
     fn description(&self) -> Option<&str>
     {
-        let description = self.snippet.as_ref()?.description.as_ref()?;
+        let description: &str = self.snippet.as_ref()?.description.as_ref()?;
         if description.is_empty()
         { None }
         else
-        { description.as_str().into() }
+        { description.into() }
     }
     
     fn date(&self) -> Option<&str>
@@ -39,7 +39,7 @@ impl Searchable for Subscription
     
     fn link(&self) -> Option<String>
     {
-        let chan_id = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
+        let chan_id: &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
         format!("https://youtube.com/channel/{chan_id}").into()
     }
 }
@@ -48,20 +48,20 @@ impl Searchable for Playlist
 {
     fn title(&self) -> Option<&str>
     {
-        let title = self.snippet.as_ref()?.title.as_ref()?;
+        let title: &str = self.snippet.as_ref()?.title.as_ref()?;
         if title.is_empty()
         { None }
         else
-        { title.as_str().into() }
+        { title.into() }
     }
     
     fn description(&self) -> Option<&str>
     {
-        let description = self.snippet.as_ref()?.description.as_ref()?;
+        let description: &str = self.snippet.as_ref()?.description.as_ref()?;
         if description.is_empty()
         { None }
         else
-        { description.as_str().into() }
+        { description.into() }
     }
     
     fn date(&self) -> Option<&str>
@@ -71,7 +71,7 @@ impl Searchable for Playlist
     
     fn link(&self) -> Option<String>
     {
-        let id = self.id.as_ref()?;
+        let id: &str = self.id.as_ref()?;
         format!("https://youtube.com/playlist?list={id}").into()
     }
 }
@@ -85,7 +85,7 @@ mod tests
     #[test]
     fn plist_test() -> eyre::Result<()>
     {
-        let path = std::env::var("PLIST_JSON_RESP").unwrap();
+        let path = env!("PLIST_JSON_RESP");
         let f = std::fs::read_to_string(path)?;
         let pl_resp =
             serde_json::from_str::<PlaylistListResponse>(&f).unwrap();
