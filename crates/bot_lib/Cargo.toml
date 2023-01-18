@@ -26,7 +26,7 @@ time = "0.3.17"
 #urlencoding = { version = "2.1.2", features = [] }
 
 #[:: DB ::]
-redis = { version = "0.22.1", features = ["tokio-comp", "tls", "tokio-native-tls-comp"] }
+redis = { version = "0.22.2", features = ["tokio-comp", "tls", "tokio-native-tls-comp"] }
 #redis-derive = { version = "0.1.6", features = [] }
 #postgres = { version = "0.19.4", features = [] }
 
@@ -43,11 +43,11 @@ log = "0.4.17"
 #enum_variants = "1.0.0"
 parse-display = { version = "0.8.0", features = ["std"] }
 to_debug = "0.1.0"
-serde = { version = "1.0.151", features = ["derive"] }
+serde = { version = "1.0.152", features = ["derive"] }
 serde_json = { version = "1.0.91", features = ["std"] }
 
 [dev-dependencies]
-tokio = { version = "1.23.0", features = ["macros"] }
+tokio = { version = "1.24.2", features = ["macros"] }
 miette = { version = "5.5.0", features = ["fancy"] }
 simple_logger = "4.0.0"
 

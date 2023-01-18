@@ -13,7 +13,7 @@ bot_lib = { path = "../bot_lib" }
 teloxide = { version = "0.11.3", features = ["webhooks-axum", "redis-storage"] }
 
 #[:: Net ::]
-tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.24.2", features = ["macros", "rt-multi-thread"] }
 reqwest = "0.11.13"
 axum = { version = "0.6.1", features = ["macros", "form", "http1", "http2", "json", "multipart", "query"] }
 #url = { version = "2.3.1", features = [] }
