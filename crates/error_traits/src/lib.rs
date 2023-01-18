@@ -1,58 +1,13 @@
-use std::fmt::{Debug, Display};
 
 #[cfg(feature = "error_stack_dyn_ext")]
-use error_stack::{Context, IntoReportCompat, ResultExt};
-
-/// Conversion and adjustment of error reports (after turning usual result to
-/// report by calling `.into_report()`).
-#[cfg(feature = "error_stack_dyn_ext")]
-pub trait ConvReport
-    where 
-        Self: ResultExt + Sized
-{
-    fn conv_to<C>(self, convert_to: C) -> error_stack::Result<Self::Ok, C>
-        where 
-            C: Context
-    { self.change_context_lazy(|| convert_to) }
-
-    fn conv_to_and_attach<C, A>(self, convert_to: C, attach: A) -> error_stack::Result<Self::Ok, C>
-        where 
-            A: Display + Debug + Send + Sync + 'static,
-            C: Context
-    {
-        self.change_context_lazy(|| convert_to)
-            .attach_printable_lazy(|| attach)
-    }
-}
+mod err_stack_ext;
+#[cfg(feature = "log_err")]
+mod log_err;
 
 #[cfg(feature = "error_stack_dyn_ext")]
-impl<T, C> ConvReport for error_stack::Result<T, C> {}
-
-
-/// Create report from usual result ( required for `Box(dyn Error)` ).
-#[cfg(feature = "error_stack_dyn_ext")]
-pub trait IntoReportDyn
-{
-    type Ok;
-    type Err;
-
-    fn into_report_dyn(self) -> error_stack::Result<Self::Ok, Self::Err>;
-}
-
-#[cfg(feature = "error_stack_dyn_ext")]
-impl<T, E> IntoReportDyn for Result<T, E>
-    where 
-        E: Send + Sync + Debug + Display + 'static
-{
-    type Ok = T;
-    type Err = anyhow::Error;
-
-    fn into_report_dyn(self) -> error_stack::Result<T, anyhow::Error>
-    {
-        self.map_err(|dyn_err| anyhow::anyhow!(dyn_err))
-            .into_report()
-    }
-}
+pub use err_stack_ext::*;
+#[cfg(feature = "log_err")]
+pub use log_err::*;
 
 type StdResult<T, E> = Result<T, E>;
 
@@ -90,32 +45,6 @@ impl<T, E, N> MapErrBy<T, N> for StdResult<T, E>
     }
 }
 
-/// If error is present, this trait logs it and returns back.
-#[cfg(feature = "log_err")]
-pub trait LogErr
-{
-    fn log_err(self, log_msg: &str) -> Self;
-}
-
-impl<T, E> LogErr for StdResult<T, E>
-    where
-        E: Display
-{
-    fn log_err(self, log_msg: &str) -> Self
-    {
-        match self
-        {
-            Ok(ok) => Ok(ok),
-            Err(e) =>
-                {
-                    log::error!("{log_msg}{e}");
-                    Err(e)
-                }
-        }
-    }
-}
-
-
 /// Turns error into a string.
 pub trait MapErrToString<T>
 {
@@ -133,12 +62,12 @@ impl<T, E> MapErrToString<T> for StdResult<T, E>
 
 
 /// Wraps any type into `Ok()` variant of `Result`.
-pub trait InOk<T, E>
+pub trait WrapInOk<T, E>
 {
     fn in_ok(self) -> StdResult<T, E>;
 }
 
-impl<T, E> InOk<T, E> for T
+impl<T, E> WrapInOk<T, E> for T
 {
     fn in_ok(self) -> StdResult<T, E>
     {
@@ -148,12 +77,12 @@ impl<T, E> InOk<T, E> for T
 
 
 /// Wraps any type into `Ok()` variant of `Result`.
-pub trait InErr<T, E>
+pub trait WrapInErr<T, E>
 {
     fn in_err(self) -> StdResult<T, E>;
 }
 
-impl<T, E> InErr<T, E> for E
+impl<T, E> WrapInErr<T, E> for E
 {
     fn in_err(self) -> StdResult<T, E>
     {
