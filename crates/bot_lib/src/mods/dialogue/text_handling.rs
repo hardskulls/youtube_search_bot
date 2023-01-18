@@ -5,13 +5,14 @@ use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
 use teloxide::types::{Message, ParseMode};
 use url::Url;
-use error_traits::InOk;
+use error_traits::WrapInOk;
 
 use crate::mods::db::{get_access_token, refresh_access_token, refresh_token_req};
 use crate::mods::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet};
 use crate::mods::dialogue::types::{SearchCommandSettings, State::{ListCommandActive, SearchCommandActive}};
-use crate::mods::inline_keyboards::types::SearchIn;
+use crate::mods::keyboards::types::{SearchIn, Sorting};
 use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
+use crate::mods::utils::HTMLise;
 use crate::mods::youtube::{search_items, make_auth_url, list_items};
 use crate::mods::youtube::traits::Searchable;
 use crate::mods::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
@@ -39,6 +40,13 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &
     }
 }
 
+pub(crate) fn save_text(text: &str, search_config: SearchCommandSettings, dialogue_data: &DialogueData) 
+    -> MessageTriplet
+{
+    let state = SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_config });
+    ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
+}
+
 async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
     where
         S: Searchable + 'i,
@@ -52,7 +60,7 @@ async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
                 s.description().unwrap_or("No description 🤷‍♂️️").to_owned(),
                 s.link().unwrap_or_else(|| "No link 🤷‍♂️".to_owned())
             );
-        let text = format!("<b>{}</b>{}{}", title + " \n\n", descr + " \n\n", link);
+        let text = format!("{}{}{}", title.to_bold() + " \n\n", descr + " \n\n", link);
         let _sent_msg =
             bot.send_message(msg.chat.id, text)
                 .parse_mode(ParseMode::Html)
@@ -68,11 +76,10 @@ pub(crate) async fn execute_search_command<T>
 (
     bot: &Bot,
     msg: &Message,
-    dialogue_data: &DialogueData,
-    text_to_look_for: &str,
-    result_lim: u32,
-    search_mode: &SearchIn,
-    request_builder: T
+    search_for: &str,
+    res_limit: u32,
+    search_in: &SearchIn,
+    req_builder: T
 )
     -> eyre::Result<MessageTriplet>
     where
@@ -85,8 +92,8 @@ pub(crate) async fn execute_search_command<T>
         get_access_token(&user_id, &redis_url)
         else
         {
-            let url = default_auth_url(&user_id).await?;
-            let auth_url = format!("Use this link to log in <a href=\"{url}\">Log In</a>");
+            let auth_url = default_auth_url(&user_id).await?;
+            let auth_url = format!("Use this link to log in {}", auth_url.to_link("Log In"));
             bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
@@ -98,10 +105,10 @@ pub(crate) async fn execute_search_command<T>
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
     let results =
-        search_items(search_mode, request_builder, text_to_look_for, &access_token, result_lim).await;
+        search_items(search_in, req_builder, search_for, &access_token, res_limit).await;
     
-    send_results(bot, msg, results.iter().take(result_lim as _)).await;
-    let result_count = results.iter().take(result_lim as _).count();
+    send_results(bot, msg, &results).await;
+    let result_count = results.len();
     
     (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
 }
@@ -110,6 +117,8 @@ pub(crate) async fn execute_list_command<T>
 (
     bot: &Bot,
     msg: &Message,
+    res_limit: u32,
+    sorting: &Sorting,
     request_builder: T
 )
     -> eyre::Result<MessageTriplet>
@@ -123,8 +132,7 @@ pub(crate) async fn execute_list_command<T>
         get_access_token(&user_id, &redis_url)
         else
         {
-            let url = default_auth_url(&user_id).await?;
-            let auth_url = format!("Use this link to log in <a href=\"{url}\">Log In</a>");
+            let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
             bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
@@ -135,7 +143,7 @@ pub(crate) async fn execute_list_command<T>
     let access_token = refresh_access_token(&user_id, token, &redis_url, token_req).await?.access_token;
     
     bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
-    let results = list_items(request_builder, &access_token).await;
+    let results = list_items(request_builder, &access_token, sorting, res_limit).await;
     
     send_results(bot, msg, &results).await;
     let result_count = results.len();
@@ -163,7 +171,7 @@ mod tests
 {
     use std::default::Default;
     use axum::http::Request;
-    use crate::mods::inline_keyboards::types::Target;
+    use crate::mods::keyboards::types::Target;
     
     use crate::mods::net::find_by_key;
     

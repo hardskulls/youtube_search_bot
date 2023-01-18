@@ -5,9 +5,9 @@ use teloxide::requests::Requester;
 use teloxide::types::{Me, Message};
 use teloxide::utils::command::BotCommands;
 
-use error_traits::{InErr, LogErr, MapErrBy};
+use error_traits::{WrapInErr, LogErr, MapErrBy};
 
-use crate::dialogue::types::{ListCommandSettings, SearchCommandSettings, State, TheDialogue};
+use crate::mods::dialogue::types::{ListCommandSettings, SearchCommandSettings, State, TheDialogue};
 use crate::mods::db::{delete_access_token, get_access_token};
 use crate::mods::dialogue::funcs::get_dialogue_data;
 use crate::mods::dialogue::types::MessageTriplet;
@@ -58,7 +58,7 @@ fn maybe_print<T: Display + Debug>(prefix: &str, printable: &Option<T>, default:
 
 fn print_search_config(c: &SearchCommandSettings) -> String
 {
-    let SearchCommandSettings { target, search_by, result_limit } = c;
+    let SearchCommandSettings { target, search_in: search_by, result_limit, .. } = c;
     let t =
         format!
         (
@@ -75,7 +75,7 @@ fn print_search_config(c: &SearchCommandSettings) -> String
 
 fn print_list_config(c: &ListCommandSettings) -> String
 {
-    let ListCommandSettings { target, result_limit, sort_by } = c;
+    let ListCommandSettings { target, result_limit, sorting: sort_by } = c;
     let t =
         format!
         (
@@ -125,7 +125,7 @@ pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
 #[cfg(test)]
 mod tests
 {
-    use crate::mods::inline_keyboards::types::Target;
+    use crate::mods::keyboards::types::Target;
     
     use super::*;
     

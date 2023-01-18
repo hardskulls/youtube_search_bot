@@ -9,9 +9,9 @@ use error_traits::MergeOkErr;
 use crate::mods::commands::funcs::{info, log_out};
 use crate::mods::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, MessageWithKB};
 use crate::mods::dialogue::types::{SearchCommandSettings, State, TheDialogue};
-use crate::mods::inline_keyboards::traits::{CreateKB, KeyboardText};
-use crate::mods::inline_keyboards::types::ListCommandButtons::ListConfig;
-use crate::mods::inline_keyboards::types::SearchCommandButtons::SearchConfig;
+use crate::mods::keyboards::traits::{CreateKB, KeyboardText};
+use crate::mods::keyboards::types::ListCommandButtons::ListSettings;
+use crate::mods::keyboards::types::SearchCommandButtons::SearchSettings;
 
 pub(crate) mod funcs;
 
@@ -43,12 +43,12 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
             Command::Search =>
                 {
                     let state = State::SearchCommandActive(SearchCommandSettings::default());
-                    (SearchConfig.kb_text(), SearchConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (SearchSettings.kb_text(), SearchSettings.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::List =>
                 {
                     let state = State::ListCommandActive(ListCommandSettings::default());
-                    (ListConfig.kb_text(), ListConfig.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    (ListSettings.kb_text(), ListSettings.create_kb(), DialogueData { state, ..Default::default() }.into())
                 }
             Command::LogOut =>
                 {

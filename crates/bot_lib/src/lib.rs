@@ -9,7 +9,7 @@ mod mods
     pub(crate) mod commands;
     pub(crate) mod dialogue;
     pub(crate) mod youtube;
-    pub(crate) mod inline_keyboards 
+    pub(crate) mod keyboards
     {
         pub(crate) mod funcs; 
         pub(crate) mod types;
@@ -18,7 +18,9 @@ mod mods
     pub(crate) mod auth_server;
     pub(crate) mod db;
     pub(crate) mod net;
+    pub(crate) mod utils;
 }
+
 
 pub mod commands
 {
@@ -29,7 +31,7 @@ pub mod commands
 pub mod dialogue
 {
     pub mod funcs { pub use crate::mods::dialogue::{handle_callback_data, handle_text}; }
-    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State, ListCommandSettings, SearchCommandSettings}; }
+    pub mod types { pub use crate::mods::dialogue::types::{TheDialogue, DialogueData, State}; }
 }
 
 pub mod errors

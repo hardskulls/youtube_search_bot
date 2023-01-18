@@ -1,6 +1,6 @@
 use std::fmt::Debug;
-use error_traits::InOk;
-use crate::mods::inline_keyboards::types::SearchIn;
+use error_traits::WrapInOk;
+use crate::mods::keyboards::types::{SearchIn, Sorting};
 
 use crate::mods::net::join;
 use crate::mods::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
@@ -12,13 +12,12 @@ pub(crate) mod types;
 pub(crate) mod traits;
 
 /// Makes a single call to `YouTube API` go get one page of items.
-pub(crate) async fn req_items<T>(client: &reqwest::Client, access_token: &str, item_to_search: &T, page_token: Option<String>)
+pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, request_builder: &T, page_token: Option<String>)
     -> eyre::Result<T::Target>
     where
         T: ItemsListRequestBuilder
 {
-    let req_builder = item_to_search.build_req(client, access_token, page_token)?;
-    let resp = req_builder.send().await?;
+    let resp = request_builder.build_req(client, access_token, page_token)?.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     if !resp.status().is_success()
     { return Err(eyre::eyre!("status code is not a success")) }
@@ -43,18 +42,18 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
 }
 
 /// Search and filter items (subscriptions, playlists, etc).
-pub(crate) async fn search_items<I>
+pub(crate) async fn search_items<T>
 (
     search_mode: &SearchIn,
-    request_builder: I,
+    request_builder: T,
     text_to_look_for: &str,
     access_token: &str,
     max_res: u32
 )
-    -> Vec<<I::Target as ItemsResponsePage>::Item>
+    -> Vec<<T::Target as ItemsResponsePage>::Item>
     where
-        I: ItemsListRequestBuilder,
-        I::Target: Default + Debug + ItemsResponsePage
+        T: ItemsListRequestBuilder,
+        T::Target: Default + Debug + ItemsResponsePage
 {
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_mode, &text_to_look_for, &max_res));
@@ -63,7 +62,7 @@ pub(crate) async fn search_items<I>
     
     let stop_if = move |_: &_| current_cap > max_res as usize;
     let f =
-        |item: I::Target|
+        |item: T::Target|
             {
                 if let Some(i) = item.items()
                 { find_matches(search_mode, &mut store_in, i, text_to_look_for) }
@@ -76,27 +75,29 @@ pub(crate) async fn search_items<I>
 }
 
 /// Returns all items on user's channel.
-pub(crate) async fn list_items<I>
+pub(crate) async fn list_items<T>
 (
-    request_builder: I,
+    request_builder: T,
     access_token: &str,
+    sorting: &Sorting,
+    res_limit: u32
 ) 
-    -> Vec<<I::Target as ItemsResponsePage>::Item>
+    -> Vec<<T::Target as ItemsResponsePage>::Item>
     where
-        I: ItemsListRequestBuilder,
-        I::Target: Default + Debug + ItemsResponsePage,
+        T: ItemsListRequestBuilder,
+        T::Target: Default + Debug + ItemsResponsePage,
 {
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
     
     let client = reqwest::Client::new();
-    let resp = req_items(&client, access_token, &request_builder, None).await;
+    let resp = items_request(&client, access_token, &request_builder, None).await;
     let search_res = resp.unwrap_or_default();
     let cap = search_res.total_results().unwrap_or(50) as usize;
     
-    let mut store_in = Vec::<<I::Target as ItemsResponsePage>::Item>::with_capacity(cap);
+    let mut store_in = Vec::<<T::Target as ItemsResponsePage>::Item>::with_capacity(cap);
     let stop_if = |_: &_| false;
     let f =
-        |item: I::Target|
+        |item: T::Target|
             {
                 if let Some(mut i) = item.items()
                 { store_in.append(&mut i) }
@@ -104,7 +105,12 @@ pub(crate) async fn list_items<I>
     
     pagination(request_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] ended )");
-    store_in
+    match *sorting
+    {
+        Sorting::Alphabetical => { store_in.sort_by(|a: _, b: _| a.title().cmp(&b.title())) }
+        Sorting::Date => { store_in.sort_by(|a: _, b: _| a.date().cmp(&b.date())) }
+    }
+    store_in.into_iter().take(res_limit as _).collect()
 }
 
 /// Gives full access to each page of request.
@@ -123,7 +129,7 @@ pub(crate) async fn pagination<I, F, S>(request_builder: I, access_token: &str, 
     let mut next_page_token = None;
     loop
     {
-        let resp = req_items(&client, access_token, &request_builder, next_page_token).await;
+        let resp = items_request(&client, access_token, &request_builder, next_page_token).await;
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
     
@@ -160,16 +166,16 @@ fn find_matches<S>(search_mode: &SearchIn, store_in: &mut Vec<S>, search_in: Vec
 #[cfg(test)]
 mod tests
 {
-    use crate::mods::net::traits::ListSubscriptions;
+    use crate::mods::net::traits::RespTargetSubscriptions;
     use super::*;
     
     #[tokio::test]
-    async fn trythat()
+    async fn try_that()
     {
         let access_token = "kmkpmpmp";
         //let mut v = vec![];
-        let f = |x| drop(x);
-        pagination(ListSubscriptions, access_token, |_| false, f).await;
+        let f = drop;
+        pagination(RespTargetSubscriptions, access_token, |_| false, f).await;
     }
     
 }

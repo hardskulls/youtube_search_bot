@@ -1,12 +1,12 @@
 use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
 use reqwest::{Client, RequestBuilder};
-use error_traits::InOk;
+use error_traits::WrapInOk;
 use crate::mods::youtube::traits::Searchable;
 
 
-pub struct ListSubscriptions;
+pub struct RespTargetSubscriptions;
 
-pub struct ListPlaylists;
+pub struct RespTargetPlaylists;
 
 
 pub trait ItemsListRequestBuilder
@@ -16,7 +16,7 @@ pub trait ItemsListRequestBuilder
     fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
-impl ItemsListRequestBuilder for ListSubscriptions
+impl ItemsListRequestBuilder for RespTargetSubscriptions
 {
     type Target = SubscriptionListResponse;
     
@@ -35,7 +35,7 @@ impl ItemsListRequestBuilder for ListSubscriptions
     }
 }
 
-impl ItemsListRequestBuilder for ListPlaylists
+impl ItemsListRequestBuilder for RespTargetPlaylists
 {
     type Target = PlaylistListResponse;
     
@@ -54,11 +54,11 @@ impl ItemsListRequestBuilder for ListPlaylists
     }
 }
 
-pub struct ItemSearchRes<S: Searchable>
-{
-    pub items: Option<Vec<S>>,
-    pub next_page_token: Option<String>
-}
+//pub struct ItemSearchRes<S: Searchable>
+//{
+//    pub items: Option<Vec<S>>,
+//    pub next_page_token: Option<String>
+//}
 
 
 pub trait ItemsResponsePage

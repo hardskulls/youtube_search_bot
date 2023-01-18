@@ -1,8 +1,8 @@
 use std::fmt::Display;
 use teloxide::types::InlineKeyboardMarkup;
-use crate::mods::inline_keyboards::funcs::{button, inline_button};
-use crate::mods::inline_keyboards::types::{Buttons, ListCommandButtons};
-use crate::mods::inline_keyboards::types::{SearchCommandButtons, SearchIn, Target, Sorting};
+use crate::mods::keyboards::funcs::{button, inline_button};
+use crate::mods::keyboards::types::{Buttons, ListCommandButtons};
+use crate::mods::keyboards::types::{SearchCommandButtons, SearchIn, Target, Sorting};
 
 /// Creates `InlineKeyboardMarkup`.
 pub trait CreateKB
@@ -19,20 +19,20 @@ impl CreateKB for SearchCommandButtons
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::Subscription))))
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
             SearchCommandButtons::SearchInOptions =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Title))))
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Description))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
             _ =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)))
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::TargetOptions)))
                     .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::SearchInOptions)))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchConfig)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
         }
     }
@@ -44,16 +44,17 @@ impl CreateKB for ListCommandButtons
     {
         match *self
         {
+            ListCommandButtons::ResultLimit => None,
             ListCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::Subscription))))
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListConfig)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
                     .into(),
             _ =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::TargetOptions)))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListConfig)))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
                     .into()
         }
     }
@@ -85,6 +86,7 @@ impl KeyboardText for ListCommandButtons
     {
         match *self
         {
+            ListCommandButtons::ResultLimit => "Choose result limit 📇",
             ListCommandButtons::TargetOptions => "Choose what you want to search 🔎",
             //ListCommandButtons::SortingOptions => "Choose result sorting 📋",
             _ => "Set up your list query ⚙",

@@ -7,6 +7,8 @@ pub trait Searchable
     
     fn description(&self) -> Option<&str>;
     
+    fn date(&self) -> Option<&str>;
+    
     fn link(&self) -> Option<String>;
 }
 
@@ -28,6 +30,11 @@ impl Searchable for Subscription
         { None }
         else
         { description.as_str().into() }
+    }
+    
+    fn date(&self) -> Option<&str>
+    {
+        self.snippet.as_ref()?.published_at.as_ref()?.as_str().into()
     }
     
     fn link(&self) -> Option<String>
@@ -55,6 +62,11 @@ impl Searchable for Playlist
         { None }
         else
         { description.as_str().into() }
+    }
+    
+    fn date(&self) -> Option<&str>
+    {
+        self.snippet.as_ref()?.published_at.as_ref()?.as_str().into()
     }
     
     fn link(&self) -> Option<String>

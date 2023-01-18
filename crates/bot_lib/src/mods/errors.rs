@@ -60,6 +60,10 @@ pub struct DeserializationError;
 #[error("[ {:?} ] : ( No `MessageWithKB`, or its inner `Option<Message>` is `None`. )", Self)]
 pub struct NoMessageWithKB;
 
+#[derive(Error, Debug, Clone)]
+#[error("[ {:?} ] : ( No `MessageWithKB`, or its inner `Option<Message>` is `None`. )", Self)]
+pub struct MissingType;
+
 
 pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
     -> eyre::Result<OK>
