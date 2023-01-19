@@ -128,7 +128,7 @@ mod tests
     #[test]
     fn deserialize_from_json_test()
     {
-        let path = env!("ACCESS_TOKEN_EXAMPLE");
+        let path = env!("PATH_TO_ACCESS_TOKEN_EXAMPLE");
         let contents = std::fs::read_to_string(path).unwrap();
         let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
         assert!(matches!(deserialized_2, Ok(_)));
@@ -164,7 +164,7 @@ mod tests
     #[test]
     fn sub_list_resp_deserialize_test()
     {
-        let path = env!("SUBS_LIST_RESP");
+        let path = env!("PATH_TO_SUBSCRIPTION_JSON_EXAMPLE");
         let subs = std::fs::read_to_string(path).unwrap();
         let subs_list_resp = serde_json::from_str::<SubscriptionListResponse>(&subs).unwrap();
         dbg!(subs_list_resp.next_page_token);

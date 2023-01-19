@@ -111,8 +111,8 @@ mod tests
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
     
         let redis_url = env!("REDIS_URL");
-        let access_token = env!("ACCESS_TOKEN").to_owned();
-        let refresh_token = env!("REFRESH_TOKEN").to_owned().into();
+        let access_token = env!("TEST_ACCESS_TOKEN").to_owned();
+        let refresh_token = env!("TEST_REFRESH_TOKEN").to_owned().into();
         
         let user_id = "Александр Иванов";
     
@@ -143,11 +143,11 @@ mod tests
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
         
         let redis_url = env!("REDIS_URL");
-        let access_token = env!("ACCESS_TOKEN").to_owned();
-        let refresh_token = env!("REFRESH_TOKEN").to_owned().into();
-        let secret_path = env!("OAUTH_SECRET_PATH");
+        let access_token = env!("TEST_ACCESS_TOKEN").to_owned();
+        let refresh_token = env!("TEST_REFRESH_TOKEN").to_owned().into();
+        let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
         // api key is required for making calls from anywhere, instead of manually added urls in oauth credentials
-        let oauth_api_key = env!("OAUTH_API_KEY");
+        let oauth_api_key = env!("GOOGLE_OAUTH_API_KEY");
         
         let user_id = "Александр Иванов";
         

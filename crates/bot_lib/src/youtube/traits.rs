@@ -85,7 +85,7 @@ mod tests
     #[test]
     fn plist_test() -> eyre::Result<()>
     {
-        let path = env!("PLIST_JSON_RESP");
+        let path = env!("PATH_TO_PLAYLIST_JSON_EXAMPLE");
         let f = std::fs::read_to_string(path)?;
         let pl_resp =
             serde_json::from_str::<PlaylistListResponse>(&f).unwrap();

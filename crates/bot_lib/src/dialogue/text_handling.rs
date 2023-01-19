@@ -100,7 +100,7 @@ pub(crate) async fn execute_search_command<T>
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
-    let secret_path = env!("OAUTH_SECRET_PATH");
+    let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
@@ -139,7 +139,7 @@ pub(crate) async fn execute_list_command<T>
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
-    let secret_path = env!("OAUTH_SECRET_PATH");
+    let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
@@ -156,7 +156,7 @@ pub(crate) async fn execute_list_command<T>
 /// Construct authorization url.
 async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 {
-    let secret_path = env!("OAUTH_SECRET_PATH");
+    let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
 
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());

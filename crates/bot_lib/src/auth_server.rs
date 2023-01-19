@@ -13,7 +13,7 @@ use crate::youtube::types::YouTubeAccessToken;
 
 async fn params(auth_code: &str) -> [(String, String); 5]
 {
-    let secret_path = env!("OAUTH_SECRET_PATH");
+    let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await.unwrap();
     [
         ("client_id".to_owned(), secret.client_id),
