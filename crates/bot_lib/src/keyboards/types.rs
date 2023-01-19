@@ -4,7 +4,7 @@ use parse_display::Display;
 /// Target of `list` or `search` commands. 
 /// Used in `SearchCommandButtons` and `ListCommandButtons`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub enum Target
+pub(crate) enum Target
 {
     #[display("{} 🎫")]
     Subscription,
@@ -14,7 +14,7 @@ pub enum Target
 
 /// Defines where to search. Used in `SearchCommandKB`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub enum SearchIn
+pub(crate) enum SearchIn
 {
     #[display("By {} 📋")]
     Title,
@@ -26,26 +26,27 @@ pub enum SearchIn
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum SearchCommandButtons
 {
-    #[display("{} 🔎")] #[display(style = "Title Case")] #[default]
+    #[display("{} 🔎")] #[display(style = "Title case")] #[default]
     SearchSettings,
+    #[display("{} ✅")]
     Execute,
-    #[display(style = "Title Case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 📤")]
     ResultLimit,
-    #[display("{} 🗳")]
+    #[display("Target 🗳")]
     TargetOptions,
     #[display("{0}")]
     Target(Target),
-    #[display(style = "Title Case")] #[display("{} 📡")]
+    #[display("Search in 📡")]
     SearchInOptions,
     #[display("{0}")]
     SearchIn(SearchIn),
-    #[display(style = "Title Case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 📤")]
     TextToSearch,
 }
 
 // TODO: Finish
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub enum Sorting
+pub(crate) enum Sorting
 {
     #[display("{} 📊")]
     Date,
@@ -57,18 +58,19 @@ pub enum Sorting
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum ListCommandButtons
 {
-    #[display("{} 🧾")] #[display(style = "Title Case")] #[default]
+    #[display("{} 🧾")] #[display(style = "Title case")] #[default]
     ListSettings,
+    #[display("{} ✅")]
     Execute,
-    #[display(style = "Title Case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 📤")]
     ResultLimit,
-    #[display("{} 🗳")]
+    #[display("Target 🗳")]
     TargetOptions,
     #[display("{0}")]
     Target(Target),
-    #[display(style = "Title Case")] #[display("{} 📤")]
+    #[display("Sorting 📤")]
     SortingOptions,
-    #[display("By {0}")]
+    #[display("{0}")]
     Sorting(Sorting),
     //#[display("{} 📊")]
     //Filter,
@@ -97,8 +99,8 @@ mod tests
     #[test]
     fn serialize_enum_test()
     {
-        assert_eq!(SearchInOptions.to_string(), "Search By 📡");
-        assert_eq!(SearchSettings.to_string(), "Search Config 🔎");
+        assert_eq!(SearchInOptions.to_string(), "Search in 📡");
+        assert_eq!(SearchSettings.to_string(), "Search settings 🔎");
     }
 
     #[test]

@@ -18,35 +18,35 @@ pub type MessageAndData<T> = (teloxide::requests::JsonRequest<T>, Option<Dialogu
 pub type TheDialogue = Dialogue<DialogueData, ErasedStorage<DialogueData>>;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct SearchConfig
+pub(crate) struct SearchConfig
 {
-    pub target: Target,
-    pub result_limit: u32,
-    pub search_in: SearchIn,
-    pub text_to_search: String,
+    pub(crate) target: Target,
+    pub(crate) result_limit: u32,
+    pub(crate) search_in: SearchIn,
+    pub(crate) text_to_search: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ListConfig
+pub(crate) struct ListConfig
 {
-    pub target: Target,
-    pub result_limit: u32,
-    pub sorting: Sorting,
+    pub(crate) target: Target,
+    pub(crate) result_limit: u32,
+    pub(crate) sorting: Sorting,
 }
 
 /// Stores settings for `search` command.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct SearchCommandSettings
 {
-    pub target: Option<Target>,
-    pub result_limit: Option<u32>,
-    pub search_in: Option<SearchIn>,
-    pub text_to_search: Option<String>,
+    pub(crate) target: Option<Target>,
+    pub(crate) result_limit: Option<u32>,
+    pub(crate) search_in: Option<SearchIn>,
+    pub(crate) text_to_search: Option<String>,
 }
 
 impl SearchCommandSettings
 {
-    pub fn build_config(self) -> StdResult<SearchConfig, String>
+    pub(crate) fn build_config(self) -> StdResult<SearchConfig, String>
     {
         match self
         {
@@ -68,14 +68,14 @@ impl SearchCommandSettings
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct ListCommandSettings
 {
-    pub target: Option<Target>,
-    pub result_limit: Option<u32>,
-    pub sorting: Option<Sorting>
+    pub(crate) target: Option<Target>,
+    pub(crate) result_limit: Option<u32>,
+    pub(crate) sorting: Option<Sorting>
 }
 
 impl ListCommandSettings
 {
-    pub fn build_config(self) -> StdResult<ListConfig, String>
+    pub(crate) fn build_config(self) -> StdResult<ListConfig, String>
     {
         match self
         {

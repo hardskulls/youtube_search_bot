@@ -1,7 +1,7 @@
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
-use teloxide::types::Message;
+use teloxide::types::{Me, Message};
 use teloxide::utils::command::BotCommands;
 
 use error_traits::MergeOkErr;
@@ -65,6 +65,24 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
     }
     else
     { message_to_send.await?; }
+    Ok(())
+}
+
+#[inline]
+pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
+{
+    let bot_name = me.user.username.expect("Bots must have a username");
+    if let Some(text) = msg.text()
+    { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name.as_str()).is_err() }
+    else
+    { false }
+}
+
+/// Tell user that an unknown command was received.
+#[inline]
+pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
+{
+    bot.send_message(msg.chat.id, "Unknown command 🤷‍♀️").await?;
     Ok(())
 }
 

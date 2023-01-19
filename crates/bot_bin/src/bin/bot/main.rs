@@ -6,17 +6,15 @@ use teloxide::
     dispatching::{Dispatcher, HandlerExt, UpdateFilterExt},
     dispatching::dialogue::{ErasedStorage, InMemStorage, RedisStorage, Storage, TraceStorage},
     dispatching::dialogue::serializer::Json,
-    dispatching::update_listeners::webhooks,
     dptree,
     error_handlers::LoggingErrorHandler,
     requests::Requester,
     types::Update,
     utils::command::BotCommands,
 };
-use teloxide::types::{CallbackQuery, Message};
+use teloxide::update_listeners::webhooks;
 
-use bot_lib::commands::{Command, handle_commands};
-use bot_lib::commands::funcs::{handle_unknown_command, is_other_command};
+use bot_lib::commands::{Command, handle_commands, handle_unknown_command, is_other_command};
 use bot_lib::dialogue::{handle_callback_data, handle_text};
 use bot_lib::dialogue::types::DialogueData;
 use bot_lib::errors::NetworkError;
@@ -57,16 +55,15 @@ async fn main() -> eyre::Result<()>
 
     let message_handler =
         Update::filter_message()
-            .enter_dialogue::<Message, ErasedStorage<DialogueData>, DialogueData>()
             .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
             .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
             .branch(dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text));
     let callback_handler =
         Update::filter_callback_query()
-            .enter_dialogue::<CallbackQuery, ErasedStorage<DialogueData>, DialogueData>()
             .endpoint(handle_callback_data);
     let main_handler =
         dptree::entry()
+            .enter_dialogue::<Update, ErasedStorage<DialogueData>, DialogueData>()
             .branch(message_handler)
             .branch(callback_handler);
     

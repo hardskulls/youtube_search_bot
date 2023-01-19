@@ -1,10 +1,5 @@
 use std::fmt::{Debug, Display};
 
-use teloxide::Bot;
-use teloxide::requests::Requester;
-use teloxide::types::{Me, Message};
-use teloxide::utils::command::BotCommands;
-
 use error_traits::{LogErr, MapErrBy, WrapInErr};
 
 use crate::{FlatRes, StdResult};
@@ -101,24 +96,6 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
         State::SearchCommandActive(search_config) => Ok(create_msg(&print_search_config(&search_config))),
         State::ListCommandActive(list_config) => Ok(create_msg(&print_list_config(&list_config)))
     }
-}
-
-#[inline]
-pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
-{
-    let bot_name = me.user.username.expect("Bots must have a username");
-    if let Some(text) = msg.text()
-    { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name.as_str()).is_err() }
-    else
-    { false }
-}
-
-/// Tell user that an unknown command was received.
-#[inline]
-pub async fn handle_unknown_command(bot: Bot, msg: Message) -> eyre::Result<()>
-{
-    bot.send_message(msg.chat.id, "Unknown command 🤷‍♀️").await?;
-    Ok(())
 }
 
 #[cfg(test)]
