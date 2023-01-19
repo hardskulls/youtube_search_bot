@@ -33,7 +33,9 @@ impl CreateKB for SearchCommandButtons
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)))
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::TargetOptions)))
                     .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::SearchInOptions)))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
+                    .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::TextToSearch)))
+                    .append_to_row(2, button(Buttons::SearchButtons(SearchCommandButtons::Execute)))
+                    .append_to_row(2, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
         }
     }
@@ -55,7 +57,10 @@ impl CreateKB for ListCommandButtons
             _ =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::TargetOptions)))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::ResultLimit)))
+                    .append_to_row(1, button(Buttons::ListButtons(ListCommandButtons::SortingOptions)))
+                    .append_to_row(2, button(Buttons::ListButtons(ListCommandButtons::Execute)))
+                    .append_to_row(2, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
                     .into()
         }
     }
@@ -75,7 +80,7 @@ impl KeyboardText for SearchCommandButtons
             SearchCommandButtons::ResultLimit => "Choose result limit 📇",
             SearchCommandButtons::TargetOptions => "Choose what you want to search 🔎",
             SearchCommandButtons::SearchInOptions => "Choose how you want to search 📋",
-            _ => "Set up your search query ⚙",
+            _ => "Set up your search command settings ⚙",
         }
         .to_owned()
     }
@@ -89,8 +94,8 @@ impl KeyboardText for ListCommandButtons
         {
             ListCommandButtons::ResultLimit => "Choose result limit 📇",
             ListCommandButtons::TargetOptions => "Choose what you want to search 🔎",
-            //ListCommandButtons::SortingOptions => "Choose result sorting 📋",
-            _ => "Set up your list query ⚙",
+            ListCommandButtons::SortingOptions => "Choose result sorting 📋",
+            _ => "Set up your list command settings ⚙",
         }
         .to_owned()
     }
