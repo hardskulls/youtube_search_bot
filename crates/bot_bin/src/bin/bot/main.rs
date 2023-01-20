@@ -15,6 +15,7 @@ use teloxide::
     types::Update,
     utils::command::BotCommands,
 };
+use teloxide::types::{CallbackQuery, Message};
 use teloxide::update_listeners::webhooks;
 
 use bot_lib::commands::{Command, handle_commands, handle_unknown_command, is_other_command};
@@ -55,14 +56,16 @@ async fn main() -> eyre::Result<()>
 
     bot.delete_webhook().await?;
     bot.set_my_commands(Command::bot_commands()).await?;
-
+    
     let message_handler =
         Update::filter_message()
+            .enter_dialogue::<Message, ErasedStorage<DialogueData>, DialogueData>()
             .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
             .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
             .branch(dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text));
     let callback_handler =
         Update::filter_callback_query()
+            .enter_dialogue::<CallbackQuery, ErasedStorage<DialogueData>, DialogueData>()
             .endpoint(handle_callback_data);
     let main_handler =
         dptree::entry()
