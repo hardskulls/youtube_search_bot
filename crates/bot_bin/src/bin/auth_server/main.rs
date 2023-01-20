@@ -1,3 +1,6 @@
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
+
 use axum::Router;
 use axum::routing::any;
 use bot_lib::auth_server::{handle_auth_code, serve_all};

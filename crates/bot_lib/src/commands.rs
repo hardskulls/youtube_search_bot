@@ -71,9 +71,9 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
 #[inline]
 pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
 {
-    let bot_name = me.user.username.expect("Bots must have a username");
+    let bot_name = me.username();
     if let Some(text) = msg.text()
-    { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name.as_str()).is_err() }
+    { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name).is_err() }
     else
     { false }
 }

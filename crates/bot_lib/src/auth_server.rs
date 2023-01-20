@@ -4,17 +4,17 @@ use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use reqwest::RequestBuilder;
 
-use error_traits::MapErrToString;
+use error_traits::{MapErrToString, WrapInOk};
 
 use crate::db::{combine_old_new_tokens, set_access_token};
 use crate::net::find_by_key;
 use crate::StdResult;
 use crate::youtube::types::YouTubeAccessToken;
 
-async fn params(auth_code: &str) -> [(String, String); 5]
+async fn params(auth_code: &str) -> StdResult<[(String, String); 5], std::io::Error>
 {
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
-    let secret = read_application_secret(secret_path).await.unwrap();
+    let secret = read_application_secret(secret_path).await?;
     [
         ("client_id".to_owned(), secret.client_id),
         ("client_secret".to_owned(), secret.client_secret),
@@ -22,17 +22,19 @@ async fn params(auth_code: &str) -> [(String, String); 5]
         ("grant_type".to_owned(), "authorization_code".to_owned()),
         ("redirect_uri".to_owned(), secret.redirect_uris[0].clone())
     ]
+    .in_ok()
 }
 
-async fn access_token_req(auth_code: &str) -> RequestBuilder
+async fn access_token_req(auth_code: &str) -> eyre::Result<RequestBuilder>
 {
-    let params = params(auth_code).await;
-    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params).unwrap();
+    let params = params(auth_code).await?;
+    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
     reqwest::Client::new()
-        .post(reqwest::Url::parse("https://oauth2.googleapis.com/token").unwrap())
+        .post(reqwest::Url::parse("https://oauth2.googleapis.com/token")?)
         .header(hyper::header::HOST, "oauth2.googleapis.com")
         .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(uri.query().unwrap().to_owned())
+        .body(uri.query().ok_or(eyre::eyre!("no query!"))?.to_owned())
+        .in_ok()
 }
 
 fn get_query(req: &Request<Body>) -> String
@@ -70,7 +72,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     
     let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
     
-    let tok_req = access_token_req(auth_code).await;
+    let tok_req = access_token_req(auth_code).await.map_err(|_| "building token request failed")?;
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |] )", &resp);
     

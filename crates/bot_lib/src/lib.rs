@@ -1,3 +1,5 @@
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
 
 pub(crate) type StdResult<T, E> = Result<T, E>;
 
