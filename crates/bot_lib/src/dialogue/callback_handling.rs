@@ -46,6 +46,12 @@ pub(crate) async fn callback_helper_for_search_kb
                     let last_callback = callback.into();
                     Some(DialogueData { state, last_callback, ..dialogue_data })
                 }
+            (SearchCommandButtons::TextToSearch, _) =>
+                {
+                    let state = SearchCommandActive(SearchCommandSettings { ..search_config_update_or_default(dialogue_data.state) });
+                    let last_callback = callback.into();
+                    Some(DialogueData { state, last_callback, ..dialogue_data })
+                }
             (SearchCommandButtons::Execute, SearchCommandActive(search_settings)) =>
                 {
                     let search_config =
@@ -92,6 +98,12 @@ pub(crate) async fn callback_helper_for_list_kb
                 {
                     let target = target.clone().into();
                     let state = ListCommandActive(ListCommandSettings { target, ..list_config_update_or_default(dialogue_data.state) });
+                    DialogueData { state, ..dialogue_data }.into()
+                }
+            (ListCommandButtons::Sorting(sorting), _) =>
+                {
+                    let sorting = sorting.clone().into();
+                    let state = ListCommandActive(ListCommandSettings { sorting, ..list_config_update_or_default(dialogue_data.state) });
                     DialogueData { state, ..dialogue_data }.into()
                 }
             (ListCommandButtons::ResultLimit, _) =>
