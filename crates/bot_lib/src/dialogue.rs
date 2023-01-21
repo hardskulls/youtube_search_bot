@@ -20,7 +20,7 @@ pub(crate) mod text_handling;
 pub(crate) mod callback_handling;
 
 /// Main `text` handler.
-pub async fn handle_callback_data(bot: Bot, msg: Message, callback: CallbackQuery, dialogue: TheDialogue) -> eyre::Result<()>
+pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: TheDialogue) -> eyre::Result<()>
 {
     let dialogue_data = get_dialogue_data(&dialogue).await?;
     let chat_id = callback.chat_id().ok_or(EndpointErrors::GameError)?;
@@ -29,11 +29,11 @@ pub async fn handle_callback_data(bot: Bot, msg: Message, callback: CallbackQuer
         match &keyboard
         {
             SearchButtons(search_kb) =>
-                callback_helper_for_search_kb(&bot, &msg, search_kb, dialogue_data, callback)
+                callback_helper_for_search_kb(&bot, search_kb, dialogue_data, callback)
                     .await
                     .merge_ok_err(),
             ListButtons(list_kb) =>
-                callback_helper_for_list_kb(&bot, &msg, list_kb, dialogue_data, callback)
+                callback_helper_for_list_kb(&bot, list_kb, dialogue_data, callback)
                     .await
                     .merge_ok_err(),
         };

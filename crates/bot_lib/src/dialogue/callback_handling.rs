@@ -1,5 +1,6 @@
 use teloxide::Bot;
-use teloxide::types::{CallbackQuery, Message};
+use teloxide::dispatching::dialogue::GetChatId;
+use teloxide::types::CallbackQuery;
 
 use error_traits::WrapInOk;
 
@@ -16,7 +17,6 @@ use crate::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
 pub(crate) async fn callback_helper_for_search_kb
 (
     bot: &Bot,
-    msg: &Message,
     search_kb: &SearchCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery,
@@ -52,15 +52,19 @@ pub(crate) async fn callback_helper_for_search_kb
                         search_settings.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
                     let (search_for, res_limit, search_in) =
                         (search_config.text_to_search, search_config.result_limit, search_config.search_in);
+                    let send_to =
+                        callback.chat_id()
+                            .ok_or(())
+                            .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?;
                     let res =
                         match search_config.target
                         {
                             Target::Subscription =>
-                                execute_search_command(bot, msg, &search_for, res_limit, &search_in, RespTargetSubscriptions)
+                                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
+                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?,
                             Target::PlayList =>
-                                execute_search_command(bot, msg, &search_for, res_limit, &search_in, RespTargetPlaylists)
+                                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists)
                                     .await
                                     .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
                         };
@@ -75,7 +79,6 @@ pub(crate) async fn callback_helper_for_search_kb
 pub(crate) async fn callback_helper_for_list_kb
 (
     bot: &Bot,
-    msg: &Message,
     list_kb: &ListCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery
@@ -103,15 +106,19 @@ pub(crate) async fn callback_helper_for_list_kb
                         list_config.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
                     let (res_limit, sorting) =
                         (list_config.result_limit, list_config.sorting);
+                    let send_to =
+                        callback.chat_id()
+                            .ok_or(())
+                            .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?;
                     let res =
                         match list_config.target
                         {
                             Target::Subscription =>
-                                execute_list_command(bot, msg, res_limit, &sorting, RespTargetSubscriptions)
+                                execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetSubscriptions)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
+                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?,
                             Target::PlayList =>
-                                execute_list_command(bot, msg, res_limit, &sorting, RespTargetPlaylists)
+                                execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetPlaylists)
                                     .await
                                     .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
                         };

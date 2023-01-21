@@ -4,7 +4,7 @@ use google_youtube3::oauth2::read_application_secret;
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
-use teloxide::types::{Message, ParseMode};
+use teloxide::types::{ChatId, ParseMode, User};
 use url::Url;
 
 use error_traits::WrapInOk;
@@ -49,7 +49,7 @@ pub(crate) fn save_text(text: &str, search_config: SearchCommandSettings, dialog
     ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
 }
 
-async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
+async fn send_results<'i, S, T>(bot: &Bot, send_to: ChatId, list: T)
     where
         S: Searchable + 'i,
         T: IntoIterator<Item = &'i S>
@@ -64,7 +64,7 @@ async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
             );
         let text = format!("{}{}{}", title.to_bold() + " \n\n", descr + " \n\n", link);
         let _sent_msg =
-            bot.send_message(msg.chat.id, text)
+            bot.send_message(send_to, text)
                 .parse_mode(ParseMode::Html)
                 .disable_web_page_preview(true)
                 .await;
@@ -77,7 +77,8 @@ async fn send_results<'i, S, T>(bot: &Bot, msg: &Message, list: T)
 pub(crate) async fn execute_search_command<T>
 (
     bot: &Bot,
-    msg: &Message,
+    user_id: User,
+    send_to: ChatId,
     search_for: &str,
     res_limit: u32,
     search_in: &SearchIn,
@@ -88,7 +89,7 @@ pub(crate) async fn execute_search_command<T>
         T: ItemsListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage
 {
-    let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+    let user_id = user_id.id.0.to_string();
     let redis_url = env!("REDIS_URL");
     let Ok(token) =
         get_access_token(&user_id, redis_url)
@@ -96,7 +97,7 @@ pub(crate) async fn execute_search_command<T>
         {
             let auth_url = default_auth_url(&user_id).await?;
             let auth_url = format!("Use this link to log in {}", auth_url.to_link("Log In"));
-            bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
+            bot.send_message(send_to, auth_url).parse_mode(ParseMode::Html).await?;
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
@@ -105,11 +106,11 @@ pub(crate) async fn execute_search_command<T>
     let token_req = refresh_token_req(secret, &token)?;
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
-    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
+    bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
     let results =
         search_items(search_in, req_builder, search_for, &access_token, res_limit).await;
     
-    send_results(bot, msg, &results).await;
+    send_results(bot, send_to, &results).await;
     let result_count = results.len();
     
     (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
@@ -118,7 +119,8 @@ pub(crate) async fn execute_search_command<T>
 pub(crate) async fn execute_list_command<T>
 (
     bot: &Bot,
-    msg: &Message,
+    user_id: User,
+    send_to: ChatId,
     res_limit: u32,
     sorting: &Sorting,
     request_builder: T
@@ -128,14 +130,14 @@ pub(crate) async fn execute_list_command<T>
         T: ItemsListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage
 {
-    let user_id = msg.from().ok_or(eyre::eyre!("No User Id"))?.id.to_string();
+    let user_id = user_id.id.0.to_string();
     let redis_url = env!("REDIS_URL");
     let Ok(token) =
         get_access_token(&user_id, redis_url)
         else
         {
             let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
-            bot.send_message(msg.chat.id, auth_url).parse_mode(ParseMode::Html).await?;
+            bot.send_message(send_to, auth_url).parse_mode(ParseMode::Html).await?;
             return Ok(("Please, log in and send your text again ".to_owned(), None, None))
         };
     
@@ -144,10 +146,10 @@ pub(crate) async fn execute_list_command<T>
     let token_req = refresh_token_req(secret, &token)?;
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
-    bot.send_message(msg.chat.id, "Searching, please wait 🕵️‍♂️").await?;
+    bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
     let results = list_items(request_builder, &access_token, sorting, res_limit).await;
     
-    send_results(bot, msg, &results).await;
+    send_results(bot, send_to, &results).await;
     let result_count = results.len();
     
     (format!("Finished! ✔ \nFound {result_count} results"), None, None).in_ok()
