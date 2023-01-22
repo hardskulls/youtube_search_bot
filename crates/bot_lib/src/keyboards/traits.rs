@@ -18,6 +18,7 @@ impl CreateKB for SearchCommandButtons
         match *self
         {
             SearchCommandButtons::ResultLimit => None,
+            SearchCommandButtons::TextToSearch => None,
             SearchCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::Subscription))).unwrap_or_else(broken_kb))
@@ -84,6 +85,7 @@ impl KeyboardText for SearchCommandButtons
             SearchCommandButtons::ResultLimit => "Choose result limit 📇",
             SearchCommandButtons::TargetOptions => "Choose what you want to search 🔎",
             SearchCommandButtons::SearchInOptions => "Choose how you want to search 📋",
+            SearchCommandButtons::TextToSearch => "Send the text you want to search 📋",
             _ => "Set up your search command settings ⚙",
         }
         .to_owned()
