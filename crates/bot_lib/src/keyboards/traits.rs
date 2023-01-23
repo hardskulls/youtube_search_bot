@@ -33,9 +33,9 @@ impl CreateKB for SearchCommandButtons
                     .into(),
             _ =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)).unwrap_or_else(broken_kb))
                     .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::TargetOptions)).unwrap_or_else(broken_kb))
                     .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::SearchInOptions)).unwrap_or_else(broken_kb))
+                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)).unwrap_or_else(broken_kb))
                     .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::TextToSearch)).unwrap_or_else(broken_kb))
                     .append_to_row(2, button(Buttons::SearchButtons(SearchCommandButtons::Execute)).unwrap_or_else(broken_kb))
                     .append_to_row(2, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)).unwrap_or_else(broken_kb))
@@ -59,11 +59,17 @@ impl CreateKB for ListCommandButtons
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::PlayList))).unwrap_or_else(broken_kb))
                     .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)).unwrap_or_else(broken_kb))
                     .into(),
+            ListCommandButtons::SortingOptions =>
+                InlineKeyboardMarkup::default()
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Alphabetical))).unwrap_or_else(broken_kb))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Date))).unwrap_or_else(broken_kb))
+                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)).unwrap_or_else(broken_kb))
+                    .into(),
             _ =>
                 InlineKeyboardMarkup::default()
                     .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::TargetOptions)).unwrap_or_else(broken_kb))
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::ResultLimit)).unwrap_or_else(broken_kb))
                     .append_to_row(1, button(Buttons::ListButtons(ListCommandButtons::SortingOptions)).unwrap_or_else(broken_kb))
+                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::ResultLimit)).unwrap_or_else(broken_kb))
                     .append_to_row(2, button(Buttons::ListButtons(ListCommandButtons::Execute)).unwrap_or_else(broken_kb))
                     .append_to_row(2, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)).unwrap_or_else(broken_kb))
                     .into()
