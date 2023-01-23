@@ -2,7 +2,7 @@ use teloxide::Bot;
 use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::types::CallbackQuery;
 
-use error_traits::WrapInOk;
+use error_traits::{MapErrBy, WrapInOk};
 
 use crate::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
 use crate::dialogue::text_handling::{execute_list_command, execute_search_command};
@@ -58,21 +58,22 @@ pub(crate) async fn callback_helper_for_search_kb
                         search_settings.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
                     let (search_for, res_limit, search_in) =
                         (search_config.text_to_search, search_config.result_limit, search_config.search_in);
+                    let err = || ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into());
                     let send_to =
                         callback.chat_id()
                             .ok_or(())
-                            .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?;
+                            .map_err_by(err)?;
                     let res =
                         match search_config.target
                         {
                             Target::Subscription =>
                                 execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?,
+                                    .map_err_by(err)?,
                             Target::PlayList =>
                                 execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
+                                    .map_err_by(err)?,
                         };
                     return res.in_ok();
                 }
@@ -118,21 +119,22 @@ pub(crate) async fn callback_helper_for_list_kb
                         list_config.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
                     let (res_limit, sorting) =
                         (list_config.result_limit, list_config.sorting);
+                    let err = || ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into());
                     let send_to =
                         callback.chat_id()
                             .ok_or(())
-                            .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?;
+                            .map_err_by(err)?;
                     let res =
                         match list_config.target
                         {
                             Target::Subscription =>
                                 execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetSubscriptions)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into()))?,
+                                    .map_err_by(err)?,
                             Target::PlayList =>
                                 execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetPlaylists)
                                     .await
-                                    .map_err(|_| ("Couldn't execute command ❌".to_owned(), None, dialogue_data.into()))?,
+                                    .map_err_by(err)?,
                         };
                     return res.in_ok();
                 }
