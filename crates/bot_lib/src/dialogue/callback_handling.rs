@@ -2,7 +2,7 @@ use teloxide::Bot;
 use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::types::CallbackQuery;
 
-use error_traits::{MapErrBy, WrapInOk};
+use error_traits::{LogErr, MapErrBy, WrapInOk};
 
 use crate::dialogue::funcs::{list_config_update_or_default, search_config_update_or_default};
 use crate::dialogue::text_handling::{execute_list_command, execute_search_command};
@@ -59,23 +59,17 @@ pub(crate) async fn callback_helper_for_search_kb
                     let (search_for, res_limit, search_in) =
                         (search_config.text_to_search, search_config.result_limit, search_config.search_in);
                     let err = || ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into());
-                    let send_to =
-                        callback.chat_id()
-                            .ok_or(())
-                            .map_err_by(err)?;
+                    let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
+                    let send_to = callback.chat_id().ok_or(()).map_err_by(err)?;
                     let res =
                         match search_config.target
                         {
-                            Target::Subscription =>
-                                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions)
-                                    .await
-                                    .map_err_by(err)?,
-                            Target::PlayList =>
-                                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists)
-                                    .await
-                                    .map_err_by(err)?,
-                        };
-                    return res.in_ok();
+                            Target::Subscription => execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions).await,
+                            Target::PlayList => execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists).await,
+                        }
+                        .log_err(err_log_prefix)
+                        .map_err_by(err);
+                    return res
                 }
             _ => dialogue_data.into()
         };
@@ -115,28 +109,20 @@ pub(crate) async fn callback_helper_for_list_kb
                 }
             (ListCommandButtons::Execute, ListCommandActive(list_config)) =>
                 {
-                    let list_config =
-                        list_config.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
-                    let (res_limit, sorting) =
-                        (list_config.result_limit, list_config.sorting);
+                    let list_config = list_config.clone().build_config().map_err(|e| (e, None, dialogue_data.clone().into()))?;
+                    let (res_limit, sorting) = (list_config.result_limit, list_config.sorting);
                     let err = || ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into());
-                    let send_to =
-                        callback.chat_id()
-                            .ok_or(())
-                            .map_err_by(err)?;
+                    let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
+                    let send_to = callback.chat_id().ok_or(()).map_err_by(err)?;
                     let res =
                         match list_config.target
                         {
-                            Target::Subscription =>
-                                execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetSubscriptions)
-                                    .await
-                                    .map_err_by(err)?,
-                            Target::PlayList =>
-                                execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetPlaylists)
-                                    .await
-                                    .map_err_by(err)?,
-                        };
-                    return res.in_ok();
+                            Target::Subscription => execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetSubscriptions).await,
+                            Target::PlayList => execute_list_command(bot, callback.from, send_to, res_limit, &sorting, RespTargetPlaylists).await
+                        }
+                        .log_err(err_log_prefix)
+                        .map_err_by(err);
+                    return res
                 }
             _ => dialogue_data.into()
         };

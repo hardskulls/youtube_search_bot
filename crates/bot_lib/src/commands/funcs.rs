@@ -25,15 +25,16 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 /// Revoke `refresh token` and delete token from db.
 pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
 {
+    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
     if let Ok(token) = get_access_token(user_id, db_url)
     {
-        let req = build_log_out_req(token).map_err_by(err)?;
-        let resp = req.send().await.map_err_by(err)?;
+        let req = build_log_out_req(token).log_err(log_prefix).map_err_by(err)?;
+        let resp = req.send().await.log_err(log_prefix).map_err_by(err)?;
         if !resp.status().is_success()
         { return err().in_err() }
         
-        delete_access_token(user_id, db_url).map_err_by(err)?;
+        delete_access_token(user_id, db_url).log_err(log_prefix).map_err_by(err)?;
     
         ("Logged out successfully ✔".to_owned(), None, None).in_ok()
     }

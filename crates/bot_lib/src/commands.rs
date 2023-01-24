@@ -1,7 +1,7 @@
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::requests::Requester;
-use teloxide::types::{Me, Message};
+use teloxide::types::{Me, Message, ParseMode};
 use teloxide::utils::command::BotCommands;
 
 use error_traits::MergeOkErr;
@@ -56,7 +56,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
                     log_out(&user_id, redis_url).await.merge_ok_err()
                 }
         };
-    let message_to_send = bot.send_message(msg.chat.id, &message_text);
+    let message_to_send = bot.send_message(msg.chat.id, &message_text).parse_mode(ParseMode::Html);
     if let (Some(d_data), Some(kb)) = (opt_dialogue_data, opt_keyboard)
     {
         let sent_msg = message_to_send.reply_markup(kb).await?;

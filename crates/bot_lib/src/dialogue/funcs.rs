@@ -1,7 +1,7 @@
 use teloxide::Bot;
 use teloxide::payloads::EditMessageTextSetters;
 use teloxide::requests::Requester;
-use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message};
+use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message, ParseMode};
 
 use crate::dialogue::types::{DialogueData, ListCommandSettings, MessageWithKB, SearchCommandSettings, State, TheDialogue};
 use crate::errors::{DialogueStateStorageError, NoCallbackDataError, NoMessageWithKB, NoTextError};
@@ -15,6 +15,7 @@ pub(crate) async fn edit_keyboard<S: Into<String>>(bot: &Bot, text: S, inline_ke
     let msg = msg_with_kb.opt_message.as_ref().ok_or(NoMessageWithKB)?;
     bot.edit_message_text(msg.chat.id, msg.id, text)
         .reply_markup(inline_keyboard)
+        .parse_mode(ParseMode::Html)
         .await?;
     Ok(())
 }

@@ -4,6 +4,7 @@ use teloxide::types::InlineKeyboardMarkup;
 
 use crate::keyboards::funcs::{button, inline_button};
 use crate::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons, SearchIn, Sorting, Target};
+use crate::utils::HTMLise;
 
 /// Creates `InlineKeyboardMarkup`.
 pub trait CreateKB
@@ -13,30 +14,31 @@ impl CreateKB for SearchCommandButtons
 {
     fn create_kb(&self) -> Option<InlineKeyboardMarkup>
     {
+        use Buttons::SearchButtons;
         match *self
         {
-            SearchCommandButtons::ResultLimit => None,
-            SearchCommandButtons::TextToSearch => None,
+            SearchCommandButtons::ResultLimit | SearchCommandButtons::TextToSearch => None,
             SearchCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::Subscription))))
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::Target(Target::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Target::Subscription))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Target::PlayList))))
+                    .append_to_row(1, inline_button("Cancel ❌", SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
             SearchCommandButtons::SearchInOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Title))))
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Description))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Title))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::SearchIn(SearchIn::Description))))
+                    .append_to_row(1, inline_button("Cancel ❌", SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
-            _ =>
+            SearchCommandButtons::Target(_) | SearchCommandButtons::SearchIn(_) |
+            SearchCommandButtons::SearchSettings | SearchCommandButtons::Execute =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::TargetOptions)))
-                    .append_to_row(0, button(Buttons::SearchButtons(SearchCommandButtons::SearchInOptions)))
-                    .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::ResultLimit)))
-                    .append_to_row(1, button(Buttons::SearchButtons(SearchCommandButtons::TextToSearch)))
-                    .append_to_row(2, button(Buttons::SearchButtons(SearchCommandButtons::Execute)))
-                    .append_to_row(2, inline_button("Cancel ❌", Buttons::SearchButtons(SearchCommandButtons::SearchSettings)))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::TargetOptions)))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::SearchInOptions)))
+                    .append_to_row(1, button(SearchButtons(SearchCommandButtons::ResultLimit)))
+                    .append_to_row(1, button(SearchButtons(SearchCommandButtons::TextToSearch)))
+                    .append_to_row(2, button(SearchButtons(SearchCommandButtons::Execute)))
+                    .append_to_row(2, inline_button("Cancel ❌", SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
         }
     }
@@ -46,28 +48,29 @@ impl CreateKB for ListCommandButtons
 {
     fn create_kb(&self) -> Option<InlineKeyboardMarkup>
     {
+        use Buttons::ListButtons;
         match *self
         {
             ListCommandButtons::ResultLimit => None,
             ListCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::Subscription))))
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Target(Target::PlayList))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Target::Subscription))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Target::PlayList))))
+                    .append_to_row(1, inline_button("Cancel ❌", ListButtons(ListCommandButtons::ListSettings)))
                     .into(),
             ListCommandButtons::SortingOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Alphabetical))))
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::Sorting(Sorting::Date))))
-                    .append_to_row(1, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Sorting(Sorting::Alphabetical))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Sorting(Sorting::Date))))
+                    .append_to_row(1, inline_button("Cancel ❌", ListButtons(ListCommandButtons::ListSettings)))
                     .into(),
-            _ =>
+            ListCommandButtons::Target(_) | ListCommandButtons::Sorting(_) | ListCommandButtons::ListSettings | ListCommandButtons::Execute =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::TargetOptions)))
-                    .append_to_row(0, button(Buttons::ListButtons(ListCommandButtons::SortingOptions)))
-                    .append_to_row(1, button(Buttons::ListButtons(ListCommandButtons::ResultLimit)))
-                    .append_to_row(2, button(Buttons::ListButtons(ListCommandButtons::Execute)))
-                    .append_to_row(2, inline_button("Cancel ❌", Buttons::ListButtons(ListCommandButtons::ListSettings)))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::TargetOptions)))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::SortingOptions)))
+                    .append_to_row(1, button(ListButtons(ListCommandButtons::ResultLimit)))
+                    .append_to_row(2, button(ListButtons(ListCommandButtons::Execute)))
+                    .append_to_row(2, inline_button("Cancel ❌", ListButtons(ListCommandButtons::ListSettings)))
                     .into()
         }
     }
@@ -84,13 +87,12 @@ impl KeyboardText for SearchCommandButtons
     {
         match *self
         {
-            SearchCommandButtons::ResultLimit => "Choose result limit 📇",
-            SearchCommandButtons::TargetOptions => "Choose what you want to search 🔎",
-            SearchCommandButtons::SearchInOptions => "Choose how you want to search 📋",
-            SearchCommandButtons::TextToSearch => "Send the text you want to search 📋",
-            _ => "Set up your search command settings ⚙",
+            SearchCommandButtons::ResultLimit => "Choose result limit 📇".into(),
+            SearchCommandButtons::TargetOptions => format!("Choose {_what} you want to search 🔎", _what = "what".to_bold()),
+            SearchCommandButtons::SearchInOptions => format!("Choose {_where} you want to search 📋", _where = "where".to_bold()),
+            SearchCommandButtons::TextToSearch => format!("Send the {_text} you want to search 📋", _text = "text".to_bold()),
+            _ => "Search command settings ⚙".into(),
         }
-        .to_owned()
     }
 }
 
@@ -100,12 +102,11 @@ impl KeyboardText for ListCommandButtons
     {
         match *self
         {
-            ListCommandButtons::ResultLimit => "Choose result limit 📇",
-            ListCommandButtons::TargetOptions => "Choose what you want to search 🔎",
-            ListCommandButtons::SortingOptions => "Choose result sorting 📋",
-            _ => "Set up your list command settings ⚙",
+            ListCommandButtons::ResultLimit => "Choose result limit 📇".into(),
+            ListCommandButtons::TargetOptions => format!("Choose {what} you want to search 🔎", what = "what".to_bold()),
+            ListCommandButtons::SortingOptions => "Choose result sorting 📋".into(),
+            _ => "List command settings ⚙".into(),
         }
-        .to_owned()
     }
 }
 
@@ -123,11 +124,13 @@ impl ButtonText for Buttons {}
 
 
 
+impl ButtonText for Target {}
+
+
+
 impl ButtonText for SearchCommandButtons {}
 
 impl ButtonText for SearchIn {}
-
-impl ButtonText for Target {}
 
 
 
