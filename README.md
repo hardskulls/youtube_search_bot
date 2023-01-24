@@ -1,10 +1,2 @@
-
-
-### Project Environment Variables:
-
-+ `RUST_LOG` Enables logs.
-+ `TELEGRAM_BOT_TOKEN` Telegram bot token.
-+ `HOST` Url address of the server.
-+ `PORT` Port to listen to.
-
-
+### YouTube Search Bot
+Telegram bot that lets user search for subscriptions, playlists and other stuff on his YouTube channel.
