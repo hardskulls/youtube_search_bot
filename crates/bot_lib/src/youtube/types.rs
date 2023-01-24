@@ -94,6 +94,8 @@ pub(crate) const ACCESS_TYPE: &str = "offline";
 pub(crate) enum RequiredAuthURLParams
 { ClientId, RedirectUri, ResponseType, Scope }
 
+#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used)]
 #[cfg(test)]
 mod tests
 {

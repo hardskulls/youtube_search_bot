@@ -1,3 +1,4 @@
+use error_traits::WrapInOk;
 use crate::errors::ParseError;
 use crate::StdResult;
 
@@ -34,7 +35,7 @@ pub fn query_pairs<'a, 'b>(url_query: &'a str, sep: &'b str)
 {
     let res = url_query.split(sep).filter_map(|kv_pair| kv_pair.split_once('='));
     if res.clone().count() < 1 { return Err(ParseError) }
-    Ok(res)
+    res.in_ok()
 }
 
 /// Returns a certain `value` in a query key-value pairs. 

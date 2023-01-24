@@ -3,6 +3,7 @@ use std::future::Future;
 
 use teloxide::{Bot, requests::Requester, types::ChatId};
 use thiserror::Error;
+use crate::StdResult;
 
 #[derive(Error, Debug, Clone)]
 pub enum NetworkError
@@ -65,22 +66,17 @@ pub struct NoMessageWithKB;
 pub struct MissingType;
 
 
-pub async fn notify_user_on_err<'a, F, X, OK, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
-    -> eyre::Result<OK>
+pub async fn notify_user_on_err<'a, F, X, OK, ERR, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
+    -> StdResult<OK, ERR>
     where
-        FUT: Future<Output = eyre::Result<OK>>,
+        FUT: Future<Output = StdResult<OK, ERR>>,
         F: Fn(&'a X) -> FUT,
         S: Into<String> + Send,
 {
-    match f(x).await
-    {
-        Ok(ok) => Ok(ok),
-        Err(err) =>
-            {
-                let _ = bot.send_message(send_to, text).await;
-                Err(err)
-            }
-    }
+    let res = f(x).await;
+    if res.is_err()
+    { bot.send_message(send_to, text).await.ok(); }
+    res
 }
 
 

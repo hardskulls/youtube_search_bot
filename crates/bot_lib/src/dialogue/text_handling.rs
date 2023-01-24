@@ -123,7 +123,7 @@ pub(crate) async fn execute_list_command<T>
     send_to: ChatId,
     res_limit: u32,
     sorting: &Sorting,
-    request_builder: T
+    req_builder: T
 )
     -> eyre::Result<MessageTriplet>
     where
@@ -147,7 +147,7 @@ pub(crate) async fn execute_list_command<T>
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
     bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
-    let results = list_items(request_builder, &access_token, sorting, res_limit).await;
+    let results = list_items(req_builder, &access_token, sorting, res_limit).await;
     
     send_results(bot, send_to, &results).await;
     let result_count = results.len();

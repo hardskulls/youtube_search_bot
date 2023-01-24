@@ -40,27 +40,27 @@ pub(crate) fn list_config_update_or_default(d_state: State) -> ListCommandSettin
 pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
 (
     opt_dialogue: Option<TheDialogue>,
-    opt_dialogue_data: Option<DialogueData>,
-    opt_keyboard: Option<InlineKeyboardMarkup>,
+    opt_d_data: Option<DialogueData>,
+    opt_kb: Option<InlineKeyboardMarkup>,
     bot: Bot,
     chat_id: ChatId,
-    text_to_send: S
+    text: S
 )
     -> eyre::Result<()>
 {
-    match (opt_keyboard, opt_dialogue, opt_dialogue_data)
+    match (opt_kb, opt_dialogue, opt_d_data)
     {
         (Some(kb), Some(dialogue), Some(d_data)) =>
             {
-                edit_keyboard(&bot, text_to_send, kb, &d_data.message_with_kb).await?;
+                edit_keyboard(&bot, text, kb, &d_data.message_with_kb).await?;
                 dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;
             }
         (None, Some(dialogue), Some(d_data)) =>
             {
-                bot.send_message(chat_id, text_to_send).await?;
+                bot.send_message(chat_id, text).await?;
                 dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;
             }
-        _ => { bot.send_message(chat_id, text_to_send).await?; }
+        _ => { bot.send_message(chat_id, text).await?; }
     }
     Ok(())
 }
@@ -87,7 +87,7 @@ pub(crate) async fn get_text(msg: &Message) -> StdResult<&str, NoTextError>
 #[inline]
 pub(crate) async fn get_callback_data(callback: &CallbackQuery) -> StdResult<String, NoCallbackDataError>
 {
-    callback.data.to_owned()
+    callback.data.clone()
         .ok_or(NoCallbackDataError)
 }
 

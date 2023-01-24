@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 
-use error_traits::{LogErr, MapErrBy, WrapInErr};
+use error_traits::{LogErr, MapErrBy, WrapInErr, WrapInOk};
 
 use crate::{FlatRes, StdResult};
 use crate::db::{delete_access_token, get_access_token};
@@ -14,13 +14,12 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
     let url = "https://oauth2.googleapis.com/revoke";
     let params: &[(&str, &str)] = &[("token", &token.refresh_token.unwrap_or(token.access_token))];
     let body = reqwest::Url::parse_with_params(url, params)?.query().ok_or(NoTextError)?.to_owned();
-    let req =
-        reqwest::Client::new()
-            .post(reqwest::Url::parse(url)?)
-            .header(hyper::header::HOST, "oauth2.googleapis.com")
-            .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(body);
-    Ok(req)
+    reqwest::Client::new()
+        .post(reqwest::Url::parse(url)?)
+        .header(hyper::header::HOST, "oauth2.googleapis.com")
+        .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(body)
+        .in_ok()
 }
 
 /// Revoke `refresh token` and delete token from db.
@@ -35,8 +34,8 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
         { return err().in_err() }
         
         delete_access_token(user_id, db_url).map_err_by(err)?;
-        
-        Ok(("Logged out successfully ✔".to_owned(), None, None))
+    
+        ("Logged out successfully ✔".to_owned(), None, None).in_ok()
     }
     else
     { err().in_err() }
@@ -98,6 +97,8 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
     }
 }
 
+#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used)]
 #[cfg(test)]
 mod tests
 {

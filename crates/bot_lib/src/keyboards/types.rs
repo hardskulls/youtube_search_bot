@@ -89,6 +89,8 @@ pub(crate) enum Buttons
 }
 
 
+#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used)]
 #[cfg(test)]
 mod tests
 {

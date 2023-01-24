@@ -98,7 +98,7 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'b' is [| '{:#?}' |] )", &b);
     
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] finished [ OK ] )");
-    "server is up"
+    "server is up ✔"
 }
 
 

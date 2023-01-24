@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use error_traits::WrapInOk;
+use error_traits::{WrapInErr, WrapInOk};
 
 use crate::keyboards::types::{SearchIn, Sorting};
 use crate::net::join;
@@ -13,15 +13,15 @@ pub(crate) mod types;
 pub(crate) mod traits;
 
 /// Makes a single call to `YouTube API` go get one page of items.
-pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, request_builder: &T, page_token: Option<String>)
+pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, req_builder: &T, page_token: Option<String>)
     -> eyre::Result<T::Target>
     where
         T: ItemsListRequestBuilder
 {
-    let resp = request_builder.build_req(client, access_token, page_token)?.send().await?;
+    let resp = req_builder.build_req(client, access_token, page_token)?.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     if !resp.status().is_success()
-    { return Err(eyre::eyre!("status code is not a success")) }
+    { return eyre::eyre!("status code is not a success").in_err() }
     
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
     resp.json::<T::Target>().await?.in_ok()
@@ -39,17 +39,17 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
     let mut url: url::Url = url::Url::parse_with_params(AUTH_URL_BASE, &params)?;
     let (scope_key, scope_list) = (RequiredAuthURLParams::Scope.to_string(), join(scope, ","));
     url.query_pairs_mut().append_pair(&scope_key, &scope_list);
-    Ok(url)
+    url.in_ok()
 }
 
 /// Search and filter items (subscriptions, playlists, etc).
 pub(crate) async fn search_items<T>
 (
-    search_mode: &SearchIn,
-    request_builder: T,
-    text_to_look_for: &str,
+    search_in: &SearchIn,
+    req_builder: T,
+    search_for: &str,
     access_token: &str,
-    max_res: u32
+    res_limit: u32
 )
     -> Vec<<T::Target as ItemsResponsePage>::Item>
     where
@@ -57,19 +57,19 @@ pub(crate) async fn search_items<T>
         T::Target: Default + Debug + ItemsResponsePage
 {
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
-    log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_mode, &text_to_look_for, &max_res));
+    log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
     let mut store_in = vec![];
     let mut current_cap = store_in.len();
     
-    let stop_if = move |_: &_| current_cap > max_res as usize;
+    let stop_if = move |_: &T::Target| current_cap > res_limit as usize;
     let f =
         |item: T::Target|
             {
                 if let Some(i) = item.items()
-                { find_matches(search_mode, &mut store_in, i, text_to_look_for) }
+                { find_matches(search_in, &mut store_in, i, search_for) }
                 current_cap = store_in.len()
             };
-    pagination(request_builder, access_token, stop_if, f).await;
+    pagination(req_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] 'current_cap' is [ '{:?}' ] )", current_cap);
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] ended )");
     store_in
@@ -78,7 +78,7 @@ pub(crate) async fn search_items<T>
 /// Returns all items on user's channel.
 pub(crate) async fn list_items<T>
 (
-    request_builder: T,
+    req_builder: T,
     access_token: &str,
     sorting: &Sorting,
     res_limit: u32
@@ -91,7 +91,7 @@ pub(crate) async fn list_items<T>
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
     
     let client = reqwest::Client::new();
-    let resp = items_request(&client, access_token, &request_builder, None).await;
+    let resp = items_request(&client, access_token, &req_builder, None).await;
     let search_res = resp.unwrap_or_default();
     let cap = search_res.total_results().unwrap_or(50) as usize;
     
@@ -104,7 +104,7 @@ pub(crate) async fn list_items<T>
                 { store_in.append(&mut i) }
             };
     
-    pagination(request_builder, access_token, stop_if, f).await;
+    pagination(req_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] ended )");
     match *sorting
     {
@@ -114,9 +114,9 @@ pub(crate) async fn list_items<T>
     store_in.into_iter().take(res_limit as _).collect()
 }
 
-/// Gives full access to each page of request.
+/// Gives full access all pages of request, applying 'f' to each page.
 /// Stop condition can be set using `stop_if`.
-pub(crate) async fn pagination<I, F, S>(request_builder: I, access_token: &str, stop_if: S, f: F)
+pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop_if: S, f: F)
     where
         I: ItemsListRequestBuilder,
         I::Target: Default + Debug + ItemsResponsePage,
@@ -130,7 +130,7 @@ pub(crate) async fn pagination<I, F, S>(request_builder: I, access_token: &str, 
     let mut next_page_token = None;
     loop
     {
-        let resp = items_request(&client, access_token, &request_builder, next_page_token).await;
+        let resp = items_request(&client, access_token, &req_builder, next_page_token).await;
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
     
@@ -146,16 +146,16 @@ pub(crate) async fn pagination<I, F, S>(request_builder: I, access_token: &str, 
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches<S>(search_mode: &SearchIn, store_in: &mut Vec<S>, search_in: Vec<S>, text_to_look_for: &str)
+fn find_matches<S>(search_in: &SearchIn, store_in: &mut Vec<S>, items: Vec<S>, search_for: &str)
     where
         S: Searchable
 {
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");
-    let text_to_search = text_to_look_for.to_lowercase();
+    let text_to_search = search_for.to_lowercase();
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'text_to_search' is [| '{:#?}' |] )", (&text_to_search));
-    for item in search_in
+    for item in items
     {
-        let compare_by = match *search_mode { SearchIn::Title => item.title(), SearchIn::Description => item.description() };
+        let compare_by = match *search_in { SearchIn::Title => item.title(), SearchIn::Description => item.description() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
         if let Some(title_or_descr) = compare_by
         { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(item) } }

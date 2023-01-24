@@ -37,8 +37,7 @@ pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: T
                     .await
                     .merge_ok_err(),
         };
-    update_optionally_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, chat_id, message_text).await?;
-    Ok(())
+    update_optionally_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, chat_id, message_text).await
 }
 
 /// Main `callback` handler.
@@ -68,8 +67,7 @@ pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> eyre:
                     ("Oops! 🤷‍♂️".to_owned(), None, None)
                 }
         };
-    update_optionally_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await?;
-    Ok(())
+    update_optionally_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, msg.chat.id, message_text).await
 }
 
 
