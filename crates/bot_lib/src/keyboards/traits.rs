@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use teloxide::types::{InlineKeyboardButton, InlineKeyboardButtonKind, InlineKeyboardMarkup};
+use teloxide::types::InlineKeyboardMarkup;
 
 use crate::keyboards::funcs::{button, inline_button};
 use crate::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons, SearchIn, Sorting, Target};

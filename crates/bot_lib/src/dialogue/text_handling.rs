@@ -56,13 +56,9 @@ async fn send_results<'i, S, T>(bot: &Bot, send_to: ChatId, list: T)
 {
     for s in list.into_iter()
     {
-        let (title, descr, link) =
-            (
-                s.title().unwrap_or("No title 🤷‍♂️").to_owned(),
-                s.description().unwrap_or("No description 🤷‍♂️️").to_owned(),
-                s.link().unwrap_or_else(|| "No link 🤷‍♂️".to_owned())
-            );
-        let text = format!("{}{}{}", title.to_bold() + " \n\n", descr + " \n\n", link);
+        let (title, descr) = (s.title().unwrap_or("No title 🤷‍♂️"), s.description().unwrap_or("No description 🤷‍♂️️"));
+        let link = s.link().unwrap_or_else(|| "No link 🤷‍♂️".to_owned());
+        let text = format!("{}{}{}", title.to_bold() + " \n\n", descr.to_owned() + " \n\n", link);
         let _sent_msg =
             bot.send_message(send_to, text)
                 .parse_mode(ParseMode::Html)
@@ -98,7 +94,7 @@ pub(crate) async fn execute_search_command<T>
             let auth_url = default_auth_url(&user_id).await?;
             let auth_url = format!("Use this link to log in {}", auth_url.to_link("Log In"));
             bot.send_message(send_to, auth_url).parse_mode(ParseMode::Html).await?;
-            return Ok(("Please, log in and send your text again ".to_owned(), None, None))
+            return ("Please, log in and send your text again ".to_owned(), None, None).in_ok()
         };
     
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");

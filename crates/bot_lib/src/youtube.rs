@@ -63,10 +63,10 @@ pub(crate) async fn search_items<T>
     
     let stop_if = move |_: &T::Target| current_cap > res_limit as usize;
     let f =
-        |item: T::Target|
+        |search_target: T::Target|
             {
-                if let Some(i) = item.items()
-                { find_matches(search_in, &mut store_in, i, search_for) }
+                if let Some(items) = search_target.items()
+                { find_matches(search_for, search_in, res_limit, items, &mut store_in) }
                 current_cap = store_in.len()
             };
     pagination(req_builder, access_token, stop_if, f).await;
@@ -146,7 +146,7 @@ pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches<S>(search_in: &SearchIn, store_in: &mut Vec<S>, items: Vec<S>, search_for: &str)
+fn find_matches<S>(search_for: &str, search_in: &SearchIn, res_limit: u32, items: Vec<S>, store_in: &mut Vec<S>)
     where
         S: Searchable
 {
@@ -158,7 +158,11 @@ fn find_matches<S>(search_in: &SearchIn, store_in: &mut Vec<S>, items: Vec<S>, s
         let compare_by = match *search_in { SearchIn::Title => item.title(), SearchIn::Description => item.description() };
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
         if let Some(title_or_descr) = compare_by
-        { if title_or_descr.to_lowercase().contains(&text_to_search) { store_in.push(item) } }
+        {
+            if store_in.len() < res_limit as usize &&
+                title_or_descr.to_lowercase().contains(&text_to_search)
+            { store_in.push(item) }
+        }
     }
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'store_in.len()' is [| '{:#?}' |] )", (&store_in.len()));
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] ended )");
@@ -180,6 +184,39 @@ mod tests
         pagination(RespTargetSubscriptions, access_token, |_| false, f).await;
     }
     
+    #[test]
+    fn vec_count_test()
+    {
+        fn simulate_pagination<S, T, F>(count: usize, cr_type: T, stop_if: S, f: F)
+            where
+                F: FnMut(Vec<T>), S: Fn(&Vec<T>) -> bool, T: Clone
+        {
+            let mut f = f;
+            loop
+            {
+                let v = vec![cr_type.clone(); count];
+                
+                if stop_if(&v)
+                { break }
+                
+                f(v)
+            }
+        }
+        
+        // TODO: What the fuck is going on with type system here???
+        //  Why does it differ so much from 'search_items' function??
+        let mut vec = vec![];
+        let mut current_cap = vec.len();
+        let limit = 125;
+        let stop_if = move |_: &_| current_cap > limit;
+        let f =
+            |mut t|
+                {
+                    vec.append(&mut t);
+                    current_cap = vec.len()
+                };
+        simulate_pagination(70, "goo", stop_if, f);
+    }
 }
 
 
