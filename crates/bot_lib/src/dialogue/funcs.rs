@@ -58,7 +58,7 @@ pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
             }
         (None, Some(dialogue), Some(d_data)) =>
             {
-                bot.send_message(chat_id, text).await?;
+                bot.send_message(chat_id, text).parse_mode(ParseMode::Html).await?;
                 dialogue.update(d_data).await.map_err(|e| eyre::anyhow!(e))?;
             }
         _ => { bot.send_message(chat_id, text).await?; }
