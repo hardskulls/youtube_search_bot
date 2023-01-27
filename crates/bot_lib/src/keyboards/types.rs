@@ -6,9 +6,9 @@ use parse_display::Display;
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Target
 {
-    #[display("{} 🎫")]
+    #[display("{} 🏷")]
     Subscription,
-    #[display("{} 📺")]
+    #[display("{} ⏯")]
     PlayList,
 }
 
@@ -16,9 +16,9 @@ pub(crate) enum Target
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum SearchIn
 {
-    #[display("By {} 📋")]
+    #[display("{} 📋")]
     Title,
-    #[display("By {} 📜")]
+    #[display("{} 📜")]
     Description,
 }
 
@@ -30,17 +30,17 @@ pub(crate) enum SearchCommandButtons
     SearchSettings,
     #[display("{} ✅")]
     Execute,
-    #[display(style = "Title case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 🧮")]
     ResultLimit,
-    #[display("Target 🗳")]
+    #[display("Target 🎯")]
     TargetOptions,
     #[display("{0}")]
     Target(Target),
-    #[display("Search in 📡")]
+    #[display("Search in 💳")]
     SearchInOptions,
     #[display("{0}")]
     SearchIn(SearchIn),
-    #[display(style = "Title case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 💬")]
     TextToSearch,
 }
 
@@ -48,9 +48,9 @@ pub(crate) enum SearchCommandButtons
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Sorting
 {
-    #[display("{} 📊")]
+    #[display("{} 🗓")]
     Date,
-    #[display("{} 📑")]
+    #[display("{} 🔠")]
     Alphabetical,
 }
 
@@ -58,24 +58,20 @@ pub(crate) enum Sorting
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
 pub(crate) enum ListCommandButtons
 {
-    #[display("{} 🧾")] #[display(style = "Title case")] #[default]
+    #[display("{} 📃")] #[display(style = "Title case")] #[default]
     ListSettings,
     #[display("{} ✅")]
     Execute,
-    #[display(style = "Title case")] #[display("{} 📤")]
+    #[display(style = "Title case")] #[display("{} 🧮")]
     ResultLimit,
-    #[display("Target 🗳")]
+    #[display("Target 🎯")]
     TargetOptions,
     #[display("{0}")]
     Target(Target),
-    #[display("Sorting 📤")]
+    #[display("Sorting 🗃")]
     SortingOptions,
     #[display("{0}")]
     Sorting(Sorting),
-    //#[display("{} 📊")]
-    //Filter,
-    //#[display("{0}")]
-    //FilterContent(ListFilter),
 }
 
 /// Main wrapper that includes all available keyboards.
@@ -94,6 +90,7 @@ pub(crate) enum Buttons
 #[cfg(test)]
 mod tests
 {
+    use crate::keyboards::traits::ButtonText;
     use crate::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
     // use to_debug::ToDebug;
     use super::*;
@@ -102,7 +99,7 @@ mod tests
     fn serialize_enum_test()
     {
         assert_eq!(SearchInOptions.to_string(), "Search in 📡");
-        assert_eq!(SearchSettings.to_string(), "Search settings 🔎");
+        assert_eq!(SearchSettings.button_text(), "Search settings 🔎");
     }
 
     #[test]

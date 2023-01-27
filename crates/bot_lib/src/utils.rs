@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
-pub fn print_if_none<T>(option: Option<T>, text: &str) -> &str
+pub fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
 {
     if option.is_none()
-    { text }
+    { text.to_string() }
     else
-    { "" }
+    { "".to_string() }
 }
 
 pub trait HTMLise

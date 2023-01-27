@@ -1,5 +1,5 @@
 use teloxide::Bot;
-use teloxide::payloads::EditMessageTextSetters;
+use teloxide::payloads::{EditMessageTextSetters, SendMessageSetters};
 use teloxide::requests::Requester;
 use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message, ParseMode};
 

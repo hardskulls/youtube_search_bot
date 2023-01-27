@@ -39,7 +39,7 @@ pub fn query_pairs<'a, 'b>(url_query: &'a str, sep: &'b str)
 }
 
 /// Returns a certain `value` in a query key-value pairs. 
-pub fn find_by_key<'a, 'b>(url_query: &'a str, sep: &'b str, key: &str) -> StdResult<&'a str, ParseError>
+pub fn find_by_key<'a>(url_query: &'a str, sep: &str, key: &str) -> StdResult<&'a str, ParseError>
 {
     query_pairs(url_query, sep)?
         .find(|&(k, _)| k == key)

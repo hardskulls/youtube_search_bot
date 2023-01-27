@@ -6,7 +6,7 @@ use error_traits::WrapInErr;
 
 use crate::keyboards::types::{SearchIn, Sorting, Target};
 use crate::StdResult;
-use crate::utils::print_if_none;
+use crate::utils::{HTMLise, print_if_none};
 
 /// A type that is returned in the end of handlers.
 pub type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
@@ -54,10 +54,10 @@ impl SearchCommandSettings
                 Ok(SearchConfig { target: t, result_limit: r, search_in: s, text_to_search: text }),
             Self { target: t, result_limit: r, search_in: s, text_to_search: text } =>
                 {
-                    let t = print_if_none(t, "\nTarget");
-                    let r = print_if_none(r, "\nResult Limit");
-                    let s = print_if_none(s, "\nSearch In");
-                    let text = print_if_none(text, "\nText To Search");
+                    let t = print_if_none(t, format!("\n🎯 {}", "Target".to_bold()).as_str());
+                    let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
+                    let s = print_if_none(s, format!("\n💳 {}", "Search in".to_bold()));
+                    let text = print_if_none(text, format!("\n💬 {}", "Text to search".to_bold()));
                     format!("You are missing {t}{r}{s}{text}").in_err()
                 }
         }
@@ -83,9 +83,9 @@ impl ListCommandSettings
                 Ok(ListConfig { target: t, result_limit: r, sorting: s }),
             Self { target: t, result_limit: r, sorting: s } =>
                 {
-                    let t = print_if_none(t, "\nTarget");
-                    let r = print_if_none(r, "\nResult Limit");
-                    let s = print_if_none(s, "\nSorting");
+                    let t = print_if_none(t, format!("\n🎯 {}", "Target".to_bold()));
+                    let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
+                    let s = print_if_none(s, format!("\n🗃 {}", "Sorting".to_bold()));
                     format!("You are missing {t}{r}{s}").in_err()
                 }
         }

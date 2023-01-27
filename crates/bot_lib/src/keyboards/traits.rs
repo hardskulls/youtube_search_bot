@@ -87,10 +87,10 @@ impl KeyboardText for SearchCommandButtons
     {
         match *self
         {
-            SearchCommandButtons::ResultLimit => "Choose result limit 📇".into(),
-            SearchCommandButtons::TargetOptions => format!("Choose {_what} you want to search 🔎", _what = "what".to_bold()),
-            SearchCommandButtons::SearchInOptions => format!("Choose {_where} you want to search 📋", _where = "where".to_bold()),
-            SearchCommandButtons::TextToSearch => format!("Send the {_text} you want to search 📋", _text = "text".to_bold()),
+            SearchCommandButtons::ResultLimit => "Choose result limit 🧮".into(),
+            SearchCommandButtons::TargetOptions => format!("Choose {what} you want to search 🎯", what = "what".to_bold()),
+            SearchCommandButtons::SearchInOptions => format!("Choose {_where} you want to search 💳", _where = "where".to_bold()),
+            SearchCommandButtons::TextToSearch => format!("Send the {text} you want to search 💬", text = "text".to_bold()),
             _ => "Search command settings ⚙".into(),
         }
     }
@@ -102,9 +102,9 @@ impl KeyboardText for ListCommandButtons
     {
         match *self
         {
-            ListCommandButtons::ResultLimit => "Choose result limit 📇".into(),
-            ListCommandButtons::TargetOptions => format!("Choose {what} you want to search 🔎", what = "what".to_bold()),
-            ListCommandButtons::SortingOptions => "Choose result sorting 📋".into(),
+            ListCommandButtons::ResultLimit => "Choose result limit 🧮".into(),
+            ListCommandButtons::TargetOptions => format!("Choose {what} you want to search 🎯", what = "what".to_bold()),
+            ListCommandButtons::SortingOptions => "Choose result sorting 🗃".into(),
             _ => "List command settings ⚙".into(),
         }
     }

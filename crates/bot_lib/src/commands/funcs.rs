@@ -7,6 +7,7 @@ use crate::db::{delete_access_token, get_access_token};
 use crate::dialogue::funcs::get_dialogue_data;
 use crate::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
 use crate::errors::NoTextError;
+use crate::utils::HTMLise;
 use crate::youtube::types::YouTubeAccessToken;
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
@@ -42,12 +43,12 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
     { err().in_err() }
 }
 
-fn maybe_print<T: Display + Debug>(prefix: &str, printable: &Option<T>, default: &str) -> String
+fn maybe_print<T: Display + Debug, P: Display, D: Display>(prefix: P, printable: &Option<T>, default: D) -> String
 {
     if let Some(p) = printable
     { format!("{prefix}{p:#?}") }
     else
-    { default.to_owned() }
+    { default.to_string() }
 }
 
 fn print_search_config(c: &SearchCommandSettings) -> String
@@ -57,12 +58,12 @@ fn print_search_config(c: &SearchCommandSettings) -> String
         format!
         (
             "{}{}{}",
-            maybe_print("\nTarget  is  ", target, ""),
-            maybe_print("\nSearch By  is  ", search_by, ""),
-            maybe_print("\nResult Limit  is  ", result_limit, "")
+            maybe_print(format!("\n🎯 {}  is  ", "Target".to_bold()), target, ""),
+            maybe_print(format!("\n💳 {}  is  ", "Search in".to_bold()), search_by, ""),
+            maybe_print(format!("\n🧮 {}  is  ",  "Result limit".to_bold()), result_limit, "")
         );
     if t.is_empty()
-    { "You've activated 'search command'".to_owned() }
+    { "You've activated 'search command' 🔎".to_owned() }
     else
     { format!("Your search config is{t}") }
 }
@@ -74,12 +75,12 @@ fn print_list_config(c: &ListCommandSettings) -> String
         format!
         (
             "{}{}{}",
-            maybe_print("\nTarget  is  ", target, ""),
-            maybe_print("\nSort By  is  ", sort_by, ""),
-            maybe_print("\nResult Limit  is  ", result_limit, "")
+            maybe_print(format!("\n🎯 {}  is  ", "Target".to_bold()), target, ""),
+            maybe_print(format!("\n🗃 {}  is  ", "Sorting".to_bold()), sort_by, ""),
+            maybe_print(format!("\n🧮 {}  is  ",  "Result limit".to_bold()), result_limit, "")
         );
     if t.is_empty()
-    { "You've activated 'list command'".to_owned() }
+    { "You've activated 'list command' 📃".to_owned() }
     else
     { format!("Your list config is{t}") }
 }
