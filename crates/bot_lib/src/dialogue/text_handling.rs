@@ -13,7 +13,7 @@ use crate::db::{get_access_token, refresh_access_token, refresh_token_req};
 use crate::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet, SearchCommandSettings};
 use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
 use crate::keyboards::types::{SearchIn, Sorting};
-use crate::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
+use crate::net::traits::{ListRequestBuilder, ItemsResponsePage};
 use crate::utils::HTMLise;
 use crate::youtube::{list_items, make_auth_url, search_items};
 use crate::youtube::traits::Searchable;
@@ -82,7 +82,7 @@ pub(crate) async fn execute_search_command<T>
 )
     -> eyre::Result<MessageTriplet>
     where
-        T: ItemsListRequestBuilder,
+        T: ListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = user_id.id.0.to_string();
@@ -91,8 +91,7 @@ pub(crate) async fn execute_search_command<T>
         get_access_token(&user_id, redis_url)
         else
         {
-            let auth_url = default_auth_url(&user_id).await?;
-            let auth_url = format!("Use this link to log in {}", auth_url.to_link("Log In"));
+            let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
             bot.send_message(send_to, auth_url).parse_mode(ParseMode::Html).await?;
             return ("Please, log in and send your text again ".to_owned(), None, None).in_ok()
         };
@@ -103,8 +102,7 @@ pub(crate) async fn execute_search_command<T>
     let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
     
     bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
-    let results =
-        search_items(search_in, req_builder, search_for, &access_token, res_limit).await;
+    let results = search_items(search_in, req_builder, search_for, &access_token, res_limit).await;
     
     send_results(bot, send_to, &results).await;
     let result_count = results.len();
@@ -123,7 +121,7 @@ pub(crate) async fn execute_list_command<T>
 )
     -> eyre::Result<MessageTriplet>
     where
-        T: ItemsListRequestBuilder,
+        T: ListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = user_id.id.0.to_string();

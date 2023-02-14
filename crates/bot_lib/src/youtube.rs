@@ -4,7 +4,7 @@ use error_traits::{WrapInErr, WrapInOk};
 
 use crate::keyboards::types::{SearchIn, Sorting};
 use crate::net::join;
-use crate::net::traits::{ItemsListRequestBuilder, ItemsResponsePage};
+use crate::net::traits::{ListRequestBuilder, ItemsResponsePage};
 use crate::StdResult;
 use crate::youtube::traits::Searchable;
 use crate::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
@@ -16,7 +16,7 @@ pub(crate) mod traits;
 pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, req_builder: &T, page_token: Option<String>)
     -> eyre::Result<T::Target>
     where
-        T: ItemsListRequestBuilder
+        T: ListRequestBuilder
 {
     let resp = req_builder.build_req(client, access_token, page_token)?.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
@@ -53,7 +53,7 @@ pub(crate) async fn search_items<T>
 )
     -> Vec<<T::Target as ItemsResponsePage>::Item>
     where
-        T: ItemsListRequestBuilder,
+        T: ListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage
 {
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
@@ -85,7 +85,7 @@ pub(crate) async fn list_items<T>
 ) 
     -> Vec<<T::Target as ItemsResponsePage>::Item>
     where
-        T: ItemsListRequestBuilder,
+        T: ListRequestBuilder,
         T::Target: Default + Debug + ItemsResponsePage,
 {
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
@@ -118,7 +118,7 @@ pub(crate) async fn list_items<T>
 /// Stop condition can be set using `stop_if`.
 pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop_if: S, f: F)
     where
-        I: ItemsListRequestBuilder,
+        I: ListRequestBuilder,
         I::Target: Default + Debug + ItemsResponsePage,
         F: FnMut(I::Target),
         S: Fn(&I::Target) -> bool,
@@ -159,8 +159,8 @@ fn find_matches<S>(search_for: &str, search_in: &SearchIn, res_limit: u32, items
         log::info!(" [:: LOG ::]    ( @:[fn::find_matches] 'compare_by' is [| '{:#?}' |] )", (&compare_by));
         if let Some(title_or_descr) = compare_by
         {
-            if store_in.len() < res_limit as usize &&
-                title_or_descr.to_lowercase().contains(&text_to_search)
+            if store_in.len() < res_limit as usize
+                && title_or_descr.to_lowercase().contains(&text_to_search)
             { store_in.push(item) }
         }
     }

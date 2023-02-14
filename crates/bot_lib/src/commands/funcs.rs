@@ -1,5 +1,3 @@
-use std::fmt::{Debug, Display};
-
 use error_traits::{LogErr, MapErrBy, WrapInErr, WrapInOk};
 
 use crate::{FlatRes, StdResult};
@@ -7,7 +5,7 @@ use crate::db::{delete_access_token, get_access_token};
 use crate::dialogue::funcs::get_dialogue_data;
 use crate::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
 use crate::errors::NoTextError;
-use crate::utils::HTMLise;
+use crate::utils::{HTMLise, maybe_print};
 use crate::youtube::types::YouTubeAccessToken;
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
@@ -41,14 +39,6 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
     }
     else
     { err().in_err() }
-}
-
-fn maybe_print<T: Display + Debug, P: Display, D: Display>(prefix: P, printable: &Option<T>, default: D) -> String
-{
-    if let Some(p) = printable
-    { format!("{prefix}{p:#?}") }
-    else
-    { default.to_string() }
 }
 
 fn print_search_config(c: &SearchCommandSettings) -> String

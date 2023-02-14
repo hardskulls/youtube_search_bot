@@ -28,15 +28,10 @@ pub async fn handle_callback_data(bot: Bot, callback: CallbackQuery, dialogue: T
     let (message_text, opt_keyboard, opt_dialogue_data): MessageTriplet =
         match &keyboard
         {
-            SearchButtons(search_kb) =>
-                callback_helper_for_search_kb(&bot, search_kb, dialogue_data, callback)
-                    .await
-                    .merge_ok_err(),
-            ListButtons(list_kb) =>
-                callback_helper_for_list_kb(&bot, list_kb, dialogue_data, callback)
-                    .await
-                    .merge_ok_err(),
-        };
+            SearchButtons(search_kb) => callback_helper_for_search_kb(&bot, search_kb, dialogue_data, callback).await,
+            ListButtons(list_kb) => callback_helper_for_list_kb(&bot, list_kb, dialogue_data, callback).await
+        }
+        .merge_ok_err();
     update_optionally_and_send_message(dialogue.into(), opt_dialogue_data, opt_keyboard, bot, chat_id, message_text).await
 }
 

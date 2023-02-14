@@ -1,6 +1,14 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
-pub fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
+pub(crate) fn maybe_print<T: Display + Debug, P: Display, D: Display>(prefix: P, printable: &Option<T>, default: D) -> String
+{
+    if let Some(p) = printable
+    { format!("{prefix}{p:#?}") }
+    else
+    { default.to_string() }
+}
+
+pub(crate) fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
 {
     if option.is_none()
     { text.to_string() }
@@ -8,7 +16,7 @@ pub fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
     { "".to_string() }
 }
 
-pub trait HTMLise
+pub(crate) trait HTMLise
     where
         Self: Display
 {

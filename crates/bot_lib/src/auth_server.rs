@@ -59,8 +59,6 @@ fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBod
 pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'req' is [| '{:#?}' |] )", &req);
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'req.body()' is [| '{:#?}' |] )", &req.body());
     
     let decoded_query = get_query(&req);
     let state = find_by_key(&decoded_query, "&", "state").map_err(|_| "state not found")?;
@@ -74,13 +72,11 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     
     let tok_req = access_token_req(auth_code).await.map_err(|_| "building token request failed")?;
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'resp' is [| '{:#?}' |] )", &resp);
     
     let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] 'new_token' is [| '{:#?}' |] )", &new_token);
     let db_url = env!("REDIS_URL");
-    let t = combine_old_new_tokens(for_user, new_token, db_url);
-    let serialized_access_token = serde_json::to_string(&t).map_err(|_| "db error")?;
+    let combined_token = combine_old_new_tokens(for_user, new_token, db_url);
+    let serialized_access_token = serde_json::to_string(&combined_token).map_err(|_| "db error")?;
     set_access_token(for_user, &serialized_access_token, db_url).map_err(|_| "db error")?;
     
     let redirect = redirect_user("https://t.me/test_echo_123_456_bot")?;

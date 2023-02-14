@@ -10,14 +10,14 @@ pub struct RespTargetSubscriptions;
 pub struct RespTargetPlaylists;
 
 
-pub trait ItemsListRequestBuilder
+pub trait ListRequestBuilder
 {
     type Target: serde::de::DeserializeOwned;
     
     fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
-impl ItemsListRequestBuilder for RespTargetSubscriptions
+impl ListRequestBuilder for RespTargetSubscriptions
 {
     type Target = SubscriptionListResponse;
     
@@ -36,7 +36,7 @@ impl ItemsListRequestBuilder for RespTargetSubscriptions
     }
 }
 
-impl ItemsListRequestBuilder for RespTargetPlaylists
+impl ListRequestBuilder for RespTargetPlaylists
 {
     type Target = PlaylistListResponse;
     
