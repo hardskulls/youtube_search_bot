@@ -14,15 +14,9 @@ impl<T, E> LogErr for StdResult<T, E>
 {
     fn log_err(self, log_prefix: &str) -> Self
     {
-        match self
-        {
-            Ok(ok) => Ok(ok),
-            Err(e) =>
-                {
-                    log::error!("{log_prefix}{e}");
-                    Err(e)
-                }
-        }
+        if let Err(e) = &self
+        { log::error!("{log_prefix}{e}") }
+        self
     }
 }
 

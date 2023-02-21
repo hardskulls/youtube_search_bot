@@ -98,7 +98,7 @@ mod tests
     #[test]
     fn serialize_enum_test()
     {
-        assert_eq!(SearchInOptions.to_string(), "Search in 📡");
+        assert_eq!(SearchInOptions.to_string(), "Search in 💳");
         assert_eq!(SearchSettings.button_text(), "Search settings 🔎");
     }
 

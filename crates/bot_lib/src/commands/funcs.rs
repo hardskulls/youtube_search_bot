@@ -60,13 +60,13 @@ fn print_search_config(c: &SearchCommandSettings) -> String
 
 fn print_list_config(c: &ListCommandSettings) -> String
 {
-    let ListCommandSettings { target, result_limit, sorting: sort_by } = c;
+    let ListCommandSettings { target, result_limit, sorting } = c;
     let t =
         format!
         (
             "{}{}{}",
             maybe_print(format!("\n🎯 {}  is  ", "Target".to_bold()), target, ""),
-            maybe_print(format!("\n🗃 {}  is  ", "Sorting".to_bold()), sort_by, ""),
+            maybe_print(format!("\n🗃 {}  is  ", "Sorting".to_bold()), sorting, ""),
             maybe_print(format!("\n🧮 {}  is  ",  "Result limit".to_bold()), result_limit, "")
         );
     if t.is_empty()
@@ -104,13 +104,13 @@ mod tests
     fn printable_test()
     {
         let c = SearchCommandSettings::default();
-        assert_eq!(print_search_config(&c), "You've activated 'search command'");
+        assert_eq!(print_search_config(&c), "You've activated 'search command' 🔎");
         
         let mut c = ListCommandSettings::default();
-        assert_eq!(print_list_config(&c), "You've activated 'list command'");
+        assert_eq!(print_list_config(&c), "You've activated 'list command' 📃");
         
         c.target = Target::Subscription.into();
-        assert_eq!(print_list_config(&c), "Your list config is\nTarget  is  Subscription");
+        assert_eq!(print_list_config(&c), "Your list config is\n🎯 <b>Target</b>  is  Subscription");
     }
     
     #[test]

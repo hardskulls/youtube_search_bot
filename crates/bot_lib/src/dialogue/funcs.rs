@@ -2,6 +2,7 @@ use teloxide::Bot;
 use teloxide::payloads::{EditMessageTextSetters, SendMessageSetters};
 use teloxide::requests::Requester;
 use teloxide::types::{CallbackQuery, ChatId, InlineKeyboardMarkup, Message, ParseMode};
+use error_traits::WrapInOk;
 
 use crate::dialogue::types::{DialogueData, ListCommandSettings, MessageWithKB, SearchCommandSettings, State, TheDialogue};
 use crate::errors::{DialogueStateStorageError, NoCallbackDataError, NoMessageWithKB, NoTextError};
@@ -17,35 +18,35 @@ pub(crate) async fn edit_keyboard<S: Into<String>>(bot: &Bot, text: S, inline_ke
         .reply_markup(inline_keyboard)
         .parse_mode(ParseMode::Html)
         .await?;
-    Ok(())
+    ().in_ok()
 }
 
-pub(crate) fn search_config_update_or_default(d_state: State) -> SearchCommandSettings
+pub(crate) fn search_settings_update_or_default(d_state: State) -> SearchCommandSettings
 {
-    if let State::SearchCommandActive(search_config) = d_state
-    { search_config }
+    if let State::SearchCommandActive(search_settings) = d_state
+    { search_settings }
     else
     { SearchCommandSettings::default() }
 }
 
-pub(crate) fn list_config_update_or_default(d_state: State) -> ListCommandSettings
+pub(crate) fn list_settings_update_or_default(d_state: State) -> ListCommandSettings
 {
-    if let State::ListCommandActive(list_config) = d_state
-    { list_config }
+    if let State::ListCommandActive(list_settings) = d_state
+    { list_settings }
     else
     { ListCommandSettings::default() }
 }
 
 /// Used in the end of main handlers.
 /// Updates `dialogue` state when possible, and sends message.  
-pub(crate) async fn update_optionally_and_send_message<S: Into<String> + Send>
+pub(crate) async fn update_optionally_and_send_message
 (
     opt_dialogue: Option<TheDialogue>,
     opt_d_data: Option<DialogueData>,
     opt_kb: Option<InlineKeyboardMarkup>,
     bot: Bot,
     chat_id: ChatId,
-    text: S
+    text: impl Into<String> + Send
 )
     -> eyre::Result<()>
 {
@@ -88,7 +89,8 @@ pub(crate) async fn get_text(msg: &Message) -> StdResult<&str, NoTextError>
 #[inline]
 pub(crate) async fn get_callback_data(callback: &CallbackQuery) -> StdResult<String, NoCallbackDataError>
 {
-    callback.data.clone()
+    callback.data
+        .clone()
         .ok_or(NoCallbackDataError)
 }
 

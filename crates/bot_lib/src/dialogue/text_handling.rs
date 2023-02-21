@@ -31,12 +31,12 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &
                 let state =
                     match configs
                     {
-                        Either::First(search_config) =>
-                            SearchCommandActive(SearchCommandSettings { result_limit: (num as u32).into(), ..search_config.clone() }),
-                        Either::Last(list_config) =>
-                            ListCommandActive(ListCommandSettings { result_limit: (num as u32).into(), ..list_config.clone() })
+                        Either::First(search_settings) =>
+                            SearchCommandActive(SearchCommandSettings { result_limit: (num as u32).into(), ..search_settings.clone() }),
+                        Either::Last(list_settings) =>
+                            ListCommandActive(ListCommandSettings { result_limit: (num as u32).into(), ..list_settings.clone() })
                     };
-                ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
+                ("Accepted! ✅".to_owned(), None, Some(DialogueData { state, ..dialogue_data.clone() }))
             }
         _ => ("Send a number greater than 0".to_owned(), None, None)
     }
@@ -46,7 +46,7 @@ pub(crate) fn save_text(text: &str, search_config: SearchCommandSettings, dialog
     -> MessageTriplet
 {
     let state = SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_config });
-    ("Accepted! ✅".to_owned(), None, DialogueData { state, ..dialogue_data.clone() }.into())
+    ("Accepted! ✅".to_owned(), None, Some(DialogueData { state, ..dialogue_data.clone() }))
 }
 
 async fn send_results<'i, S, T>(bot: &Bot, send_to: ChatId, list: T)
@@ -86,9 +86,9 @@ pub(crate) async fn execute_search_command<T>
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = user_id.id.0.to_string();
-    let redis_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_URL");
     let Ok(token) =
-        get_access_token(&user_id, redis_url)
+        get_access_token(&user_id, db_url)
         else
         {
             let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
@@ -99,7 +99,7 @@ pub(crate) async fn execute_search_command<T>
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
-    let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
+    let access_token = refresh_access_token(&user_id, token, db_url, token_req).await?.access_token;
     
     bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
     let results = search_items(search_in, req_builder, search_for, &access_token, res_limit).await;
@@ -125,9 +125,9 @@ pub(crate) async fn execute_list_command<T>
         T::Target: Default + Debug + ItemsResponsePage
 {
     let user_id = user_id.id.0.to_string();
-    let redis_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_URL");
     let Ok(token) =
-        get_access_token(&user_id, redis_url)
+        get_access_token(&user_id, db_url)
         else
         {
             let auth_url = format!("Use this link to log in {}", default_auth_url(&user_id).await?.to_link("Log In"));
@@ -138,7 +138,7 @@ pub(crate) async fn execute_list_command<T>
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
     let token_req = refresh_token_req(secret, &token)?;
-    let access_token = refresh_access_token(&user_id, token, redis_url, token_req).await?.access_token;
+    let access_token = refresh_access_token(&user_id, token, db_url, token_req).await?.access_token;
     
     bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await?;
     let results = list_items(req_builder, &access_token, sorting, res_limit).await;

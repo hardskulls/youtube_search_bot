@@ -4,7 +4,7 @@ use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use reqwest::RequestBuilder;
 
-use error_traits::{MapErrToString, WrapInOk};
+use error_traits::{MapErrToString, WrapInErr, WrapInOk};
 
 use crate::db::{combine_old_new_tokens, set_access_token};
 use crate::net::find_by_key;
@@ -56,19 +56,32 @@ fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBod
         .map_err_to_str()
 }
 
+struct CodeAndUserId<'a>
+{
+    for_user: &'a str,
+    auth_code: &'a str
+}
+
+fn get_params_from_query(decoded_query: &'_ str)
+    -> StdResult<CodeAndUserId<'_>, &'static str>
+{
+    let state = find_by_key(decoded_query, "&", "state").map_err(|_| "state not found")?;
+    
+    let state_code = find_by_key(state, "xplusx", "state_code").map_err(|_| "state code not found")?;
+    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s")
+    { return "state codes don't match".in_err() }
+    
+    let for_user = find_by_key(state, "xplusx", "for_user").map_err(|_| "for_user not found")?;
+    let auth_code = find_by_key(decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
+    Ok(CodeAndUserId { for_user, auth_code })
+}
+
 pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
     
     let decoded_query = get_query(&req);
-    let state = find_by_key(&decoded_query, "&", "state").map_err(|_| "state not found")?;
-    
-    let state_code = find_by_key(state, "xplusx", "state_code").map_err(|_| "state code not found")?;
-    if !state_code.contains("liuhw9p38y08q302q02h0gp9g0p2923924u0s")
-    { return Err("state codes don't match".into()) }
-    let for_user = find_by_key(state, "xplusx", "for_user").map_err(|_| "for_user not found")?;
-    
-    let auth_code = find_by_key(&decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
+    let CodeAndUserId { for_user, auth_code } = get_params_from_query(&decoded_query)?;
     
     let tok_req = access_token_req(auth_code).await.map_err(|_| "building token request failed")?;
     let resp = tok_req.send().await.map_err(|_| "access token request failed")?;
@@ -89,9 +102,9 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
     
-    let (p, b) = req.into_parts();
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'p' is [| '{:#?}' |] )", &p);
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'b' is [| '{:#?}' |] )", &b);
+    let (parts, body) = req.into_parts();
+    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'p' is [| '{:#?}' |] )", &parts);
+    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'b' is [| '{:#?}' |] )", &body);
     
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] finished [ OK ] )");
     "server is up ✔"

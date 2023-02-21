@@ -40,9 +40,7 @@ pub trait MapErrBy<T, N>
 impl<T, E, N> MapErrBy<T, N> for StdResult<T, E>
 {
     fn map_err_by(self, f: impl Fn() -> N) -> StdResult<T, N>
-    {
-        self.map_err(|_| f())
-    }
+    { self.map_err(|_| f()) }
 }
 
 /// Turns error into a string.
@@ -55,9 +53,7 @@ impl<T, E> MapErrToString<T> for StdResult<T, E>
     where E: ToString
 {
     fn map_err_to_str(self) -> StdResult<T, String>
-    {
-        self.map_err(|e| e.to_string())
-    }
+    { self.map_err(|e| e.to_string()) }
 }
 
 
@@ -70,9 +66,7 @@ pub trait WrapInOk<T, E>
 impl<T, E> WrapInOk<T, E> for T
 {
     fn in_ok(self) -> StdResult<T, E>
-    {
-        Ok(self)
-    }
+    { Ok(self) }
 }
 
 
@@ -85,9 +79,7 @@ pub trait WrapInErr<T, E>
 impl<T, E> WrapInErr<T, E> for E
 {
     fn in_err(self) -> StdResult<T, E>
-    {
-        Err(self)
-    }
+    { Err(self) }
 }
 
 

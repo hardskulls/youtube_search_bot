@@ -72,8 +72,7 @@ fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetD
         ExpiresInInternalRepr::ExpiresAt(offset_date_time) => Ok(offset_date_time),
         ExpiresInInternalRepr::ExpiresAfterSeconds(seconds) =>
             {
-                let t = time::Duration::seconds(seconds);
-                let expires_in = time::OffsetDateTime::now_utc() + t;
+                let expires_in = time::OffsetDateTime::now_utc() + time::Duration::seconds(seconds);
                 Ok(expires_in)
             }
     }
