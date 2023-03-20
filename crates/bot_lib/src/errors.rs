@@ -69,9 +69,9 @@ pub struct MissingType;
 pub async fn notify_user_on_err<'a, F, X, OK, ERR, S, FUT>(f: F, x: &'a X, bot: &Bot, send_to: ChatId, text: S)
     -> StdResult<OK, ERR>
     where
-        FUT: Future<Output = StdResult<OK, ERR>>,
-        F: Fn(&'a X) -> FUT,
-        S: Into<String> + Send,
+        FUT : Future<Output = StdResult<OK, ERR>>,
+        F : Fn(&'a X) -> FUT,
+        S : Into<String> + Send,
 {
     let res = f(x).await;
     if res.is_err()

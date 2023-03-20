@@ -10,7 +10,7 @@ pub trait LogErr
 
 impl<T, E> LogErr for StdResult<T, E>
     where
-        E: Display
+        E : Display
 {
     fn log_err(self, log_prefix: &str) -> Self
     {

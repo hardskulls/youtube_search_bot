@@ -74,13 +74,14 @@ async fn exec_search_helper
     let user_err = || ("Couldn't execute command ❌".to_owned(), None, dialogue_data.clone().into());
     let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
     let send_to = callback.chat_id().ok_or(()).map_err_by(user_err)?;
+    let user_id = callback.from;
     let res =
         match search_config.target
         {
             Target::Subscription =>
-                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions).await,
+                execute_search_command(bot, user_id, send_to, &search_for, res_limit, &search_in, RespTargetSubscriptions).await,
             Target::PlayList =>
-                execute_search_command(bot, callback.from, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists).await,
+                execute_search_command(bot, user_id, send_to, &search_for, res_limit, &search_in, RespTargetPlaylists).await,
         };
     res.log_err(err_log_prefix).map_err_by(user_err)
 }

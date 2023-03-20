@@ -44,7 +44,7 @@ pub(crate) enum SearchCommandButtons
     TextToSearch,
 }
 
-// TODO: Finish
+/// Sorting foe list command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Sorting
 {

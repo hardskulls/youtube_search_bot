@@ -5,19 +5,24 @@ use error_traits::WrapInOk;
 
 use crate::youtube::traits::Searchable;
 
+// TODO: Choose a better naming and description.
+#[derive(Clone)]
 pub struct RespTargetSubscriptions;
 
+// TODO: Choose a better naming and description.
+#[derive(Clone)]
 pub struct RespTargetPlaylists;
 
-
-pub trait ListRequestBuilder
+// TODO: Choose a better naming.
+/// Trait for building 'list' request in YouTube API.
+pub trait YouTubeApiListRequestBuilder
 {
-    type Target: serde::de::DeserializeOwned;
+    type Target : serde::de::DeserializeOwned;
     
     fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
-impl ListRequestBuilder for RespTargetSubscriptions
+impl YouTubeApiListRequestBuilder for RespTargetSubscriptions
 {
     type Target = SubscriptionListResponse;
     
@@ -36,7 +41,7 @@ impl ListRequestBuilder for RespTargetSubscriptions
     }
 }
 
-impl ListRequestBuilder for RespTargetPlaylists
+impl YouTubeApiListRequestBuilder for RespTargetPlaylists
 {
     type Target = PlaylistListResponse;
     
@@ -61,10 +66,10 @@ impl ListRequestBuilder for RespTargetPlaylists
 //    pub next_page_token: Option<String>
 //}
 
-
-pub trait ItemsResponsePage
+/// Trait represents a page of response from request to YouTube API.
+pub trait YouTubeApiResponsePage
 {
-    type Item: Searchable;
+    type Item : Searchable;
     
     fn next_page_token(&self) -> Option<String>;
     
@@ -73,7 +78,7 @@ pub trait ItemsResponsePage
     fn items(self) -> Option<Vec<Self::Item>>;
 }
 
-impl ItemsResponsePage for SubscriptionListResponse
+impl YouTubeApiResponsePage for SubscriptionListResponse
 {
     type Item = Subscription;
     
@@ -93,7 +98,7 @@ impl ItemsResponsePage for SubscriptionListResponse
     }
 }
 
-impl ItemsResponsePage for PlaylistListResponse
+impl YouTubeApiResponsePage for PlaylistListResponse
 {
     type Item = Playlist;
     

@@ -50,7 +50,7 @@ pub trait MapErrToString<T>
 }
 
 impl<T, E> MapErrToString<T> for StdResult<T, E>
-    where E: ToString
+    where E : ToString
 {
     fn map_err_to_str(self) -> StdResult<T, String>
     { self.map_err(|e| e.to_string()) }

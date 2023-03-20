@@ -1,6 +1,16 @@
 use std::fmt::{Debug, Display};
 
-pub(crate) fn maybe_print<T: Display + Debug, P: Display, D: Display>(prefix: P, printable: &Option<T>, default: D) -> String
+pub(crate) fn maybe_print<T, P, D>
+(
+    prefix: P,
+    printable: &Option<T>,
+    default: D
+)
+    -> String
+    where
+        T : Display + Debug,
+        P : Display,
+        D : Display
 {
     if let Some(p) = printable
     { format!("{prefix}{p:#?}") }
@@ -18,7 +28,7 @@ pub(crate) fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
 
 pub(crate) trait HTMLise
     where
-        Self: Display
+        Self : Display
 {
     fn to_bold(&self) -> String
     {
@@ -32,7 +42,7 @@ pub(crate) trait HTMLise
 }
 
 impl<T> HTMLise for T
-    where T: Display
+    where T : Display
 {}
 
 

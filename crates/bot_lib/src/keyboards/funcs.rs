@@ -5,14 +5,14 @@ use crate::keyboards::traits::ButtonText;
 use crate::keyboards::types::Buttons;
 
 /// Constructs `inline keyboard` button inner data.
-fn callback_data<D: Serialize>(callback_data: D) -> InlineKeyboardButtonKind
+fn callback_data<D : Serialize>(callback_data: D) -> InlineKeyboardButtonKind
 {
     let unique_string_identifier: String = serde_json::to_string(&callback_data).unwrap_or_else(|_| "Broken button 🚧".to_owned());
     InlineKeyboardButtonKind::CallbackData(unique_string_identifier)
 }
 
 /// Constructs `inline keyboard` button from anything.
-pub(crate) fn inline_button<S: Into<String>>(text: S, data: Buttons) -> InlineKeyboardButton
+pub(crate) fn inline_button<S : Into<String>>(text: S, data: Buttons) -> InlineKeyboardButton
 {
     InlineKeyboardButton::new(text.into(), callback_data(data))
 }

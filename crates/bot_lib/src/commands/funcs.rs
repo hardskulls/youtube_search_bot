@@ -41,6 +41,7 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
     { err().in_err() }
 }
 
+/// Pretty print config.
 fn print_search_config(c: &SearchCommandSettings) -> String
 {
     let SearchCommandSettings { target, search_in: search_by, result_limit, .. } = c;
@@ -58,6 +59,7 @@ fn print_search_config(c: &SearchCommandSettings) -> String
     { format!("Your search config is{t}") }
 }
 
+/// Pretty print config.
 fn print_list_config(c: &ListCommandSettings) -> String
 {
     let ListCommandSettings { target, result_limit, sorting } = c;

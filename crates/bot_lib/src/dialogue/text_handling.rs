@@ -13,7 +13,7 @@ use crate::db::{get_access_token, refresh_access_token, refresh_token_req};
 use crate::dialogue::types::{DialogueData, Either, ListCommandSettings, MessageTriplet, SearchCommandSettings};
 use crate::dialogue::types::State::{ListCommandActive, SearchCommandActive};
 use crate::keyboards::types::{SearchIn, Sorting};
-use crate::net::traits::{ListRequestBuilder, ItemsResponsePage};
+use crate::net::traits::{YouTubeApiListRequestBuilder, YouTubeApiResponsePage};
 use crate::utils::HTMLise;
 use crate::youtube::{list_items, make_auth_url, search_items};
 use crate::youtube::traits::Searchable;
@@ -42,17 +42,19 @@ pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &
     }
 }
 
-pub(crate) fn save_text(text: &str, search_config: SearchCommandSettings, dialogue_data: &DialogueData) 
+/// Save text to search.
+pub(crate) fn save_text(text: &str, search_settings: SearchCommandSettings, dialogue_data: &DialogueData)
     -> MessageTriplet
 {
-    let state = SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_config });
+    let state = SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_settings });
     ("Accepted! ✅".to_owned(), None, Some(DialogueData { state, ..dialogue_data.clone() }))
 }
 
+/// Send 'search' and 'list' results to user.
 async fn send_results<'i, S, T>(bot: &Bot, send_to: ChatId, list: T)
     where
-        S: Searchable + 'i,
-        T: IntoIterator<Item = &'i S>
+        S : Searchable + 'i,
+        T : IntoIterator<Item = &'i S>
 {
     for s in list.into_iter()
     {
@@ -82,8 +84,9 @@ pub(crate) async fn execute_search_command<T>
 )
     -> eyre::Result<MessageTriplet>
     where
-        T: ListRequestBuilder,
-        T::Target: Default + Debug + ItemsResponsePage
+        T : YouTubeApiListRequestBuilder + Send,
+        T::Target : Default + Debug + YouTubeApiResponsePage + Send,
+        <T::Target as YouTubeApiResponsePage>::Item : Clone,
 {
     let user_id = user_id.id.0.to_string();
     let db_url = env!("REDIS_URL");
@@ -121,8 +124,8 @@ pub(crate) async fn execute_list_command<T>
 )
     -> eyre::Result<MessageTriplet>
     where
-        T: ListRequestBuilder,
-        T::Target: Default + Debug + ItemsResponsePage
+        T : YouTubeApiListRequestBuilder,
+        T::Target : Default + Debug + YouTubeApiResponsePage
 {
     let user_id = user_id.id.0.to_string();
     let db_url = env!("REDIS_URL");

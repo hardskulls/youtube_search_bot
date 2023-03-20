@@ -38,7 +38,7 @@ enum ScopeInternalRepr
 /// Serialized representation might be a string of space separated scopes or a vector of scopes.
 fn scope_field_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
     where
-        D: Deserializer<'de>,
+        D : Deserializer<'de>,
 {
     match ScopeInternalRepr::deserialize(deserializer)?
     {
@@ -64,7 +64,7 @@ enum ExpiresInInternalRepr
 /// Serialized representation might be a string of space separated scopes or vector of scopes.
 fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
     where
-        D: Deserializer<'de>
+        D : Deserializer<'de>
 {
     let seconds_or_date_time = ExpiresInInternalRepr::deserialize(deserializer)?;
     match seconds_or_date_time

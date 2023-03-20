@@ -6,9 +6,8 @@ use error_traits::WrapInOk;
 use crate::youtube::types::YouTubeAccessToken;
 
 /// Required to avoid key collisions.
-const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
+const TOKEN_PREFIX : &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
 
-/// Gets a token by `user id`.
 pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
     log::info!("getting access_token from a database | (silent on failure)");
@@ -19,7 +18,6 @@ pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouT
     token.in_ok()
 }
 
-/// Sets a token by `user id`.
 pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!("saving access_token to a database | (silent on failure)");
@@ -29,7 +27,6 @@ pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre
     ().in_ok()
 }
 
-/// Deletes a token by `user id`.
 pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure");

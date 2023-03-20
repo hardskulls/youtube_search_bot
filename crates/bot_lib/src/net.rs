@@ -5,7 +5,7 @@ use crate::StdResult;
 pub(crate) mod traits;
 
 pub(crate) fn join<T>(pieces: &[T], separator: &str) -> String
-    where T: AsRef<str>,
+    where T : AsRef<str>,
 {
     let mut iter = pieces.iter();
     let first =
@@ -31,7 +31,7 @@ pub(crate) fn join<T>(pieces: &[T], separator: &str) -> String
 pub fn query_pairs<'a, 'b>(url_query: &'a str, sep: &'b str)
     -> StdResult<impl Iterator<Item = (&'a str, &'a str)> + 'b, ParseError>
     where
-        'a: 'b
+        'a : 'b
 {
     let res = url_query.split(sep).filter_map(|kv_pair| kv_pair.split_once('='));
     if res.clone().count() < 1 { return Err(ParseError) }

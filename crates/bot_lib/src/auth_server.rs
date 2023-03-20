@@ -11,6 +11,7 @@ use crate::net::find_by_key;
 use crate::StdResult;
 use crate::youtube::types::YouTubeAccessToken;
 
+/// Parameters for access token request (not code request).
 async fn params(auth_code: &str) -> StdResult<[(String, String); 5], std::io::Error>
 {
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");

@@ -5,7 +5,7 @@ use error_stack::{Context, IntoReportCompat, ResultExt};
 /// report by calling `.into_report()`).
 pub trait ConvReport
     where
-        Self: ResultExt + Sized
+        Self : ResultExt + Sized
 {
     fn conv_to<C>(self, convert_to: C) -> error_stack::Result<Self::Ok, C>
         where
@@ -14,8 +14,8 @@ pub trait ConvReport
     
     fn conv_to_and_attach<C, A>(self, convert_to: C, attach: A) -> error_stack::Result<Self::Ok, C>
         where
-            A: Display + Debug + Send + Sync + 'static,
-            C: Context
+            A : Display + Debug + Send + Sync + 'static,
+            C : Context
     {
         self.change_context_lazy(|| convert_to)
             .attach_printable_lazy(|| attach)
@@ -36,7 +36,7 @@ pub trait IntoReportDyn
 
 impl<T, E> IntoReportDyn for Result<T, E>
     where
-        E: Send + Sync + Debug + Display + 'static
+        E : Send + Sync + Debug + Display + 'static
 {
     type Ok = T;
     type Err = anyhow::Error;

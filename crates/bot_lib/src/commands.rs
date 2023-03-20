@@ -69,7 +69,7 @@ pub async fn handle_commands(bot: Bot, msg: Message, dialogue: TheDialogue, cmd:
 }
 
 #[inline]
-pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool
+pub fn is_other_command<B : BotCommands>(msg: Message, me: Me) -> bool
 {
     let bot_name = me.username();
     if let Some(text) = msg.text()

@@ -34,7 +34,7 @@ pub(crate) struct ListConfig
     pub(crate) sorting: Sorting,
 }
 
-/// Stores settings for `search` command.
+/// Stores settings for `search` command (fields may be 'None').
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct SearchCommandSettings
 {
@@ -64,7 +64,7 @@ impl SearchCommandSettings
     }
 }
 
-/// Stores settings for `list` command.
+/// Stores settings for `list` command (fields may be 'None').
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct ListCommandSettings
 {

@@ -1,6 +1,6 @@
 use google_youtube3::api::{Playlist, Subscription};
 
-
+/// Anything that can be searched on user's YouTube channel.
 pub trait Searchable
 {
     fn title(&self) -> Option<&str>;
@@ -33,9 +33,7 @@ impl Searchable for Subscription
     }
     
     fn date(&self) -> Option<&str>
-    {
-        self.snippet.as_ref()?.published_at.as_ref()?.as_str().into()
-    }
+    { self.snippet.as_ref()?.published_at.as_ref()?.as_str().into() }
     
     fn link(&self) -> Option<String>
     {
@@ -65,14 +63,12 @@ impl Searchable for Playlist
     }
     
     fn date(&self) -> Option<&str>
-    {
-        self.snippet.as_ref()?.published_at.as_ref()?.as_str().into()
-    }
+    { self.snippet.as_ref()?.published_at.as_ref()?.as_str().into() }
     
     fn link(&self) -> Option<String>
     {
-        let id: &str = self.id.as_ref()?;
-        format!("https://youtube.com/playlist?list={id}").into()
+        let plist_id: &str = self.id.as_ref()?;
+        format!("https://youtube.com/playlist?list={plist_id}").into()
     }
 }
 

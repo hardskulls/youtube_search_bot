@@ -37,7 +37,7 @@ pub(crate) fn list_settings_update_or_default(d_state: State) -> ListCommandSett
     { ListCommandSettings::default() }
 }
 
-/// Used in the end of main handlers.
+/// Used in the end of main handlers (text, callback and commands).
 /// Updates `dialogue` state when possible, and sends message.  
 pub(crate) async fn update_optionally_and_send_message
 (

@@ -13,6 +13,7 @@ error_traits = { path = "../error_traits", features = ["log_err"] }
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
 google-youtube3 = "4.0.1"
+tokio = { version = "1.25.0", features = ["rt"] }
 
 #[:: Net ::]
 axum = { version = "0.6.7", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
