@@ -12,7 +12,7 @@ error_traits = { path = "../error_traits", features = ["log_err"] }
 
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
-google-youtube3 = "5.0.2"
+google-youtube3 = "=4.0.1"
 tokio = { version = "1.26.0", features = ["rt"] }
 
 #[:: Net ::]
