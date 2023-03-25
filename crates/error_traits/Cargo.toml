@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 #[:: Main ::]
 error-stack = { version = "0.3.1", features = ["anyhow"], optional = true }
-anyhow = { version = "1.0.69", optional = true }
+anyhow = { version = "1.0.70", optional = true }
 log = { version = "0.4.17", optional = true }
 
 [features]

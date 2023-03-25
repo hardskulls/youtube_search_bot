@@ -12,18 +12,18 @@ error_traits = { path = "../error_traits", features = ["log_err"] }
 
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
-google-youtube3 = "4.0.1"
-tokio = { version = "1.25.0", features = ["rt"] }
+google-youtube3 = "5.0.2"
+tokio = { version = "1.26.0", features = ["rt"] }
 
 #[:: Net ::]
-axum = { version = "0.6.7", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
+axum = { version = "0.6.12", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
 url = { version = "2.3.1", features = [] }
 form_urlencoded = { version = "1.1.0", features = [] }
-reqwest = { version = "0.11.14", features = ["blocking", "json", "multipart"] }
-hyper = { version = "0.14.24", features = ["client", "http1", "http2", "runtime"] }
+reqwest = { version = "0.11.15", features = ["blocking", "json", "multipart"] }
+hyper = { version = "0.14.25", features = ["client", "http1", "http2", "runtime"] }
 hyper-rustls = { version = "0.23.2", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
 #yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
-time = "0.3.19"
+time = "0.3.20"
 #urlencoding = { version = "2.1.2", features = [] }
 
 #[:: DB ::]
@@ -32,7 +32,7 @@ redis = { version = "0.22.3", features = ["tokio-comp", "tls", "tokio-native-tls
 #postgres = { version = "0.19.4", features = [] }
 
 #[:: Errors ::]
-thiserror = "1.0.38"
+thiserror = "1.0.40"
 #error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
 
@@ -44,12 +44,12 @@ log = "0.4.17"
 #enum_variants = "1.0.0"
 parse-display = { version = "0.8.0", features = ["std"] }
 to_debug = "0.1.0"
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = { version = "1.0.93", features = ["std"] }
+serde = { version  = "1.0.158", features = ["derive"] }
+serde_json = { version = "1.0.94", features = ["std"] }
 
 [dev-dependencies]
-tokio = { version = "1.25.0", features = ["macros"] }
-miette = { version = "5.5.0", features = ["fancy"] }
-simple_logger = "4.0.0"
+tokio = { version = "1.26.0", features = ["macros"] }
+miette = { version = "5.6.0", features = ["fancy"] }
+simple_logger = "4.1.0"
 
 
