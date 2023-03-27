@@ -93,7 +93,8 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let serialized_access_token = serde_json::to_string(&combined_token).map_err(|_| "db error")?;
     set_access_token(for_user, &serialized_access_token, db_url).map_err(|_| "db error")?;
     
-    let redirect = redirect_user("https://t.me/test_echo_123_456_bot")?;
+    let bot_url = env!("BOT_REDIRECT_URL");
+    let redirect = redirect_user(bot_url)?;
     
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] finished [ OK ] )");
     Ok(redirect)
@@ -104,8 +105,8 @@ pub async fn serve_all(req: Request<Body>) -> &'static str
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
     
     let (parts, body) = req.into_parts();
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'p' is [| '{:#?}' |] )", &parts);
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'b' is [| '{:#?}' |] )", &body);
+    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'parts' is [| '{:#?}' |] )", &parts);
+    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] 'body' is [| '{:#?}' |] )", &body);
     
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] finished [ OK ] )");
     "server is up ✔"
