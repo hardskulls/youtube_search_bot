@@ -1,6 +1,7 @@
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 
+use std::env;
 use std::sync::Arc;
 
 use teloxide::
@@ -31,10 +32,10 @@ async fn main() -> eyre::Result<()>
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")?;
+    let token = env::var("TELEGRAM_BOT_TOKEN")?;
     let bot = Bot::new(&token);
 
-    let redis_url = std::env::var("REDIS_URL")?;
+    let redis_url = env::var("REDIS_URL")?;
     let storage: Arc<ErasedStorage<DialogueData>> =
         if let Ok(redis_storage) = RedisStorage::open(redis_url, Json).await
         {
@@ -48,8 +49,8 @@ async fn main() -> eyre::Result<()>
             TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
         };
     
-    let port = std::env::var("PORT")?.parse::<u16>()?;
-    let host = std::env::var("HOST")?;
+    let port = env::var("PORT")?.parse::<u16>()?;
+    let host = env::var("HOST")?;
     let addr = ([0,0,0,0], port).into();
     let url = reqwest::Url::parse(&format!("{host}/bot{token}"))?;
 
@@ -70,7 +71,7 @@ async fn main() -> eyre::Result<()>
             .branch(message_handler)
             .branch(callback_handler);
     
-    // !! Must be after `bot.delete_webhook()` !!
+    // [!!] Must be after `bot.delete_webhook()` [!!]
     let update_listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, url)).await?;
     let err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
 
