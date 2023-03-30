@@ -1,6 +1,7 @@
 [workspace]
-members = ["crates/*"]
-#default-members = ["crates/bot_lib"]
+members = ["crates/*", "crates/local/*"]
+exclude = ["crates/local"]
+#default-members = ["crates/internal"]
 
 [profile.release]
 codegen-units = 1
@@ -10,6 +11,6 @@ panic = "abort"
 
 #[workspace.dependencies]
 #conv_to_report = { path = "crates/conv_to_report" }
-#bot_lib = { path = "crates/bot_lib" }
+#internal = { path = "crates/internal" }
 
 
