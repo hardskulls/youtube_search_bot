@@ -1,4 +1,4 @@
-
+use std::fmt::{Debug, Formatter};
 use parse_display::Display;
 use serde::{Deserialize, Serialize};
 
@@ -18,13 +18,24 @@ pub(crate) enum Target
 
 /// Target of `list` or `search` commands.
 /// Used in `SearchCommandButtons` and `ListCommandButtons`.
-#[derive(Clone, Debug, Serialize, Deserialize, Display)]
+#[derive(Clone, Serialize, Deserialize, Display)]
 pub enum Requestable
 {
     #[display("Subscription 📋")]
     Subscription(RespTargetSubscriptions),
     #[display("Playlist 📜")]
     Playlist(RespTargetPlaylists)
+}
+
+impl Debug for Requestable
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self
+        {
+            Requestable::Subscription(..) => write!(f, "Subscription"),
+            Requestable::Playlist(..) => write!(f, "Playlist")
+        }
+    }
 }
 
 /// Defines where to search. Used in `SearchCommandKB`.
@@ -124,6 +135,16 @@ mod tests
         let serialized_enum : String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
         let deserialized_enum : Buttons = serde_json::from_str(&serialized_enum).unwrap();
         assert!(matches!(deserialized_enum, Buttons::SearchButtons(SearchInOptions)));
+    }
+    
+    #[test]
+    fn display_derive_for_requestable_test()
+    {
+        assert_eq!("Subscription 📋", Requestable::Subscription(RespTargetSubscriptions).button_text());
+        assert_eq!("Subscription 📋", Requestable::Subscription(RespTargetSubscriptions).to_string());
+        let b = Buttons::SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)));
+        assert_eq!(b.button_text(), Requestable::Subscription(RespTargetSubscriptions).button_text());
+        assert_eq!(Requestable::Subscription(RespTargetSubscriptions).to_string(), Requestable::Subscription(RespTargetSubscriptions).button_text());
     }
 }
 
