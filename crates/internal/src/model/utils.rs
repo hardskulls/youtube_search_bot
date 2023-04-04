@@ -2,9 +2,9 @@ use std::fmt::{Debug, Display};
 
 pub(crate) fn maybe_print<T, P, D>
 (
-    prefix: P,
-    printable: &Option<T>,
-    default: D
+    prefix : P,
+    printable : &Option<T>,
+    default : D
 )
     -> String
     where
@@ -18,7 +18,7 @@ pub(crate) fn maybe_print<T, P, D>
     { default.to_string() }
 }
 
-pub(crate) fn print_if_none<T>(option: Option<T>, text: impl Display) -> String
+pub(crate) fn print_if_none<T>(option : Option<T>, text : impl Display) -> String
 {
     if option.is_none()
     { text.to_string() }
@@ -35,7 +35,7 @@ pub(crate) trait HTMLise
         format!("<b>{self}</b>")
     }
     
-    fn to_link<L: Display>(&self, link_text: L) -> String
+    fn to_link<L : Display>(&self, link_text : L) -> String
     {
         format!("<a href=\"{self}\">{link_text}</a>")
     }

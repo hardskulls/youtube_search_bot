@@ -1,17 +1,19 @@
+
 use error_traits::{LogErr, MapErrBy, WrapInErr, WrapInOk};
 
 use crate::{FlatRes, StdResult};
-use crate::db::{delete_access_token, get_access_token};
-use crate::dialogue::funcs::get_dialogue_data;
-use crate::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
-use crate::errors::NoTextError;
-use crate::utils::{HTMLise, maybe_print};
-use crate::youtube::types::YouTubeAccessToken;
+use crate::model::db::{delete_access_token, get_access_token};
+use crate::model::dialogue::funcs::get_dialogue_data;
+use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
+use crate::model::errors::NoTextError;
+use crate::model::utils::{HTMLise, maybe_print};
+use crate::model::youtube::types::YouTubeAccessToken;
 
-fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
+
+fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
     let url = "https://oauth2.googleapis.com/revoke";
-    let params: &[(&str, &str)] = &[("token", &token.refresh_token.unwrap_or(token.access_token))];
+    let params : &[(&str, &str)] = &[("token", &token.refresh_token.unwrap_or(token.access_token))];
     let body = reqwest::Url::parse_with_params(url, params)?.query().ok_or(NoTextError)?.to_owned();
     reqwest::Client::new()
         .post(reqwest::Url::parse(url)?)
@@ -22,7 +24,7 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 }
 
 /// Revoke `refresh token` and delete token from db.
-pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
+pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTriplet>
 {
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
@@ -34,7 +36,7 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
         { return err().in_err() }
         
         delete_access_token(user_id, db_url).log_err(log_prefix).map_err_by(err)?;
-    
+        
         ("Logged out successfully ✔".to_owned(), None, None).in_ok()
     }
     else
@@ -42,9 +44,9 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
 }
 
 /// Pretty print config.
-fn print_search_config(c: &SearchCommandSettings) -> String
+fn print_search_config(c : &SearchCommandSettings) -> String
 {
-    let SearchCommandSettings { target, search_in: search_by, result_limit, .. } = c;
+    let SearchCommandSettings { target, search_in : search_by, result_limit, .. } = c;
     let t =
         format!
         (
@@ -60,7 +62,7 @@ fn print_search_config(c: &SearchCommandSettings) -> String
 }
 
 /// Pretty print config.
-fn print_list_config(c: &ListCommandSettings) -> String
+fn print_list_config(c : &ListCommandSettings) -> String
 {
     let ListCommandSettings { target, result_limit, sorting } = c;
     let t =
@@ -77,11 +79,11 @@ fn print_list_config(c: &ListCommandSettings) -> String
     { format!("Your list config is{t}") }
 }
 
-pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
+pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
-    let create_msg = |m: &str| (m.to_owned(), None, None);
-    let default_err: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
+    let create_msg = |m : &str| (m.to_owned(), None, None);
+    let default_err : fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
     let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(default_err)?;
     match d_data.state
     {
@@ -96,11 +98,11 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
 #[cfg(test)]
 mod tests
 {
-    use crate::dialogue::types::{ListCommandSettings, SearchCommandSettings};
-    use crate::keyboards::types::Target;
-    use crate::youtube::types::YouTubeAccessToken;
-    
-    use super::*;
+    use crate::model::commands::funcs::{build_log_out_req, print_list_config, print_search_config};
+    use crate::model::dialogue::types::{ListCommandSettings, SearchCommandSettings};
+    use crate::model::keyboards::types::Requestable;
+    use crate::model::net::traits::RespTargetSubscriptions;
+    use crate::model::youtube::types::YouTubeAccessToken;
     
     #[test]
     fn printable_test()
@@ -111,7 +113,7 @@ mod tests
         let mut c = ListCommandSettings::default();
         assert_eq!(print_list_config(&c), "You've activated 'list command' 📃");
         
-        c.target = Target::Subscription.into();
+        c.target = Requestable::Subscription(RespTargetSubscriptions).into();
         assert_eq!(print_list_config(&c), "Your list config is\n🎯 <b>Target</b>  is  Subscription");
     }
     

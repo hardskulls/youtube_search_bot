@@ -1,28 +1,29 @@
 use parse_display::Display;
 use serde::{Deserialize, Deserializer, Serialize};
+use crate::model::youtube::traits::Searchable;
 
 /// Represents a `token` as returned by `OAuth2` servers.
 ///
 /// It is produced by all authentication flows.
 /// It authenticates certain operations, and must be refreshed once it reached it's expiry date.
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
-pub struct YouTubeAccessToken
+pub(crate) struct YouTubeAccessToken
 {
     /// The token that your application sends to authorize a Google API request.
-    pub access_token: String,
+    pub(crate) access_token : String,
     /// Date and time when access_token expires (it does so after 1 hour).
     #[serde(deserialize_with = "expires_in_field_deserialize")]
-    pub expires_in: time::OffsetDateTime,
+    pub(crate) expires_in : time::OffsetDateTime,
     /// A token that you can use to obtain a new access token. Refresh tokens are valid until
     /// the user revokes access. Again, this field is only present in this response if you set
     /// the access_type parameter to offline in the initial request to Google's authorization server.
-    pub refresh_token: Option<String>,
+    pub(crate) refresh_token : Option<String>,
     /// The scopes of access granted by the access_token expressed as a list of
     /// space-delimited, case-sensitive strings.
     #[serde(deserialize_with = "scope_field_deserialize")]
-    pub scope: Vec<String>,
+    pub(crate) scope : Vec<String>,
     /// The type of token returned. At this time, this field's value is always set to Bearer.
-    pub token_type: String,
+    pub(crate) token_type : String,
 }
 
 /// One of two internal representations of `YouTubeAccessToken` `scope` field.
@@ -36,7 +37,7 @@ enum ScopeInternalRepr
 
 /// Custom serde helper for `YouTubeAccessToken` `scope` field.
 /// Serialized representation might be a string of space separated scopes or a vector of scopes.
-fn scope_field_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+fn scope_field_deserialize<'de, D>(deserializer : D) -> Result<Vec<String>, D::Error>
     where
         D : Deserializer<'de>,
 {
@@ -62,7 +63,7 @@ enum ExpiresInInternalRepr
 
 /// Custom serde helper for `YouTubeAccessToken` `expires_in` field.
 /// Serialized representation might be a string of space separated scopes or vector of scopes.
-fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
+fn expires_in_field_deserialize<'de, D>(deserializer : D) -> Result<time::OffsetDateTime, D::Error>
     where
         D : Deserializer<'de>
 {
@@ -78,20 +79,44 @@ fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetD
     }
 }
 
-pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/auth?";
+pub(crate) const AUTH_URL_BASE : &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
 /// Required in token request to get a code to be exchanged for `access token`.
-pub(crate) const RESPONSE_TYPE: &str = "code";
+pub(crate) const RESPONSE_TYPE : &str = "code";
 
-pub(crate) const SCOPE_YOUTUBE_READONLY: &str = "https://www.googleapis.com/auth/youtube.readonly";
+pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
 
 /// Required in token request to get optional `refresh token` in addition to `access token`.
-pub(crate) const ACCESS_TYPE: &str = "offline";
+pub(crate) const ACCESS_TYPE : &str = "offline";
 
 #[derive(Debug, Display)]
 #[display(style = "snake_case")]
 pub(crate) enum RequiredAuthURLParams
 { ClientId, RedirectUri, ResponseType, Scope }
+
+#[derive(Default, Debug, Clone)]
+pub(crate) struct SearchableItem
+{
+    pub(crate) title : Option<String>,
+    pub(crate) description : Option<String>,
+    pub(crate) date : Option<String>,
+    pub(crate) link : Option<String>
+}
+
+impl Searchable for SearchableItem
+{
+    fn title(&self) -> Option<&str> 
+    { self.title.as_deref()?.into() }
+    
+    fn description(&self) -> Option<&str>
+    { self.description.as_deref()?.into() }
+    
+    fn date(&self) -> Option<&str>
+    { self.date.as_deref()?.into() }
+    
+    fn link(&self) -> Option<String>
+    { self.link.clone() }
+}
 
 #[allow(clippy::unwrap_used)]
 #[allow(clippy::expect_used)]
@@ -172,7 +197,7 @@ mod tests
         dbg!(subs_list_resp.page_info);
         dbg!(subs_list_resp.kind);
         dbg!(subs_list_resp.etag);
-        let s: &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
+        let s : &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
         dbg!(&s.snippet);
         dbg!(s.snippet.as_ref().unwrap().resource_id.as_ref());
     }

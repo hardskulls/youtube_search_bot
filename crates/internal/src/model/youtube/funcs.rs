@@ -1,19 +1,17 @@
+
 use std::fmt::Debug;
 
 use error_traits::{WrapInErr, WrapInOk};
 
-use crate::keyboards::types::{SearchIn, Sorting};
-use crate::net::join;
-use crate::net::traits::{YouTubeApiListRequestBuilder, YouTubeApiResponsePage};
+use crate::model::keyboards::types::{SearchIn, Sorting};
+use crate::model::net::funcs::join;
+use crate::model::net::traits::{YouTubeApiListRequestBuilder, YouTubeApiResponsePage};
+use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
+use crate::model::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams, SearchableItem};
 use crate::StdResult;
-use crate::youtube::traits::Searchable;
-use crate::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams};
-
-pub(crate) mod types;
-pub(crate) mod traits;
 
 /// Makes a single call to `YouTube API` go get one page of items.
-pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, req_builder: &T, page_token: Option<String>)
+pub(crate) async fn items_request<T>(client : &reqwest::Client, access_token : &str, req_builder : &T, page_token : Option<String>)
     -> eyre::Result<T::Target>
     where
         T : YouTubeApiListRequestBuilder
@@ -28,7 +26,7 @@ pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &st
 }
 
 /// Authorization url constructor.
-pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
+pub(crate) fn make_auth_url<V>(client_id : V, redirect_uri : V, response_type : V, scope : &[V], optional_params : &[(String, V)])
     -> StdResult<url::Url, url::ParseError>
     where
         V : AsRef<str> + Clone, /* K : AsRef<str>, I : IntoIterator, I::Item : std::borrow::Borrow<(K, V)> */
@@ -36,7 +34,7 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
     let keys = (RequiredAuthURLParams::ClientId, RequiredAuthURLParams::RedirectUri, RequiredAuthURLParams::ResponseType);
     let required_params = [(keys.0.to_string(), client_id), (keys.1.to_string(), redirect_uri), (keys.2.to_string(), response_type)];
     let params = [&required_params[..], optional_params].concat();
-    let mut url: url::Url = url::Url::parse_with_params(AUTH_URL_BASE, &params)?;
+    let mut url : url::Url = url::Url::parse_with_params(AUTH_URL_BASE, &params)?;
     let (scope_key, scope_list) = (RequiredAuthURLParams::Scope.to_string(), join(scope, ","));
     url.query_pairs_mut().append_pair(&scope_key, &scope_list);
     url.in_ok()
@@ -45,13 +43,13 @@ pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, 
 /// Search and filter items (subscriptions, playlists, etc).
 pub(crate) async fn search_items<T>
 (
-    search_in: &SearchIn,
-    req_builder: T,
-    search_for: &str,
-    access_token: &str,
-    res_limit: u32
+    search_in : &SearchIn,
+    req_builder : T,
+    search_for : &str,
+    access_token : &str,
+    res_limit : u32
 )
-    -> Vec<<T::Target as YouTubeApiResponsePage>::Item>
+    -> Vec<SearchableItem>
     where
         T : YouTubeApiListRequestBuilder,
         T::Target : Default + Debug + YouTubeApiResponsePage
@@ -61,9 +59,9 @@ pub(crate) async fn search_items<T>
     let mut store_in = vec![];
     let mut current_cap = store_in.len();
     
-    let stop_if = move |_: &T::Target| current_cap > res_limit as usize;
+    let stop_if = move |_ : &T::Target| current_cap > res_limit as usize;
     let f =
-        |search_target: T::Target|
+        |search_target : T::Target|
             {
                 if let Some(items) = search_target.items()
                 { find_matches(search_for, search_in, res_limit, items, &mut store_in) }
@@ -72,18 +70,18 @@ pub(crate) async fn search_items<T>
     pagination(req_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] 'current_cap' is [ '{:?}' ] )", current_cap);
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] ended )");
-    store_in
+    store_in.into_iter().map(|i| i.into_item()).collect()
 }
 
 /// Returns all items on user's channel.
 pub(crate) async fn list_items<T>
 (
-    req_builder: T,
-    access_token: &str,
-    sorting: &Sorting,
-    res_limit: u32
-) 
-    -> Vec<<T::Target as YouTubeApiResponsePage>::Item>
+    req_builder : T,
+    access_token : &str,
+    sorting : &Sorting,
+    res_limit : u32
+)
+    -> Vec<SearchableItem>
     where
         T : YouTubeApiListRequestBuilder,
         T::Target : Default + Debug + YouTubeApiResponsePage,
@@ -95,10 +93,10 @@ pub(crate) async fn list_items<T>
     let search_res = resp.unwrap_or_default();
     let cap = search_res.total_results().unwrap_or(50) as usize;
     
-    let mut store_in = Vec::<<T::Target as YouTubeApiResponsePage>::Item>::with_capacity(cap);
-    let stop_if = |_: &_| false;
+    let mut store_in = Vec::with_capacity(cap);
+    let stop_if = |_ : &_| false;
     let f =
-        |item: T::Target|
+        |item : T::Target|
             {
                 if let Some(mut i) = item.items()
                 { store_in.append(&mut i) }
@@ -108,15 +106,15 @@ pub(crate) async fn list_items<T>
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] ended )");
     match *sorting
     {
-        Sorting::Alphabetical => { store_in.sort_by(|a: _, b: _| a.title().cmp(&b.title())) }
-        Sorting::Date => { store_in.sort_by(|a: _, b: _| a.date().cmp(&b.date())) }
+      Sorting::Alphabetical => { store_in.sort_by(|a : _, b : _| a.title().cmp(&b.title())) }
+      Sorting::Date => { store_in.sort_by(|a : _, b : _| a.date().cmp(&b.date())) }
     }
-    store_in.into_iter().take(res_limit as _).collect()
+    store_in.into_iter().take(res_limit as _).map(|i| i.into_item()).collect()
 }
 
 /// Gives full access all pages of request, applying 'f' to each page.
 /// Stop condition can be set using `stop_if`.
-pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop_if: S, f: F)
+pub(crate) async fn pagination<I, F, S>(req_builder : I, access_token : &str, stop_if : S, f : F)
     where
         I : YouTubeApiListRequestBuilder,
         I::Target : Default + Debug + YouTubeApiResponsePage,
@@ -133,7 +131,7 @@ pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop
         let resp = items_request(&client, access_token, &req_builder, next_page_token).await;
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
-    
+        
         if stop_if(&search_res)
         { break }
         
@@ -146,7 +144,7 @@ pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches<S>(search_for: &str, search_in: &SearchIn, res_limit: u32, items: Vec<S>, store_in: &mut Vec<S>)
+fn find_matches<S>(search_for : &str, search_in : &SearchIn, res_limit : u32, items : Vec<S>, store_in : &mut Vec<S>)
     where
         S : Searchable
 {
@@ -172,7 +170,7 @@ fn find_matches<S>(search_for: &str, search_in: &SearchIn, res_limit: u32, items
 #[cfg(test)]
 mod tests
 {
-    use crate::net::traits::RespTargetSubscriptions;
+    use crate::model::net::traits::RespTargetSubscriptions;
     
     use super::*;
     
@@ -188,9 +186,9 @@ mod tests
     #[test]
     fn vec_count_test()
     {
-        fn simulate_pagination<S, T, F>(count: usize, cr_type: T, stop_if: S, f: F)
+        fn simulate_pagination<S, T, F>(count : usize, cr_type : T, stop_if : S, f : F)
             where
-                F: FnMut(Vec<T>), S: Fn(&Vec<T>) -> bool, T: Clone
+                F : FnMut(Vec<T>), S : Fn(&Vec<T>) -> bool, T : Clone
         {
             let mut f = f;
             loop
@@ -204,12 +202,12 @@ mod tests
             }
         }
         
-        // TODO: What the fuck is going on with type system here???
+        // TODO : What the fuck is going on with type system here???
         //  Why does it differ so much from 'search_items' function??
         let mut vec = vec![];
         let mut current_cap = vec.len();
         let limit = 125;
-        let stop_if = move |_: &_| current_cap > limit;
+        let stop_if = move |_ : &_| current_cap > limit;
         let f =
             |mut t|
                 {

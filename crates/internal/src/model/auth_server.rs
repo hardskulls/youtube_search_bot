@@ -1,18 +1,16 @@
 use axum::body::BoxBody;
 use axum::http::Request;
+use error_traits::{MapErrToString, WrapInErr, WrapInOk};
 use google_youtube3::oauth2::read_application_secret;
 use hyper::Body;
 use reqwest::RequestBuilder;
-
-use error_traits::{MapErrToString, WrapInErr, WrapInOk};
-
-use crate::db::{combine_old_new_tokens, set_access_token};
-use crate::net::find_by_key;
+use crate::model::db::{combine_old_new_tokens, set_access_token};
+use crate::model::net::funcs::find_by_key;
+use crate::model::youtube::types::YouTubeAccessToken;
 use crate::StdResult;
-use crate::youtube::types::YouTubeAccessToken;
 
 /// Parameters for access token request (not code request).
-async fn params(auth_code: &str) -> StdResult<[(String, String); 5], std::io::Error>
+async fn params(auth_code : &str) -> StdResult<[(String, String); 5], std::io::Error>
 {
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
@@ -26,7 +24,7 @@ async fn params(auth_code: &str) -> StdResult<[(String, String); 5], std::io::Er
     .in_ok()
 }
 
-async fn access_token_req(auth_code: &str) -> eyre::Result<RequestBuilder>
+async fn access_token_req(auth_code : &str) -> eyre::Result<RequestBuilder>
 {
     let params = params(auth_code).await?;
     let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
@@ -38,17 +36,17 @@ async fn access_token_req(auth_code: &str) -> eyre::Result<RequestBuilder>
         .in_ok()
 }
 
-fn get_query(req: &Request<Body>) -> String
+fn get_query(req : &Request<Body>) -> String
 {
     let url_encoded_query = req.uri().query().unwrap_or("");
-    let decoded_query: String =
+    let decoded_query : String =
         form_urlencoded::parse(url_encoded_query.as_bytes())
             .map(|(k, v)| [&k, "=", &v, "&"].concat())
             .collect();
     decoded_query
 }
 
-fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBody>, String>
+fn redirect_user(redirect_to : &str) -> StdResult<axum::response::Response<BoxBody>, String>
 {
     axum::response::Response::builder()
         .header(hyper::header::LOCATION, redirect_to)
@@ -59,11 +57,11 @@ fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBod
 
 struct CodeAndUserId<'a>
 {
-    for_user: &'a str,
-    auth_code: &'a str
+    for_user : &'a str,
+    auth_code : &'a str
 }
 
-fn get_params_from_query(decoded_query: &'_ str)
+fn get_params_from_query(decoded_query : &'_ str)
     -> StdResult<CodeAndUserId<'_>, &'static str>
 {
     let state = find_by_key(decoded_query, "&", "state").map_err(|_| "state not found")?;
@@ -77,7 +75,7 @@ fn get_params_from_query(decoded_query: &'_ str)
     Ok(CodeAndUserId { for_user, auth_code })
 }
 
-pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
+pub async fn handle_auth_code(req : Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
     
@@ -100,7 +98,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     Ok(redirect)
 }
 
-pub async fn serve_all(req: Request<Body>) -> &'static str
+pub async fn serve_all(req : Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
     

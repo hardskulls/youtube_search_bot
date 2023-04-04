@@ -17,11 +17,11 @@ use teloxide::
     utils::command::BotCommands,
 };
 use teloxide::update_listeners::webhooks;
+use internal::commands::Command;
+use internal::dialogue::DialogueData;
+use internal::errors::NetworkError;
+use internal::handlers::{handle_callback, handle_commands, handle_text, handle_unknown_command, is_other_command};
 
-use bot_lib::commands::{Command, handle_commands, handle_unknown_command, is_other_command};
-use bot_lib::dialogue::{handle_callback_data, handle_text};
-use bot_lib::dialogue::types::DialogueData;
-use bot_lib::errors::NetworkError;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>
@@ -36,7 +36,7 @@ async fn main() -> eyre::Result<()>
     let bot = Bot::new(&token);
 
     let redis_url = env::var("REDIS_URL")?;
-    let storage: Arc<ErasedStorage<DialogueData>> =
+    let storage : Arc<ErasedStorage<DialogueData>> =
         if let Ok(redis_storage) = RedisStorage::open(redis_url, Json).await
         {
             log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
@@ -64,7 +64,7 @@ async fn main() -> eyre::Result<()>
             .branch(dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text));
     let callback_handler =
         Update::filter_callback_query()
-            .endpoint(handle_callback_data);
+            .endpoint(handle_callback);
     let main_handler =
         dptree::entry()
             .enter_dialogue::<Update, ErasedStorage<DialogueData>, DialogueData>()

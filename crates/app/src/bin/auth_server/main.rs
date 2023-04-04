@@ -3,7 +3,7 @@
 
 use axum::Router;
 use axum::routing::any;
-use bot_lib::auth_server::{handle_auth_code, serve_all};
+use internal::auth_server::{handle_auth_code, serve_all};
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>
@@ -11,7 +11,7 @@ async fn main() -> eyre::Result<()>
     simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
     
     log::info!(" [:: LOG ::]    ( ⚙ <| Building 'auth_server'... |> ⚙ )");
-    let router: Router =
+    let router : Router =
         Router::new()
             .route("/google_callback_auth_code", any(handle_auth_code))
             .route("/", any(serve_all));

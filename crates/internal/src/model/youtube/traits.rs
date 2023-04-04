@@ -1,7 +1,8 @@
 use google_youtube3::api::{Playlist, Subscription};
+use crate::model::youtube::types::SearchableItem;
 
 /// Anything that can be searched on user's YouTube channel.
-pub trait Searchable
+pub(crate) trait Searchable
 {
     fn title(&self) -> Option<&str>;
     
@@ -16,7 +17,7 @@ impl Searchable for Subscription
 {
     fn title(&self) -> Option<&str>
     {
-        let title: &str = self.snippet.as_ref()?.title.as_ref()?;
+        let title : &str = self.snippet.as_ref()?.title.as_ref()?;
         if title.is_empty()
         { None }
         else
@@ -25,7 +26,7 @@ impl Searchable for Subscription
     
     fn description(&self) -> Option<&str>
     {
-        let description: &str = self.snippet.as_ref()?.description.as_ref()?;
+        let description : &str = self.snippet.as_ref()?.description.as_ref()?;
         if description.is_empty()
         { None }
         else
@@ -37,7 +38,7 @@ impl Searchable for Subscription
     
     fn link(&self) -> Option<String>
     {
-        let chan_id: &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
+        let chan_id : &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
         format!("https://youtube.com/channel/{chan_id}").into()
     }
 }
@@ -46,7 +47,7 @@ impl Searchable for Playlist
 {
     fn title(&self) -> Option<&str>
     {
-        let title: &str = self.snippet.as_ref()?.title.as_ref()?;
+        let title : &str = self.snippet.as_ref()?.title.as_ref()?;
         if title.is_empty()
         { None }
         else
@@ -55,7 +56,7 @@ impl Searchable for Playlist
     
     fn description(&self) -> Option<&str>
     {
-        let description: &str = self.snippet.as_ref()?.description.as_ref()?;
+        let description : &str = self.snippet.as_ref()?.description.as_ref()?;
         if description.is_empty()
         { None }
         else
@@ -67,8 +68,39 @@ impl Searchable for Playlist
     
     fn link(&self) -> Option<String>
     {
-        let plist_id: &str = self.id.as_ref()?;
+        let plist_id : &str = self.id.as_ref()?;
         format!("https://youtube.com/playlist?list={plist_id}").into()
+    }
+}
+
+pub(crate) trait IntoSearchableItem
+{
+    fn into_item(self) -> SearchableItem;
+}
+
+impl IntoSearchableItem for Subscription
+{
+    fn into_item(self) -> SearchableItem
+    {
+        let mut item = SearchableItem::default();
+        if let Some(snippet) = self.snippet
+        { item.title = snippet.title; item.description = snippet.description; item.date = snippet.published_at; }
+        if let Some(chan_id) = self.id
+        { item.link = format!("https://youtube.com/channel/{chan_id}").into(); }
+        item
+    }
+}
+
+impl IntoSearchableItem for Playlist
+{
+    fn into_item(self) -> SearchableItem
+    {
+        let mut item = SearchableItem::default();
+        if let Some(snippet) = self.snippet
+        { item.title = snippet.title; item.description = snippet.description; item.date = snippet.published_at; }
+        if let Some(plist_id) = self.id
+        { item.link = format!("https://youtube.com/channel/{plist_id}").into(); }
+        item
     }
 }
 
@@ -92,7 +124,7 @@ mod tests
         let items = pl_resp.items.unwrap();
         let first_playlist = items.get(0).unwrap().clone();
         assert!(matches!(first_playlist.description(), None));
-        assert_eq!(first_playlist.title().unwrap(), "Посмотреть позже 21");
+        assert_eq!(first_playlist.title().unwrap(), "Hello");
         Ok(())
     }
 }

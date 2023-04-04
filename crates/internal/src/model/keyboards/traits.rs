@@ -1,13 +1,15 @@
+
 use std::fmt::Display;
 
 use teloxide::types::InlineKeyboardMarkup;
+use crate::model::keyboards::funcs::{button, inline_button};
+use crate::model::keyboards::types::{Buttons, ListCommandButtons, Requestable, SearchCommandButtons, SearchIn, Sorting};
+use crate::model::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
+use crate::model::utils::HTMLise;
 
-use crate::keyboards::funcs::{button, inline_button};
-use crate::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons, SearchIn, Sorting, Target};
-use crate::utils::HTMLise;
 
 /// Creates `InlineKeyboardMarkup`.
-pub trait CreateKB
+pub(crate) trait CreateKB
 { fn create_kb(&self) -> Option<InlineKeyboardMarkup>; }
 
 impl CreateKB for SearchCommandButtons
@@ -20,8 +22,8 @@ impl CreateKB for SearchCommandButtons
             SearchCommandButtons::ResultLimit | SearchCommandButtons::TextToSearch => None,
             SearchCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Target::Subscription))))
-                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Target::PlayList))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Playlist(RespTargetPlaylists)))))
                     .append_to_row(1, inline_button("Cancel ❌", SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
             SearchCommandButtons::SearchInOptions =>
@@ -54,8 +56,8 @@ impl CreateKB for ListCommandButtons
             ListCommandButtons::ResultLimit => None,
             ListCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Target::Subscription))))
-                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Target::PlayList))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Playlist(RespTargetPlaylists)))))
                     .append_to_row(1, inline_button("Cancel ❌", ListButtons(ListCommandButtons::ListSettings)))
                     .into(),
             ListCommandButtons::SortingOptions =>
@@ -78,7 +80,7 @@ impl CreateKB for ListCommandButtons
 
 
 /// Text to show in message with inline keyboard.
-pub trait KeyboardText
+pub(crate) trait KeyboardText
 { fn kb_text(&self) -> String; }
 
 impl KeyboardText for SearchCommandButtons
@@ -111,7 +113,7 @@ impl KeyboardText for ListCommandButtons
 }
 
 
-pub trait ButtonText: Display
+pub(crate) trait ButtonText : Display
 {
     fn button_text(&self) -> String
     {
@@ -124,7 +126,7 @@ impl ButtonText for Buttons {}
 
 
 
-impl ButtonText for Target {}
+impl ButtonText for Requestable {}
 
 
 
@@ -140,50 +142,50 @@ impl ButtonText for Sorting {}
 
 
 
-// TODO: This trait gives strange error when used.
-/*pub trait CreateKB
+// TODO : This trait gives strange error when used.
+/*pub(crate) trait CreateKB
 {
     fn search_config() -> InlineKeyboardMarkup
     {
-        let mut row_1: Vec<InlineKeyboardButton> = keyboard_new_row(3);
+        let mut row_1 : Vec<InlineKeyboardButton> = keyboard_new_row(3);
         row_1[0] = inline_button("Result Limit", SearchCommandKB::ResultLimit);
         row_1[1] = inline_button("Target", SearchCommandKB::Target);
         row_1[2] = inline_button("Search By", SearchCommandKB::SearchBy);
         let mut row_2 = keyboard_new_row(1);
         row_2[0] = inline_button("Cancel", SearchCommandKB::SearchConfig);
-        InlineKeyboardMarkup { inline_keyboard: vec![row_1, row_2] }
+        InlineKeyboardMarkup { inline_keyboard : vec![row_1, row_2] }
     }
 
     fn search_target() -> InlineKeyboardMarkup
     {
-        let mut row_1: Vec<InlineKeyboardButton> = keyboard_new_row(2);
+        let mut row_1 : Vec<InlineKeyboardButton> = keyboard_new_row(2);
         row_1[0] = inline_button("Subscription", SearchTarget::Subscription);
         row_1[1] = inline_button("Playlist", SearchTarget::PlayList);
         let mut row_2 = keyboard_new_row(1);
         row_2[0] = inline_button("Cancel", SearchCommandKB::SearchConfig);
-        InlineKeyboardMarkup { inline_keyboard: vec![row_1, row_2] }
+        InlineKeyboardMarkup { inline_keyboard : vec![row_1, row_2] }
     }
 
     fn search_by() -> InlineKeyboardMarkup
     {
-        let mut row_1: Vec<InlineKeyboardButton> = keyboard_new_row(2);
+        let mut row_1 : Vec<InlineKeyboardButton> = keyboard_new_row(2);
         row_1[0] = inline_button("Title", SearchBy::Title);
         row_1[1] = inline_button("Description", SearchBy::Description);
         let mut row_2 = keyboard_new_row(1);
         row_2[0] = inline_button("Cancel", SearchCommandKB::SearchConfig);
-        InlineKeyboardMarkup { inline_keyboard: vec![row_1, row_2] }
+        InlineKeyboardMarkup { inline_keyboard : vec![row_1, row_2] }
     }
 
     fn list_config() -> InlineKeyboardMarkup
     {
-        let mut row_1: Vec<InlineKeyboardButton> = keyboard_new_row(4);
+        let mut row_1 : Vec<InlineKeyboardButton> = keyboard_new_row(4);
         row_1[0] = inline_button("Result Limit", ListCommandKB::ResultLimit);
         row_1[1] = inline_button("Target", ListCommandKB::Target);
         row_1[2] = inline_button("Filter", ListCommandKB::Filter);
         row_1[3] = inline_button("Sort By", ListCommandKB::SortBy);
         let mut row_2 = keyboard_new_row(1);
         row_2[0] = inline_button("Cancel", ListCommandKB::ListConfig);
-        InlineKeyboardMarkup { inline_keyboard: vec![row_1, row_2] }
+        InlineKeyboardMarkup { inline_keyboard : vec![row_1, row_2] }
     }
 }*/
 

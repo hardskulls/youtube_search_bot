@@ -1,7 +1,11 @@
-use serde::{Deserialize, Serialize};
-use parse_display::Display;
 
-/// Target of `list` or `search` commands. 
+use parse_display::Display;
+use serde::{Deserialize, Serialize};
+
+use crate::model::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
+
+
+/*/// Target of `list` or `search` commands.
 /// Used in `SearchCommandButtons` and `ListCommandButtons`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Target
@@ -10,11 +14,22 @@ pub(crate) enum Target
     Subscription,
     #[display("{} ⏯")]
     PlayList,
+}*/
+
+/// Target of `list` or `search` commands.
+/// Used in `SearchCommandButtons` and `ListCommandButtons`.
+#[derive(Clone, Debug, Serialize, Deserialize, Display)]
+pub enum Requestable
+{
+    #[display("Subscription 📋")]
+    Subscription(RespTargetSubscriptions),
+    #[display("Playlist 📜")]
+    Playlist(RespTargetPlaylists)
 }
 
 /// Defines where to search. Used in `SearchCommandKB`.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum SearchIn
+pub enum SearchIn
 {
     #[display("{} 📋")]
     Title,
@@ -23,8 +38,8 @@ pub(crate) enum SearchIn
 }
 
 /// List of `Inline Keyboard` buttons for `search` bot command.
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
-pub(crate) enum SearchCommandButtons
+#[derive(Debug, Clone, Serialize, Deserialize, Display, Default)]
+pub enum SearchCommandButtons
 {
     #[display("{} 🔎")] #[display(style = "Title case")] #[default]
     SearchSettings,
@@ -35,7 +50,7 @@ pub(crate) enum SearchCommandButtons
     #[display("Target 🎯")]
     TargetOptions,
     #[display("{0}")]
-    Target(Target),
+    Target(Requestable),
     #[display("Search in 💳")]
     SearchInOptions,
     #[display("{0}")]
@@ -46,7 +61,7 @@ pub(crate) enum SearchCommandButtons
 
 /// Sorting foe list command.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
-pub(crate) enum Sorting
+pub enum Sorting
 {
     #[display("{} 🗓")]
     Date,
@@ -55,8 +70,8 @@ pub(crate) enum Sorting
 }
 
 /// List of `Inline Keyboard` buttons for `list` bot command.
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display, Default)]
-pub(crate) enum ListCommandButtons
+#[derive(Debug, Clone, Serialize, Deserialize, Display, Default)]
+pub enum ListCommandButtons
 {
     #[display("{} 📃")] #[display(style = "Title case")] #[default]
     ListSettings,
@@ -67,7 +82,7 @@ pub(crate) enum ListCommandButtons
     #[display("Target 🎯")]
     TargetOptions,
     #[display("{0}")]
-    Target(Target),
+    Target(Requestable),
     #[display("Sorting 🗃")]
     SortingOptions,
     #[display("{0}")]
@@ -75,7 +90,7 @@ pub(crate) enum ListCommandButtons
 }
 
 /// Main wrapper that includes all available keyboards.
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize, Display)]
+#[derive(Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Buttons
 {
     #[display("{0}")]
@@ -90,11 +105,12 @@ pub(crate) enum Buttons
 #[cfg(test)]
 mod tests
 {
-    use crate::keyboards::traits::ButtonText;
-    use crate::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
+    use crate::model::keyboards::traits::ButtonText;
+    use crate::model::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
+    
     // use to_debug::ToDebug;
     use super::*;
-
+    
     #[test]
     fn serialize_enum_test()
     {
@@ -105,9 +121,9 @@ mod tests
     #[test]
     fn display_derive_test()
     {
-        let serialized_enum: String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
-        let deserialized_enum: Buttons = serde_json::from_str(&serialized_enum).unwrap();
-        assert_eq!(deserialized_enum, Buttons::SearchButtons(SearchInOptions));
+        let serialized_enum : String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
+        let deserialized_enum : Buttons = serde_json::from_str(&serialized_enum).unwrap();
+        assert!(matches!(deserialized_enum, Buttons::SearchButtons(SearchInOptions)));
     }
 }
 

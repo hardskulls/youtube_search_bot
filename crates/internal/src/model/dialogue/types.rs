@@ -1,17 +1,19 @@
-use serde::{Deserialize, Serialize};
-use teloxide::dispatching::dialogue::{Dialogue, ErasedStorage};
-use teloxide::types::{CallbackQuery, InlineKeyboardMarkup, Message};
 
 use error_traits::WrapInErr;
+use serde::{Deserialize, Serialize};
+use teloxide::dispatching::dialogue::ErasedStorage;
+use teloxide::prelude::{CallbackQuery, Dialogue, Message};
+use teloxide::types::InlineKeyboardMarkup;
 
-use crate::keyboards::types::{SearchIn, Sorting, Target};
+use crate::model::keyboards::types::{Requestable, SearchIn, Sorting};
+use crate::model::utils::{HTMLise, print_if_none};
 use crate::StdResult;
-use crate::utils::{HTMLise, print_if_none};
+
 
 /// A type that is returned in the end of handlers.
-pub type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
+pub(crate) type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
 
-pub type MessageAndData<T> = (teloxide::requests::JsonRequest<T>, Option<DialogueData>);
+//pub(crate) type MessageAndData<T> = (teloxide::requests::JsonRequest<T>, Option<DialogueData>);
 
 /// Framework wrapper storing all dialogue data.
 /// Available in handlers.
@@ -20,28 +22,28 @@ pub type TheDialogue = Dialogue<DialogueData, ErasedStorage<DialogueData>>;
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub(crate) struct SearchConfig
 {
-    pub(crate) target: Target,
-    pub(crate) result_limit: u32,
-    pub(crate) search_in: SearchIn,
-    pub(crate) text_to_search: String,
+    pub(crate) target : Requestable,
+    pub(crate) result_limit : u32,
+    pub(crate) search_in : SearchIn,
+    pub(crate) text_to_search : String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub(crate) struct ListConfig
 {
-    pub(crate) target: Target,
-    pub(crate) result_limit: u32,
-    pub(crate) sorting: Sorting,
+    pub(crate) target : Requestable,
+    pub(crate) result_limit : u32,
+    pub(crate) sorting : Sorting,
 }
 
 /// Stores settings for `search` command (fields may be 'None').
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct SearchCommandSettings
 {
-    pub(crate) target: Option<Target>,
-    pub(crate) result_limit: Option<u32>,
-    pub(crate) search_in: Option<SearchIn>,
-    pub(crate) text_to_search: Option<String>,
+    pub(crate) target : Option<Requestable>,
+    pub(crate) result_limit : Option<u32>,
+    pub(crate) search_in : Option<SearchIn>,
+    pub(crate) text_to_search : Option<String>,
 }
 
 impl SearchCommandSettings
@@ -50,9 +52,9 @@ impl SearchCommandSettings
     {
         match self
         {
-            Self { target: Some(t), result_limit: Some(r), search_in: Some(s), text_to_search: Some(text) } =>
-                Ok(SearchConfig { target: t, result_limit: r, search_in: s, text_to_search: text }),
-            Self { target: t, result_limit: r, search_in: s, text_to_search: text } =>
+            Self { target : Some(t), result_limit : Some(r), search_in : Some(s), text_to_search : Some(text) } =>
+                Ok(SearchConfig { target : t, result_limit : r, search_in : s, text_to_search : text }),
+            Self { target : t, result_limit : r, search_in : s, text_to_search : text } =>
                 {
                     let t = print_if_none(t, format!("\n🎯 {}", "Target".to_bold()).as_str());
                     let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
@@ -68,9 +70,9 @@ impl SearchCommandSettings
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct ListCommandSettings
 {
-    pub(crate) target: Option<Target>,
-    pub(crate) result_limit: Option<u32>,
-    pub(crate) sorting: Option<Sorting>
+    pub(crate) target : Option<Requestable>,
+    pub(crate) result_limit : Option<u32>,
+    pub(crate) sorting : Option<Sorting>
 }
 
 impl ListCommandSettings
@@ -79,9 +81,9 @@ impl ListCommandSettings
     {
         match self
         {
-            Self { target: Some(t), result_limit: Some(r), sorting: Some(s) } =>
-                Ok(ListConfig { target: t, result_limit: r, sorting: s }),
-            Self { target: t, result_limit: r, sorting: s } =>
+            Self { target : Some(t), result_limit : Some(r), sorting : Some(s) } =>
+                Ok(ListConfig { target : t, result_limit : r, sorting : s }),
+            Self { target : t, result_limit : r, sorting : s } =>
                 {
                     let t = print_if_none(t, format!("\n🎯 {}", "Target".to_bold()));
                     let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
@@ -111,18 +113,18 @@ impl AsRef<State> for State
 /// Main message with a keyboard attached.
 /// Better than sending new inline keyboard each time.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
-pub struct MessageWithKB { pub opt_message: Option<Message> }
+pub struct MessageWithKB { pub(crate) opt_message : Option<Message> }
 
 /// Stores dialogue state and other required data.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct DialogueData
 {
-    pub state: State,
-    pub message_with_kb: MessageWithKB,
-    pub last_callback: Option<CallbackQuery>
+    pub state : State,
+    pub message_with_kb : MessageWithKB,
+    pub last_callback : Option<CallbackQuery>
 }
 
-pub enum Either<F, L>
+pub(crate) enum Either<F, L>
 {
     First(F),
     Last(L)

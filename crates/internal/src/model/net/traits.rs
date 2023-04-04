@@ -1,32 +1,33 @@
-use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
-use reqwest::{Client, RequestBuilder};
 
 use error_traits::WrapInOk;
+use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
+use reqwest::{Client, RequestBuilder};
+use serde::{Deserialize, Serialize};
 
-use crate::youtube::traits::Searchable;
+use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
 
-// TODO: Choose a better naming and description.
-#[derive(Clone)]
+// TODO : Choose a better naming and description.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RespTargetSubscriptions;
 
-// TODO: Choose a better naming and description.
-#[derive(Clone)]
+// TODO : Choose a better naming and description.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RespTargetPlaylists;
 
-// TODO: Choose a better naming.
+// TODO : Choose a better naming.
 /// Trait for building 'list' request in YouTube API.
-pub trait YouTubeApiListRequestBuilder
+pub(crate) trait YouTubeApiListRequestBuilder
 {
     type Target : serde::de::DeserializeOwned;
     
-    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
+    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
 impl YouTubeApiListRequestBuilder for RespTargetSubscriptions
 {
     type Target = SubscriptionListResponse;
     
-    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
+    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -45,7 +46,7 @@ impl YouTubeApiListRequestBuilder for RespTargetPlaylists
 {
     type Target = PlaylistListResponse;
     
-    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
+    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -60,16 +61,16 @@ impl YouTubeApiListRequestBuilder for RespTargetPlaylists
     }
 }
 
-//pub struct ItemSearchRes<S: Searchable>
+//pub(crate) struct ItemSearchRes<S : Searchable>
 //{
-//    pub items: Option<Vec<S>>,
-//    pub next_page_token: Option<String>
+//    pub(crate) items : Option<Vec<S>>,
+//    pub(crate) next_page_token : Option<String>
 //}
 
 /// Trait represents a page of response from request to YouTube API.
-pub trait YouTubeApiResponsePage
+pub(crate) trait YouTubeApiResponsePage
 {
-    type Item : Searchable;
+    type Item : Searchable + IntoSearchableItem;
     
     fn next_page_token(&self) -> Option<String>;
     

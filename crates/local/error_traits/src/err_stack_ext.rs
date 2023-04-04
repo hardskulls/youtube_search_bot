@@ -7,12 +7,12 @@ pub trait ConvReport
     where
         Self : ResultExt + Sized
 {
-    fn conv_to<C>(self, convert_to: C) -> error_stack::Result<Self::Ok, C>
+    fn conv_to<C>(self, convert_to : C) -> error_stack::Result<Self::Ok, C>
         where
-            C: Context
+            C : Context
     { self.change_context_lazy(|| convert_to) }
     
-    fn conv_to_and_attach<C, A>(self, convert_to: C, attach: A) -> error_stack::Result<Self::Ok, C>
+    fn conv_to_and_attach<C, A>(self, convert_to : C, attach : A) -> error_stack::Result<Self::Ok, C>
         where
             A : Display + Debug + Send + Sync + 'static,
             C : Context
