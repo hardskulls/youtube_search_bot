@@ -1,14 +1,37 @@
+
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 
+use std::io::Write;
+
 use axum::Router;
 use axum::routing::any;
+use log::LevelFilter;
+
 use internal::auth_server::{handle_auth_code, serve_all};
+
 
 #[tokio::main]
 async fn main() -> eyre::Result<()>
 {
-    simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
+    env_logger::Builder::new()
+        .format
+        (
+            |buf, record|
+                writeln!
+                (
+                    buf,
+                    "{}:{} {} [{}] - {}",
+                    record.file().unwrap_or("unknown"),
+                    record.line().unwrap_or(0),
+                    chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                    record.level(),
+                    record.args()
+                )
+        )
+        .filter(Some("auth_server"), LevelFilter::Debug)
+        .init();
+    //simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
     
     log::info!(" [:: LOG ::]    ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     let router : Router =

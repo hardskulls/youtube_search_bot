@@ -13,6 +13,7 @@ use crate::view::types::Sendable;
 pub(crate) async fn handle_commands<T>(msg : Message, dialogue : TheDialogue, cmd : Command)
     -> Sendable<T, impl Into<String>>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_commands] :: [Started]");
     let (message_text, opt_keyboard, opt_dialogue_data) : MessageTriplet =
         match cmd
         {

@@ -72,6 +72,7 @@ pub(crate) async fn default_auth_url(user_id : &str) -> eyre::Result<Url>
 pub(crate) fn parse_number(text : &str, configs : Either<&SearchCommandSettings, &ListCommandSettings>, dialogue_data : &DialogueData)
     -> (&'static str, Option<DialogueData>)
 {
+    log::info!(" [:: LOG ::]     @[fn]:[parse_number] :: [Started]");
     match text.parse::<u16>()
     {
         Ok(num) if num >= 1 => ("Accepted! ✅", Some(DialogueData { state : save_res_limit(configs, num), ..dialogue_data.clone() })),
@@ -94,6 +95,7 @@ fn save_res_limit(configs : Either<&SearchCommandSettings, &ListCommandSettings>
 pub(crate) fn save_text(text : &str, search_settings : SearchCommandSettings, dialogue_data : &DialogueData)
     -> (&'static str, Option<DialogueData>)
 {
+    log::info!(" [:: LOG ::]     @[fn]:[save_text] :: [Started]");
     let state = State::SearchCommandActive(SearchCommandSettings { text_to_search : text.to_owned().into(), ..search_settings });
     ("Accepted! ✅", Some(DialogueData { state, ..dialogue_data.clone() }))
 }

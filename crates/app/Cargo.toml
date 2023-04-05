@@ -26,7 +26,9 @@ eyre = { version = "0.6.8", features = [] }
 
 #[:: Logging ::]
 log = "0.4.17"
-simple_logger = { version = "4.1.0", features = [] }
+#simple_logger = { version = "4.1.0", features = [] }
+env_logger = { version = "0.10.0", features = [] }
+chrono = "0.4.24"
 
 #[:: DB ::]
 #redis = { version = "0.22.1", features = ["tokio-comp"] }

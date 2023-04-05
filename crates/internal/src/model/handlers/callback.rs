@@ -21,6 +21,7 @@ use crate::view::types::Sendable;
 pub(crate) async fn get_required_callback_data(callback : &CallbackQuery, dialogue : TheDialogue)
     -> StdResult<(DialogueData, Buttons), String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[get_required_callback_data] :: [Started]");
     let user_error = || "⚠ Internal error ⚠";
     let dialogue_data = get_dialogue_data(&dialogue).await.map_err(|_| user_error())?;
     let callback_data = get_callback_data(callback).await.map_err(|_| user_error())?;
@@ -33,6 +34,7 @@ pub(crate) async fn get_required_callback_data(callback : &CallbackQuery, dialog
 pub(crate) async fn handle_callback(callback : CallbackQuery, dialogue : TheDialogue)
     -> Sendable<SearchableItem, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_callback] :: [Started]");
     let (d_data, buttons) =
         match get_required_callback_data(&callback, dialogue).await
         {
@@ -61,6 +63,7 @@ pub(crate) async fn callback_helper_for_search_kb
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_search_kb] :: [Started]");
     let opt_dialogue_data =
         match (search_kb, dialogue_data.state.as_ref())
         {
@@ -111,6 +114,7 @@ async fn exec_search_helper
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
     let search_config = search_settings.clone().build_config()?;
     let (search_for, res_limit, search_in) =
         (search_config.text_to_search, search_config.result_limit, search_config.search_in);
@@ -132,6 +136,7 @@ pub(crate) async fn callback_helper_for_list_kb
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_list_kb] :: [Started]");
     let opt_dialogue_data =
         match (list_kb, dialogue_data.state.as_ref())
         {
@@ -174,6 +179,7 @@ async fn exec_list_helper
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[exec_list_helper] :: [Started]");
     let list_config = list_setting.clone().build_config()?;
     let (res_limit, sorting) = (list_config.result_limit, list_config.sorting);
     
@@ -196,6 +202,7 @@ pub(crate) async fn execute_search_command
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[execute_search_command] :: [Started]");
     let user_id = user_id.id.0.to_string();
     let db_url = env!("REDIS_URL");
     let Ok(token) =
@@ -232,6 +239,7 @@ pub(crate) async fn execute_list_command
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[execute_list_command] :: [Started]");
     let user_id = user_id.id.0.to_string();
     let db_url = env!("REDIS_URL");
     let Ok(token) =

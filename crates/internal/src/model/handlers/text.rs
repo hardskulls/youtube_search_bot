@@ -1,3 +1,4 @@
+
 use error_traits::{LogErr, WrapInErr, WrapInOk};
 
 use teloxide::types::Message;
@@ -13,6 +14,7 @@ use crate::view::types::Sendable;
 pub(crate) async fn get_required_text_state(msg : Message, dialogue : TheDialogue)
     -> StdResult<(String, DialogueData, Buttons), String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[get_required_text_state] :: [Started]");
     let log_prefix = " [:: LOG ::]    | @:[fn::send_message] error: ";
     let user_error = || "⚠ Internal error ⚠";
     
@@ -31,6 +33,7 @@ pub(crate) async fn get_required_text_state(msg : Message, dialogue : TheDialogu
 pub(crate) async fn handle_text<T>(msg : Message, dialogue : TheDialogue)
     -> Sendable<T, String>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_text] :: [Started]");
     let (text, d_data, buttons) : (String, DialogueData, Buttons) =
         match get_required_text_state(msg, dialogue).await
         {

@@ -12,6 +12,7 @@ use crate::model::youtube::types::YouTubeAccessToken;
 
 fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[model::commands::build_log_out_req] :: [Started]");
     let url = "https://oauth2.googleapis.com/revoke";
     let params : &[(&str, &str)] = &[("token", &token.refresh_token.unwrap_or(token.access_token))];
     let body = reqwest::Url::parse_with_params(url, params)?.query().ok_or(NoTextError)?.to_owned();
@@ -26,6 +27,7 @@ fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::Reques
 /// Revoke `refresh token` and delete token from db.
 pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTriplet>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
     if let Ok(token) = get_access_token(user_id, db_url)
@@ -81,6 +83,7 @@ fn print_list_config(c : &ListCommandSettings) -> String
 
 pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
     let create_msg = |m : &str| (m.to_owned(), None, None);
     let default_err : fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);

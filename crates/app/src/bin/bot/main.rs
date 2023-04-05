@@ -1,8 +1,11 @@
+
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 
 use std::env;
 use std::sync::Arc;
+use log::LevelFilter;
+use std::io::Write;
 
 use teloxide::
 {
@@ -26,8 +29,24 @@ use internal::handlers::{handle_callback, handle_commands, handle_text, handle_u
 #[tokio::main]
 async fn main() -> eyre::Result<()>
 {
-    // !! All `logs::info!` work only after this line + env variable `RUST_LOG` set to `INFO`. !!
-    simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
+    env_logger::Builder::new()
+        .format
+        (
+            |buf, record|
+                writeln!
+                (
+                    buf,
+                    "{}:{} {} [{}] - {}",
+                    record.file().unwrap_or("unknown"),
+                    record.line().unwrap_or(0),
+                    chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                    record.level(),
+                    record.args()
+                )
+        )
+        .filter(Some("bot"), LevelFilter::Debug)
+        .init();
+    //simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
 
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());
