@@ -10,6 +10,7 @@ use crate::view::funcs::update_view;
 
 pub async fn handle_callback(bot : Bot, callback : CallbackQuery, dialogue : TheDialogue) -> StdResult<(), ()>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_callback] :: [Started]");
     let Some(chat_id) =
         callback.chat_id()
         else

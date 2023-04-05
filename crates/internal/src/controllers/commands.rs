@@ -14,6 +14,7 @@ use crate::view::types::Sendable;
 #[inline]
 pub fn is_other_command<B : BotCommands>(msg : Message, me : Me) -> bool
 {
+    log::info!(" [:: LOG ::]     @[fn]:[controllers::is_other_command] :: [Started]");
     let bot_name = me.username();
     if let Some(text) = msg.text()
     { matches!(text.chars().next(), Some('/')) && B::parse(text, bot_name).is_err() }
@@ -25,6 +26,7 @@ pub fn is_other_command<B : BotCommands>(msg : Message, me : Me) -> bool
 #[inline]
 pub async fn handle_unknown_command(bot : Bot, msg : Message, dialogue : TheDialogue) -> StdResult<(), ()>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_unknown_command] :: [Started]");
     let chat_id = msg.chat.id;
     update_view(&bot, chat_id, Sendable::SendError("Unknown command ❌"), dialogue).await;
     Ok(())
@@ -32,6 +34,7 @@ pub async fn handle_unknown_command(bot : Bot, msg : Message, dialogue : TheDial
 
 pub async fn handle_commands(bot : Bot, msg : Message, dialogue : TheDialogue, cmd : Command) -> StdResult<(), ()>
 {
+    log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_commands] :: [Started]");
     let chat_id = msg.chat.id;
     let sendable =
         crate::model::handlers::commands::handle_commands::<SearchableItem>(msg, dialogue.clone(), cmd).await;
