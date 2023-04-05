@@ -4,7 +4,6 @@
 
 use std::env;
 use std::sync::Arc;
-use log::LevelFilter;
 use std::io::Write;
 
 use teloxide::
@@ -44,7 +43,6 @@ async fn main() -> eyre::Result<()>
                     record.args()
                 )
         )
-        .filter(Some("bot"), LevelFilter::Debug)
         .init();
     //simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
 

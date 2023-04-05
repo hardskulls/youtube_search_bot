@@ -6,7 +6,6 @@ use std::io::Write;
 
 use axum::Router;
 use axum::routing::any;
-use log::LevelFilter;
 
 use internal::auth_server::{handle_auth_code, serve_all};
 
@@ -29,7 +28,6 @@ async fn main() -> eyre::Result<()>
                     record.args()
                 )
         )
-        .filter(Some("auth_server"), LevelFilter::Debug)
         .init();
     //simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info))?;
     
