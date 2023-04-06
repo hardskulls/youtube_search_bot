@@ -16,60 +16,42 @@ pub(crate) trait Searchable
 impl Searchable for Subscription
 {
     fn title(&self) -> Option<&str>
-    {
-        let title : &str = self.snippet.as_ref()?.title.as_ref()?;
-        if title.is_empty()
-        { None }
-        else
-        { title.into() }
-    }
+    { self.snippet.as_ref()?.title.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn description(&self) -> Option<&str>
-    {
-        let description : &str = self.snippet.as_ref()?.description.as_ref()?;
-        if description.is_empty()
-        { None }
-        else
-        { description.into() }
-    }
+    { self.snippet.as_ref()?.description.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn date(&self) -> Option<&str>
-    { self.snippet.as_ref()?.published_at.as_ref()?.as_str().into() }
+    { self.snippet.as_ref()?.published_at.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn link(&self) -> Option<String>
     {
         let chan_id : &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
-        format!("https://youtube.com/channel/{chan_id}").into()
+        if !chan_id.trim().is_empty()
+        { format!("https://youtube.com/channel/{chan_id}").into() }
+        else
+        { None }
     }
 }
 
 impl Searchable for Playlist
 {
     fn title(&self) -> Option<&str>
-    {
-        let title : &str = self.snippet.as_ref()?.title.as_ref()?;
-        if title.is_empty()
-        { None }
-        else
-        { title.into() }
-    }
+    { self.snippet.as_ref()?.title.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn description(&self) -> Option<&str>
-    {
-        let description : &str = self.snippet.as_ref()?.description.as_ref()?;
-        if description.is_empty()
-        { None }
-        else
-        { description.into() }
-    }
+    { self.snippet.as_ref()?.description.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn date(&self) -> Option<&str>
-    { self.snippet.as_ref()?.published_at.as_ref()?.as_str().into() }
+    { self.snippet.as_ref()?.published_at.as_deref().filter(|i| !i.trim().is_empty()) }
     
     fn link(&self) -> Option<String>
     {
         let plist_id : &str = self.id.as_ref()?;
-        format!("https://youtube.com/playlist?list={plist_id}").into()
+        if !plist_id.trim().is_empty()
+        { format!("https://youtube.com/playlist?list={plist_id}").into() }
+        else
+        { None }
     }
 }
 
@@ -84,9 +66,16 @@ impl IntoSearchableItem for Subscription
     {
         let mut item = SearchableItem::default();
         if let Some(snippet) = self.snippet
-        { item.title = snippet.title; item.description = snippet.description; item.date = snippet.published_at; }
+        {
+            item.title = snippet.title.filter(|i| !i.trim().is_empty());
+            item.description = snippet.description.filter(|i| !i.trim().is_empty());
+            item.date = snippet.published_at.filter(|i| !i.trim().is_empty());
+        }
         if let Some(chan_id) = self.id
-        { item.link = format!("https://youtube.com/channel/{chan_id}").into(); }
+        {
+            if !chan_id.trim().is_empty()
+            { item.link = format!("https://youtube.com/channel/{chan_id}").into(); }
+        }
         item
     }
 }
@@ -97,9 +86,16 @@ impl IntoSearchableItem for Playlist
     {
         let mut item = SearchableItem::default();
         if let Some(snippet) = self.snippet
-        { item.title = snippet.title; item.description = snippet.description; item.date = snippet.published_at; }
+        {
+            item.title = snippet.title.filter(|i| !i.trim().is_empty());
+            item.description = snippet.description.filter(|i| !i.trim().is_empty());
+            item.date = snippet.published_at.filter(|i| !i.trim().is_empty());
+        }
         if let Some(plist_id) = self.id
-        { item.link = format!("https://youtube.com/channel/{plist_id}").into(); }
+        {
+            if !plist_id.trim().is_empty()
+            { item.link = format!("https://youtube.com/channel/{plist_id}").into(); }
+        }
         item
     }
 }
