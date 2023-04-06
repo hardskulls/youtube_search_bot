@@ -268,3 +268,80 @@ pub(crate) async fn execute_list_command
 }
 
 
+#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used)]
+#[cfg(test)]
+mod tests
+{
+    use std::default::Default;
+    use teloxide::types::UserId;
+    use crate::model::dialogue::types::State;
+    use crate::model::net::traits::RespTargetSubscriptions;
+    use super::*;
+    
+    fn create_user() -> User
+    {
+        let (id, first_name) = (UserId(8587687687), "hgjggo".to_owned());
+        let (is_bot, last_name, language_code) = Default::default();
+        let (username, is_premium, added_to_attachment_menu) = Default::default();
+        User { id, is_bot, first_name, last_name, username, language_code, is_premium, added_to_attachment_menu }
+    }
+    
+    fn create_callback() -> CallbackQuery
+    {
+        let (id, chat_instance, from) = (87568758.to_string(), 76876959.to_string(), create_user());
+        let data = serde_json::to_string(&SearchCommandButtons::ResultLimit).unwrap().into();
+        let (message, game_short_name, inline_message_id) = Default::default();
+        CallbackQuery { id, from, message, inline_message_id, chat_instance, data, game_short_name }
+    }
+    
+    #[tokio::test]
+    async fn save_result_limit_test()
+    {
+        let search_kb = SearchCommandButtons::ResultLimit;
+        
+        let target = Some(Requestable::Subscription(RespTargetSubscriptions));
+        let search_in = Some(SearchIn::Title);
+        let search_settings = SearchCommandSettings { target, search_in, ..Default::default() };
+        let state : State = SearchCommandActive(search_settings);
+        
+        let d_data = DialogueData { state, ..Default::default() };
+        
+        let callback : CallbackQuery = create_callback();
+        
+        let r : Option<DialogueData> =
+            match &search_kb
+            {
+                SearchCommandButtons::ResultLimit =>
+                    {
+                        let state = SearchCommandActive(SearchCommandSettings { ..search_settings_update_or_default(d_data.state.clone()) });
+                        let last_callback = callback.clone().into();
+                        Some(DialogueData { state, last_callback, ..d_data.clone() })
+                    }
+                _ => panic!("hehe")
+            };
+        
+        assert!(matches!(r, Some(..)));
+        
+        let res : Sendable<SearchableItem, String> =
+            callback_helper_for_search_kb(&search_kb, d_data.clone(), callback.clone()).await.unwrap();
+        if let Sendable::EditKeyboard(Some(_), _, _, Some(d)) = res.clone()
+        {
+            assert!(matches!(d.state, State::SearchCommandActive(SearchCommandSettings { result_limit : Some(..), .. })));
+        }
+        else if let Sendable::SendOrEditMessage(_, None, Some(d)) = res
+        {
+            assert!(matches!(d.last_callback, Some(..)));
+            let callback_data = d.last_callback.unwrap().data.unwrap();
+            let last_callback = serde_json::from_str::<SearchCommandButtons>(&callback_data).unwrap();
+            assert!(matches!(last_callback, SearchCommandButtons::ResultLimit));
+        }
+        else
+        {
+            dbg!(res);
+            panic!("it's a panic!")
+        }
+    }
+}
+
+
