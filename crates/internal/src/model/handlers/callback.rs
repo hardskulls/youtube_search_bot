@@ -101,10 +101,13 @@ pub(crate) async fn callback_helper_for_search_kb
     let (text, opt_kb) = (search_kb.kb_text(), search_kb.create_kb());
     let opt_msg_with_kb = if let Some(d) = &opt_dialogue_data { d.message_with_kb.opt_message.clone() } else { None };
     
-    if let (Some(kb), Some(d), Some(m)) = (opt_kb, opt_dialogue_data, opt_msg_with_kb)
-    { Sendable::EditKeyboard(text.into(), kb, m, d.into()).in_ok() }
-    else
-    { Sendable::SendError(text).in_ok() }
+    match (opt_kb, opt_dialogue_data, opt_msg_with_kb)
+    {
+        (Some(kb), Some(d), Some(m)) =>
+            Sendable::EditKeyboard(text.into(), kb, m, d.into()).in_ok(),
+        (_, Some(d), _) => Sendable::SendOrEditMessage(text, None, d.into()).in_ok(),
+        _ => Sendable::SendOrEditMessage(text, None, None).in_ok()
+    }
 }
 
 async fn exec_search_helper
@@ -166,10 +169,13 @@ pub(crate) async fn callback_helper_for_list_kb
     let (text, opt_kb) = (list_kb.kb_text(), list_kb.create_kb());
     let opt_msg_with_kb = if let Some(d) = &opt_dialogue_data { d.message_with_kb.opt_message.clone() } else { None };
     
-    if let (Some(kb), Some(d), Some(m)) = (opt_kb, opt_dialogue_data, opt_msg_with_kb)
-    { Sendable::EditKeyboard(text.into(), kb, m, d.into()).in_ok() }
-    else
-    { Sendable::SendError(text).in_ok() }
+    match (opt_kb, opt_dialogue_data, opt_msg_with_kb)
+    {
+        (Some(kb), Some(d), Some(m)) =>
+            Sendable::EditKeyboard(text.into(), kb, m, d.into()).in_ok(),
+        (_, Some(d), _) => Sendable::SendOrEditMessage(text, None, d.into()).in_ok(),
+        _ => Sendable::SendOrEditMessage(text, None, None).in_ok()
+    }
 }
 
 async fn exec_list_helper
