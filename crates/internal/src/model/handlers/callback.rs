@@ -1,7 +1,10 @@
 
 use error_traits::{LogErr, MapErrBy, WrapInOk};
 use google_youtube3::oauth2::read_application_secret;
-use teloxide::types::{CallbackQuery, User};
+use teloxide::Bot;
+use teloxide::dispatching::dialogue::GetChatId;
+use teloxide::requests::Requester;
+use teloxide::types::{CallbackQuery, ChatId, User};
 
 use crate::model::db::{get_access_token, refresh_access_token, refresh_token_req};
 use crate::model::dialogue::funcs::{default_auth_url, get_callback_data, get_dialogue_data};
@@ -119,14 +122,15 @@ async fn exec_search_helper
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
     let search_config = search_settings.clone().build_config()?;
-    let (search_for, res_limit, search_in) =
-        (search_config.text_to_search, search_config.result_limit, search_config.search_in);
+    let (requestable, search_for, res_limit, search_in) =
+        (search_config.target, search_config.text_to_search, search_config.result_limit, search_config.search_in);
     
     let user_err = || "Couldn't execute command ❌".into();
     let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
     
-    let user_id = callback.from;
-    let res = execute_search_command(user_id, &search_for, res_limit, &search_in, search_config.target).await;
+    let send_to = callback.chat_id().ok_or_else(user_err)?;
+    let res =
+        execute_search_command(callback.from, &search_for, res_limit, &search_in, requestable, send_to).await;
     res.log_err(err_log_prefix).map_err_by(user_err)
 }
 
@@ -187,12 +191,14 @@ async fn exec_list_helper
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_list_helper] :: [Started]");
     let list_config = list_setting.clone().build_config()?;
-    let (res_limit, sorting) = (list_config.result_limit, list_config.sorting);
+    let (requestable, res_limit, sorting) = (list_config.target, list_config.result_limit, list_config.sorting);
     
     let user_err = || "Couldn't execute command ❌".into();
     let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
     
-    let res = execute_list_command(callback.from, res_limit, &sorting, list_config.target).await;
+    let send_to = callback.chat_id().ok_or_else(user_err)?;
+    let res =
+        execute_list_command(callback.from, res_limit, &sorting, requestable, send_to).await;
     res.log_err(err_log_prefix).map_err_by(user_err)
 }
 
@@ -204,7 +210,8 @@ pub(crate) async fn execute_search_command
     search_for : &str,
     res_limit : u32,
     search_in : &SearchIn,
-    requestable : Requestable
+    requestable : Requestable,
+    send_to : ChatId
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
@@ -224,15 +231,17 @@ pub(crate) async fn execute_search_command
     let secret = read_application_secret(secret_path).await.map_err(|_| "⚠ Internal error ⚠")?;
     let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
-
-    let results = 
-    match requestable
-    {
-        Requestable::Subscription(s) => search_items(search_in, s, search_for, &access_token, res_limit).await,
-        Requestable::Playlist(p) => search_items(search_in, p, search_for, &access_token, res_limit).await
-    };
+    
+    let bot = Bot::from_env();
+    let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
+    let results =
+        match requestable
+        {
+            Requestable::Subscription(s) => search_items(search_in, s, search_for, &access_token, res_limit).await,
+            Requestable::Playlist(p) => search_items(search_in, p, search_for, &access_token, res_limit).await
+        };
     let result_count = results.len();
-    let (prefix, postfix) = ("Searching, please wait 🕵️‍♂️".to_owned().into(), format!("Finished! ✔ \nFound {result_count} results").into());
+    let (prefix, postfix) = (None, format!("Finished! ✔ \nFound {result_count} results").into());
     Ok(Sendable::SendResults { prefix, postfix, values : results })
 }
 
@@ -241,7 +250,8 @@ pub(crate) async fn execute_list_command
     user_id : User,
     res_limit : u32,
     sorting : &Sorting,
-    requestable : Requestable
+    requestable : Requestable,
+    send_to : ChatId
 )
     -> StdResult<Sendable<SearchableItem, String>, String>
 {
@@ -262,6 +272,8 @@ pub(crate) async fn execute_list_command
     let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
     
+    let bot = Bot::from_env();
+    let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
     let results =
         match requestable
         {
@@ -269,7 +281,7 @@ pub(crate) async fn execute_list_command
             Requestable::Playlist(p) => list_items(p, &access_token, sorting, res_limit).await,
         };
     let result_count = results.len();
-    let (prefix, postfix) = ("Searching, please wait 🕵️‍♂️".to_owned().into(), format!("Finished! ✔ \nFound {result_count} results").into());
+    let (prefix, postfix) = (None, format!("Finished! ✔ \nFound {result_count} results").into());
     Ok(Sendable::SendResults { prefix, postfix, values : results })
 }
 
