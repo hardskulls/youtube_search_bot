@@ -5,6 +5,7 @@ use teloxide::Bot;
 use teloxide::requests::Requester;
 use teloxide::payloads::{EditMessageTextSetters, SendMessageSetters};
 use teloxide::types::{ChatId, InlineKeyboardMarkup, Message};
+use teloxide::types::ParseMode::Html;
 
 use crate::view::types::Sendable;
 use crate::model::dialogue::types::{DialogueData, MessageWithKB, TheDialogue};
@@ -38,7 +39,7 @@ pub(crate) async fn update_view<S>
 async fn send_user_error(bot : &Bot, send_to : ChatId, text : impl Into<String>)
 {
     let log_prefix = " [:: LOG ::]    | @:[fn::send_user_error] error: ";
-    let _ = bot.send_message(send_to, text).await.log_err(log_prefix);
+    let _ = bot.send_message(send_to, text).parse_mode(Html).await.log_err(log_prefix);
 }
 
 async fn send_or_edit_message
@@ -53,9 +54,9 @@ async fn send_or_edit_message
 {
     let log_prefix = " [:: LOG ::]    | @:[fn::send_or_edit_message] error: ";
     if let Some(msg) = opt_msg
-    { let _ = bot.edit_message_text(send_to, msg.id, text).await.log_err(log_prefix); }
+    { let _ = bot.edit_message_text(send_to, msg.id, text).parse_mode(Html).await.log_err(log_prefix); }
     else
-    { let _ = bot.send_message(send_to, text).await.log_err(log_prefix); }
+    { let _ = bot.send_message(send_to, text).parse_mode(Html).await.log_err(log_prefix); }
     
     if let (Some(dialogue), Some(d_data)) = (opt_dialogue, opt_d_data)
     { let _ = dialogue.update(d_data).await.log_err(log_prefix); }
@@ -73,7 +74,7 @@ async fn send_keyboard
 )
 {
     let log_prefix = " [:: LOG ::]    | @:[fn::send_keyboard] error: ";
-    let res = bot.send_message(send_to, text).reply_markup(kb).await.log_err(log_prefix);
+    let res = bot.send_message(send_to, text).reply_markup(kb).parse_mode(Html).await.log_err(log_prefix);
     match (res, opt_dialogue_data)
     {
         (Ok(sent_msg), Some(d_data)) =>
@@ -102,7 +103,7 @@ async fn edit_message_and_keyboard
 {
     let log_prefix = " [:: LOG ::]    | @:[fn::edit_message_and_keyboard] error: ";
     if let Some(text) = opt_text
-    { let _ = bot.edit_message_text(send_to, msg.id, text).reply_markup(kb).await.log_err(log_prefix); }
+    { let _ = bot.edit_message_text(send_to, msg.id, text).reply_markup(kb).parse_mode(Html).await.log_err(log_prefix); }
     else
     { let _ = bot.edit_message_reply_markup(send_to, msg.id).await.log_err(log_prefix); }
     
@@ -130,16 +131,16 @@ async fn send_results
             };
     
     if let Some(p) = prefix
-    { let _ = bot.send_message(send_to, p).await.log_err(log_prefix); }
+    { let _ = bot.send_message(send_to, p).parse_mode(Html).await.log_err(log_prefix); }
     
     for v in values
     {
         let text = formatting(v);
-        let _ = bot.send_message(send_to, text).await;
+        let _ = bot.send_message(send_to, text).parse_mode(Html).await;
     }
     
     if let Some(p) = postfix
-    { let _ = bot.send_message(send_to, p).await.log_err(log_prefix); }
+    { let _ = bot.send_message(send_to, p).parse_mode(Html).await.log_err(log_prefix); }
 }
 
 
