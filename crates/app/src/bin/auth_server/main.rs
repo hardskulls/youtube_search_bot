@@ -37,7 +37,7 @@ async fn main() -> eyre::Result<()>
             .route("/google_callback_auth_code", any(handle_auth_code))
             .route("/", any(serve_all));
     
-    let port = std::env::var("PORT")?.parse::<u16>()?;
+    let port = env!("PORT").parse::<u16>()?;
     axum::Server::try_bind(&([0, 0, 0, 0], port).into())?
         .serve(router.into_make_service())
         .await?;

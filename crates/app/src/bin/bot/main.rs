@@ -49,8 +49,8 @@ async fn main() -> eyre::Result<()>
     log::info!("[ LOG ] ⚙ <| Building bot... |>");
     log::info!("[ LOG ] 📝 <| Command description: {} |>", Command::descriptions());
 
-    let token = env::var("TELEGRAM_BOT_TOKEN")?;
-    let bot = Bot::new(&token);
+    let token = env!("TELEGRAM_BOT_TOKEN");
+    let bot = Bot::new(token);
 
     let redis_url = env::var("REDIS_URL")?;
     let storage : Arc<ErasedStorage<DialogueData>> =
@@ -66,8 +66,8 @@ async fn main() -> eyre::Result<()>
             TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
         };
     
-    let port = env::var("PORT")?.parse::<u16>()?;
-    let host = env::var("HOST")?;
+    let port = env!("PORT").parse::<u16>()?;
+    let host = env!("HOST");
     let addr = ([0,0,0,0], port).into();
     let url = reqwest::Url::parse(&format!("{host}/bot{token}"))?;
 

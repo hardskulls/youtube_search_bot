@@ -232,8 +232,10 @@ pub(crate) async fn execute_search_command
     let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
     
-    let bot = Bot::from_env();
+    let token = env!("TELEGRAM_BOT_TOKEN");
+    let bot = Bot::new(token);
     let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
+    
     let results =
         match requestable
         {
@@ -272,8 +274,10 @@ pub(crate) async fn execute_list_command
     let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
     
-    let bot = Bot::from_env();
+    let token = env!("TELEGRAM_BOT_TOKEN");
+    let bot = Bot::new(token);
     let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
+    
     let results =
         match requestable
         {
