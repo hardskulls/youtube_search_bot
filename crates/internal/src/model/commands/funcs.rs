@@ -30,6 +30,7 @@ pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTri
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
+    
     if let Ok(token) = get_access_token(user_id, db_url)
     {
         let req = build_log_out_req(token).log_err(log_prefix).map_err_by(err)?;
@@ -39,46 +40,48 @@ pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTri
         
         delete_access_token(user_id, db_url).log_err(log_prefix).map_err_by(err)?;
         
-        ("Logged out successfully ✔".to_owned(), None, None).in_ok()
+        ("Logged out successfully ✅".to_owned(), None, None).in_ok()
     }
     else
     { err().in_err() }
 }
 
 /// Pretty print config.
-fn print_search_config(c : &SearchCommandSettings) -> String
+fn print_search_config(search_settings : &SearchCommandSettings) -> String
 {
-    let SearchCommandSettings { target, search_in : search_by, result_limit, .. } = c;
+    let SearchCommandSettings { target, search_in, .. } = search_settings;
+    let SearchCommandSettings { result_limit, text_to_search, .. } = search_settings;
     let t =
         format!
         (
-            "{}{}{}",
-            maybe_print(format!("\n🎯 {}  is  ", "Target".to_bold()), target, ""),
-            maybe_print(format!("\n💳 {}  is  ", "Search in".to_bold()), search_by, ""),
-            maybe_print(format!("\n🧮 {}  is  ",  "Result limit".to_bold()), result_limit, "")
+            "{}{}{}{}",
+            maybe_print(format!("\n🎯 {}  =  ", "Target".to_bold()), target, ""),
+            maybe_print(format!("\n💳 {}  =  ", "Search in".to_bold()), search_in, ""),
+            maybe_print(format!("\n🧮 {}  =  ",  "Result limit".to_bold()), result_limit, ""),
+            maybe_print(format!("\n💬 {}  =  ",  "Text to search".to_bold()), text_to_search, "")
         );
     if t.is_empty()
     { "You've activated 'search command' 🔎".to_owned() }
     else
-    { format!("Your search config is{t}") }
+    { format!("Your search parameters are{t}") }
 }
 
 /// Pretty print config.
-fn print_list_config(c : &ListCommandSettings) -> String
+fn print_list_config(list_settings : &ListCommandSettings) -> String
 {
-    let ListCommandSettings { target, result_limit, sorting } = c;
+    let ListCommandSettings { target, result_limit, sorting } = list_settings;
     let t =
         format!
         (
             "{}{}{}",
-            maybe_print(format!("\n🎯 {}  is  ", "Target".to_bold()), target, ""),
-            maybe_print(format!("\n🗃 {}  is  ", "Sorting".to_bold()), sorting, ""),
-            maybe_print(format!("\n🧮 {}  is  ",  "Result limit".to_bold()), result_limit, "")
+            maybe_print(format!("\n🎯 {}  =  ", "Target".to_bold()), target, ""),
+            maybe_print(format!("\n🗃 {}  =  ", "Sorting".to_bold()), sorting, ""),
+            maybe_print(format!("\n🧮 {}  =  ",  "Result limit".to_bold()), result_limit, "")
         );
     if t.is_empty()
     { "You've activated 'list command' 📃".to_owned() }
     else
-    { format!("Your list config is{t}") }
+    { format!("Your list parameters are{t}") }
 }
 
 pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
@@ -86,13 +89,14 @@ pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, M
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
     let create_msg = |m : &str| (m.to_owned(), None, None);
-    let default_err : fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
-    let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(default_err)?;
+    let user_error: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
+    
+    let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
     match d_data.state
     {
         State::Starting => Ok(create_msg("Bot just started 🚀")),
-        State::SearchCommandActive(search_config) => Ok(create_msg(&print_search_config(&search_config))),
-        State::ListCommandActive(list_config) => Ok(create_msg(&print_list_config(&list_config)))
+        State::SearchCommandActive(search_config) => create_msg(&print_search_config(&search_config)).in_ok(),
+        State::ListCommandActive(list_config) => create_msg(&print_list_config(&list_config)).in_ok()
     }
 }
 
@@ -126,11 +130,15 @@ mod tests
         let (access_token, refresh_token) = ("acc_tok_653654265432".into(), "ref_tok_76876576345".to_owned().into());
         let (expires_in, scope, token_type) = (time::OffsetDateTime::now_utc(), vec![], "Bearer".to_owned());
         let token = YouTubeAccessToken { access_token, expires_in, refresh_token, scope, token_type };
+        
         let req = build_log_out_req(token.clone()).unwrap().build().unwrap();
+        
         assert_eq!(req.headers().get(hyper::header::HOST).unwrap().to_str().unwrap(), "oauth2.googleapis.com");
         assert_eq!(req.headers().get(hyper::header::CONTENT_TYPE).unwrap().to_str().unwrap(), "application/x-www-form-urlencoded");
         assert_eq!(req.url().as_str(), "https://oauth2.googleapis.com/revoke");
+        
         let expected_body = reqwest::Body::from(format!("token={t}", t = token.refresh_token.unwrap()));
+        
         assert_eq!(req.body().unwrap().as_bytes().unwrap(), expected_body.as_bytes().unwrap());
     }
 }
