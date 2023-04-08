@@ -1,0 +1,104 @@
+{
+  "kind": "youtube#SubscriptionListResponse",
+  "etag": "Ozkl9eQrldTkkcZz5spM556Po0c",
+  "nextPageToken": "CDIQAA",
+  "pageInfo": {
+    "totalResults": 978,
+    "resultsPerPage": 50
+  },
+  "items": [
+    {
+      "kind": "youtube#subscription",
+      "etag": "qfTLk_KeC8QkeR3pEm7APGQIwJM",
+      "id": "gvR2GCr-_HWTICXbXq2B0R1g13vDHDwuRoHnX3X2w1U",
+      "snippet": {
+        "publishedAt": "2022-12-25T14:55:17.743678Z",
+        "title": "Dr. Plants",
+        "description": "Bringing nature into your home...",
+        "resourceId": {
+          "kind": "youtube#channel",
+          "channelId": "UCYmna5rFHIesFteksAvFOfg"
+        },
+        "channelId": "UCEv-BI7Y8Z-wmkRKjWasAPA",
+        "thumbnails": {
+          "default": {
+            "url": "https://yt3.ggpht.com/R6sNFqB8QcQPwJvWlQ1q0zKVmszFfHBY_PGBhA7WT9enPBN6GgkOo2sKzF-3PEdSUQ2Vs2Ugwg=s88-c-k-c0x00ffffff-no-rj"
+          },
+          "medium": {
+            "url": "https://yt3.ggpht.com/R6sNFqB8QcQPwJvWlQ1q0zKVmszFfHBY_PGBhA7WT9enPBN6GgkOo2sKzF-3PEdSUQ2Vs2Ugwg=s240-c-k-c0x00ffffff-no-rj"
+          },
+          "high": {
+            "url": "https://yt3.ggpht.com/R6sNFqB8QcQPwJvWlQ1q0zKVmszFfHBY_PGBhA7WT9enPBN6GgkOo2sKzF-3PEdSUQ2Vs2Ugwg=s800-c-k-c0x00ffffff-no-rj"
+          }
+        }
+      },
+      "contentDetails": {
+        "totalItemCount": 16,
+        "newItemCount": 1,
+        "activityType": "all"
+      }
+    },
+    {
+      "kind": "youtube#subscription",
+      "etag": "SDeGt0Y2M83fX3yzG3LVnaNs0gM",
+      "id": "gvR2GCr-_HU72L9co6gDra5jDLBCShJZfoO5PBJttIY",
+      "snippet": {
+        "publishedAt": "2022-12-25T14:47:18.337676Z",
+        "title": "AWS Events",
+        "description": "The official YouTube channel for AWS Events and Webinars. Amazon Web Services (AWS) hosts events, both online and in-person, bringing the cloud computing community together to connect, collaborate, and learn from AWS experts.\n\nAWS re:Invent is a learning conference for the global cloud computing community. The event features keynote announcements, training and certification opportunities, access to technical sessions, deep-dives with AWS leaders, engaging with sponsors, and so much more.\n\nAWS re:Inforce is a two day conference focused on cloud security. Attendees can expect two days of learning, with sessions on security, identity, and compliance. \n\nAWS Summits is a series of events that bring the cloud computing community together to connect, collaborate, and learn about AWS. \n\nAWSome Day Online Conference is a free, online training event that will provide a step-by-step introduction to the core AWS services for compute, storage, databases, and networking.",
+        "resourceId": {
+          "kind": "youtube#channel",
+          "channelId": "UCdoadna9HFHsxXWhafhNvKw"
+        },
+        "channelId": "UCEv-BI7Y8Z-wmkRKjWasAPA",
+        "thumbnails": {
+          "default": {
+            "url": "https://yt3.ggpht.com/2fE3uBMzlyr1xtRn-5k3y378key4nco14QFpkRz7HtQ-bhHAQyCbcErZg_f4uchjlIhogLvqig=s88-c-k-c0x00ffffff-no-rj"
+          },
+          "medium": {
+            "url": "https://yt3.ggpht.com/2fE3uBMzlyr1xtRn-5k3y378key4nco14QFpkRz7HtQ-bhHAQyCbcErZg_f4uchjlIhogLvqig=s240-c-k-c0x00ffffff-no-rj"
+          },
+          "high": {
+            "url": "https://yt3.ggpht.com/2fE3uBMzlyr1xtRn-5k3y378key4nco14QFpkRz7HtQ-bhHAQyCbcErZg_f4uchjlIhogLvqig=s800-c-k-c0x00ffffff-no-rj"
+          }
+        }
+      },
+      "contentDetails": {
+        "totalItemCount": 6039,
+        "newItemCount": 0,
+        "activityType": "all"
+      }
+    },
+    {
+      "kind": "youtube#subscription",
+      "etag": "H-jwFkURHgo_SCGi6W5wlqXVtic",
+      "id": "gvR2GCr-_HU72L9co6gDraYzPAg-bh3sCZXA7BJQMbY",
+      "snippet": {
+        "publishedAt": "2019-09-13T21:39:24.861714Z",
+        "title": "iXBT games",
+        "description": "Подкасты про игры. Обзоры игр. Демонстрации игрового процесса. Новинки IT и обзоры интересных гаджетов. Репортажи с выставок и интересные интервью. Всё на русском и с душой. ))\n\ndzaxhmnd",
+        "resourceId": {
+          "kind": "youtube#channel",
+          "channelId": "UC4e_XPBiiIO4fo4_CucxQeg"
+        },
+        "channelId": "UCEv-BI7Y8Z-wmkRKjWasAPA",
+        "thumbnails": {
+          "default": {
+            "url": "https://yt3.ggpht.com/ytc/AMLnZu8LIUk-PscB4_35CzwiV0EN3Aor6jykK_PF5nRG3A=s88-c-k-c0x00ffffff-no-rj"
+          },
+          "medium": {
+            "url": "https://yt3.ggpht.com/ytc/AMLnZu8LIUk-PscB4_35CzwiV0EN3Aor6jykK_PF5nRG3A=s240-c-k-c0x00ffffff-no-rj"
+          },
+          "high": {
+            "url": "https://yt3.ggpht.com/ytc/AMLnZu8LIUk-PscB4_35CzwiV0EN3Aor6jykK_PF5nRG3A=s800-c-k-c0x00ffffff-no-rj"
+          }
+        }
+      },
+      "contentDetails": {
+        "totalItemCount": 2110,
+        "newItemCount": 1,
+        "activityType": "all"
+      }
+    }
+  ]
+}

@@ -154,23 +154,14 @@ mod tests
     #[test]
     fn deserialize_from_json_test()
     {
-        let path = env!("PATH_TO_ACCESS_TOKEN_EXAMPLE");
-        let contents = std::fs::read_to_string(path).unwrap();
-        let deserialized_2 = serde_json::from_str::<YouTubeAccessToken>(&contents);
-        assert!(matches!(deserialized_2, Ok(_)));
-    }
-    
-    #[test]
-    fn string_to_vec_deserialization_test()
-    {
         let token =
             r#"
                 {
-                    "access_token":     "token87t877679",
-                    "expires_in":       3600,
-                    "refresh_token":    "hvliyhgl89y8",
-                    "scope":            "jhgf kjhvliyf kvikuf.ugk/jhghk.con khfu",
-                    "token_type":       "Bearer"
+                    "access_token": "1/fFAGRNJru1FTz70BzhT3Zg",
+                    "expires_in": 3920,
+                    "token_type": "Bearer",
+                    "scope": "https://www.googleapis.com/auth/drive.metadata.readonly",
+                    "refresh_token": "1//xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI"
                 }
             "#;
         let deserialized_token = serde_json::from_str::<YouTubeAccessToken>(token);
@@ -178,28 +169,29 @@ mod tests
         
         let deserialized_token = dbg!(deserialized_token.unwrap());
         assert!(!deserialized_token.scope.is_empty());
-        assert!(deserialized_token.scope.contains(&"kvikuf.ugk/jhghk.con".to_owned()));
+        assert!(deserialized_token.scope.contains(&"https://www.googleapis.com/auth/drive.metadata.readonly".to_owned()));
         assert!(deserialized_token.expires_in > time::OffsetDateTime::now_utc() + Duration::minutes(59));
-        assert_eq!(deserialized_token.access_token, "token87t877679");
+        assert_eq!(deserialized_token.access_token, "1/fFAGRNJru1FTz70BzhT3Zg");
         assert!(matches!(deserialized_token.refresh_token, Some(_)));
-        assert_eq!(deserialized_token.refresh_token.as_ref().unwrap(), "hvliyhgl89y8");
+        assert_eq!(deserialized_token.refresh_token.as_ref().unwrap(), "1//xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI");
         let serialized_token = dbg!(serde_json::to_string(&deserialized_token).unwrap());
         let _deserialized_again_token = dbg!(serde_json::from_str::<YouTubeAccessToken>(&serialized_token).unwrap());
     }
     
     #[test]
-    fn sub_list_resp_deserialize_test()
+    fn subscription_list_resp_deserialize_test()
     {
-        let path = env!("PATH_TO_SUBSCRIPTION_JSON_EXAMPLE");
-        let subs = std::fs::read_to_string(path).unwrap();
+        let subs = std::fs::read_to_string("../../test_assets/subscription_list_json_response.json").unwrap();
         let subs_list_resp = serde_json::from_str::<SubscriptionListResponse>(&subs).unwrap();
-        dbg!(subs_list_resp.next_page_token);
-        dbg!(subs_list_resp.page_info);
-        dbg!(subs_list_resp.kind);
-        dbg!(subs_list_resp.etag);
+        
+        assert!(matches!(subs_list_resp.next_page_token, Some(..)));
+        assert!(matches!(subs_list_resp.page_info, Some(..)));
+        assert!(matches!(subs_list_resp.kind, Some(..)));
+        assert!(matches!(subs_list_resp.etag, Some(..)));
         let s : &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
-        dbg!(&s.snippet);
-        dbg!(s.snippet.as_ref().unwrap().resource_id.as_ref());
+        
+        assert!(matches!(s.snippet, Some(..)));
+        assert!(matches!(s.snippet.as_ref().unwrap().resource_id.as_ref(), Some(..)));
     }
 }
 

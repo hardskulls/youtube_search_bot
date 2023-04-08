@@ -94,7 +94,7 @@ pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, M
     let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
     match d_data.state
     {
-        State::Starting => Ok(create_msg("Bot just started 🚀")),
+        State::Starting => create_msg("Bot just started 🚀").in_ok(),
         State::SearchCommandActive(search_config) => create_msg(&print_search_config(&search_config)).in_ok(),
         State::ListCommandActive(list_config) => create_msg(&print_list_config(&list_config)).in_ok()
     }
