@@ -70,11 +70,9 @@ impl IntoSearchableItem for Subscription
             item.title = snippet.title.filter(|i| !i.trim().is_empty());
             item.description = snippet.description.filter(|i| !i.trim().is_empty());
             item.date = snippet.published_at.filter(|i| !i.trim().is_empty());
-        }
-        if let Some(chan_id) = self.id
-        {
-            if !chan_id.trim().is_empty()
-            { item.link = format!("https://youtube.com/channel/{chan_id}").into(); }
+            item.link = snippet.channel_id
+                .filter(|i| !i.trim().is_empty())
+                .map(|chan_id| format!("https://youtube.com/channel/{chan_id}"));
         }
         item
     }
@@ -94,7 +92,7 @@ impl IntoSearchableItem for Playlist
         if let Some(plist_id) = self.id
         {
             if !plist_id.trim().is_empty()
-            { item.link = format!("https://youtube.com/channel/{plist_id}").into(); }
+            { item.link = format!("https://youtube.com/playlist?list={plist_id}").into(); }
         }
         item
     }
