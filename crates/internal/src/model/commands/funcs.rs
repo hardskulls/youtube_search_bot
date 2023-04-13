@@ -121,7 +121,7 @@ mod tests
         assert_eq!(print_list_config(&c), "You've activated 'list command' 📃");
         
         c.target = Requestable::Subscription(RespTargetSubscriptions).into();
-        assert_eq!(print_list_config(&c), "Your list config is\n🎯 <b>Target</b>  is  Subscription");
+        assert_eq!(print_list_config(&c), "Your list parameters are\n🎯 <b>Target</b>  =  Subscription");
     }
     
     #[test]
