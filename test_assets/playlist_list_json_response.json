@@ -1,0 +1,287 @@
+{
+  "kind": "youtube#playlistListResponse",
+  "etag": "hk5Dz1-QkaV2-w1G99a7mijWb10",
+  "pageInfo": {
+    "totalResults": 6,
+    "resultsPerPage": 30
+  },
+  "items": [
+    {
+      "kind": "youtube#playlist",
+      "etag": "YPUeAX-l_Qz_fAMa6zkN3SkwJkY",
+      "id": "PL1Ng5zOyG8EzV8Wi24mFUVIFKRuuzkIQ1",
+      "snippet": {
+        "publishedAt": "2021-03-20T20:54:16Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "Истории",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/WtoRblP8ynk/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/WtoRblP8ynk/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/WtoRblP8ynk/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/WtoRblP8ynk/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/WtoRblP8ynk/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "localized": {
+          "title": "Истории",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 105
+      }
+    },
+    {
+      "kind": "youtube#playlist",
+      "etag": "Zqiv_nGMbN2Q9gg6SYrNkL7z4OA",
+      "id": "PL1Ng5zOyG8EwtAQWC2ayghILV9saLC65a",
+      "snippet": {
+        "publishedAt": "2020-07-30T09:53:34Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "Интервью",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/Yy_m44vlXBk/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/Yy_m44vlXBk/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/Yy_m44vlXBk/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/Yy_m44vlXBk/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/Yy_m44vlXBk/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "localized": {
+          "title": "Интервью",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 10
+      }
+    },
+    {
+      "kind": "youtube#playlist",
+      "etag": "_dGsXJ_9Fon-fe-R5LsjWKMloUE",
+      "id": "PL1Ng5zOyG8EwlJznSJ3BntRQhGbNlRX29",
+      "snippet": {
+        "publishedAt": "2018-10-18T22:07:35Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "GAMETECH",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/Xvb7Rrh4LdI/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/Xvb7Rrh4LdI/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/Xvb7Rrh4LdI/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/Xvb7Rrh4LdI/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/Xvb7Rrh4LdI/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "localized": {
+          "title": "GAMETECH",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 184
+      }
+    },
+    {
+      "kind": "youtube#playlist",
+      "etag": "d5WbAEJZuh8LRIlpFWI-q7y8afw",
+      "id": "PL1Ng5zOyG8Ey2WLTo7RkQpBVbMIVC02mK",
+      "snippet": {
+        "publishedAt": "2015-11-12T19:50:31Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "Трансляции",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/fhbX7RRH19I/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/fhbX7RRH19I/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/fhbX7RRH19I/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/fhbX7RRH19I/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/fhbX7RRH19I/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "localized": {
+          "title": "Трансляции",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 410
+      }
+    },
+    {
+      "kind": "youtube#playlist",
+      "etag": "EmwDBVosUbdfw-Kt-F_ROVCiWt8",
+      "id": "PL1Ng5zOyG8ExhDHpEMRYJPR-1JoIFr0i9",
+      "snippet": {
+        "publishedAt": "2015-03-16T19:18:47Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "Обзоры",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/zs2r-Etqfo4/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/zs2r-Etqfo4/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/zs2r-Etqfo4/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/zs2r-Etqfo4/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/zs2r-Etqfo4/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "localized": {
+          "title": "Обзоры",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 399
+      }
+    },
+    {
+      "kind": "youtube#playlist",
+      "etag": "VGJgHFYSHe0lPwqYOrGOqCCZixE",
+      "id": "FL4e_XPBiiIO4fo4_CucxQeg",
+      "snippet": {
+        "publishedAt": "2013-09-27T13:20:30Z",
+        "channelId": "UC4e_XPBiiIO4fo4_CucxQeg",
+        "title": "Favorites",
+        "description": "",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/Hls3Tp7JS8E/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/Hls3Tp7JS8E/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/Hls3Tp7JS8E/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          },
+          "standard": {
+            "url": "https://i.ytimg.com/vi/Hls3Tp7JS8E/sddefault.jpg",
+            "width": 640,
+            "height": 480
+          },
+          "maxres": {
+            "url": "https://i.ytimg.com/vi/Hls3Tp7JS8E/maxresdefault.jpg",
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "channelTitle": "iXBT games",
+        "defaultLanguage": "en",
+        "localized": {
+          "title": "Favorites",
+          "description": ""
+        }
+      },
+      "contentDetails": {
+        "itemCount": 1
+      }
+    }
+  ]
+}

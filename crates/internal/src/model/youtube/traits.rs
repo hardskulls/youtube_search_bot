@@ -70,9 +70,11 @@ impl IntoSearchableItem for Subscription
             item.title = snippet.title.filter(|i| !i.trim().is_empty());
             item.description = snippet.description.filter(|i| !i.trim().is_empty());
             item.date = snippet.published_at.filter(|i| !i.trim().is_empty());
-            item.link = snippet.channel_id
-                .filter(|i| !i.trim().is_empty())
-                .map(|chan_id| format!("https://youtube.com/channel/{chan_id}"));
+            item.link =
+                snippet
+                    .channel_id
+                    .filter(|i| !i.trim().is_empty())
+                    .map(|chan_id| format!("https://youtube.com/channel/{chan_id}"));
         }
         item
     }
@@ -109,8 +111,7 @@ mod tests
     #[test]
     fn plist_test() -> eyre::Result<()>
     {
-        let path = env!("PATH_TO_PLAYLIST_JSON_EXAMPLE");
-        let f = std::fs::read_to_string(path)?;
+        let f = std::fs::read_to_string("../../test_assets/playlist_list_json_response.json")?;
         let pl_resp =
             serde_json::from_str::<PlaylistListResponse>(&f).unwrap();
         let y = pl_resp.token_pagination;
@@ -118,7 +119,7 @@ mod tests
         let items = pl_resp.items.unwrap();
         let first_playlist = items.get(0).unwrap().clone();
         assert!(matches!(first_playlist.description(), None));
-        assert_eq!(first_playlist.title().unwrap(), "Hello");
+        assert_eq!(first_playlist.title().unwrap(), "Истории");
         Ok(())
     }
 }
