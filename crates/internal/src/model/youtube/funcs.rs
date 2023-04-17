@@ -1,4 +1,4 @@
-
+use std::cell::Cell;
 use std::fmt::Debug;
 
 use error_traits::{WrapInErr, WrapInOk};
@@ -57,15 +57,15 @@ pub(crate) async fn search_items<T>
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
     let mut store_in = vec![];
-    let mut current_cap = store_in.len();
+    let current_cap = Cell::new(store_in.len());
     
-    let stop_if = move |_ : &T::Target| current_cap > res_limit as usize;
+    let stop_if = |_ : &T::Target| current_cap.get() > res_limit as usize;
     let f =
         |search_target : T::Target|
             {
                 if let Some(items) = search_target.items()
                 { find_matches(search_for, search_in, res_limit, items, &mut store_in) }
-                current_cap = store_in.len()
+                current_cap.set(store_in.len())
             };
     pagination(req_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] 'current_cap' is [ '{:?}' ] )", current_cap);
@@ -167,9 +167,12 @@ fn find_matches<S>(search_for : &str, search_in : &SearchIn, res_limit : u32, it
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] ended )");
 }
 
+#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used)]
 #[cfg(test)]
 mod tests
 {
+    use std::cell::Cell;
     use crate::model::net::traits::RespTargetSubscriptions;
     
     use super::*;
@@ -181,40 +184,6 @@ mod tests
         //let mut v = vec![];
         let f = drop;
         pagination(RespTargetSubscriptions, access_token, |_| false, f).await;
-    }
-    
-    #[test]
-    fn vec_count_test()
-    {
-        fn simulate_pagination<S, T, F>(count : usize, cr_type : T, stop_if : S, f : F)
-            where
-                F : FnMut(Vec<T>), S : Fn(&Vec<T>) -> bool, T : Clone
-        {
-            let mut f = f;
-            loop
-            {
-                let v = vec![cr_type.clone(); count];
-                
-                if stop_if(&v)
-                { break }
-                
-                f(v)
-            }
-        }
-        
-        // TODO : What the fuck is going on with type system here???
-        //  Why does it differ so much from 'search_items' function??
-        let mut vec = vec![];
-        let mut current_cap = vec.len();
-        let limit = 125;
-        let stop_if = move |_ : &_| current_cap > limit;
-        let f =
-            |mut t|
-                {
-                    vec.append(&mut t);
-                    current_cap = vec.len()
-                };
-        simulate_pagination(70, "goo", stop_if, f);
     }
 }
 
