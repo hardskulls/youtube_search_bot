@@ -91,6 +91,7 @@ pub(crate) async fn refresh_access_token
     { token.in_ok() }
 }
 
+// This tests require a valid `db` link, so for now they are allowed to fail.
 #[allow(clippy::unwrap_used)]
 #[allow(clippy::expect_used)]
 #[cfg(test)]
@@ -101,7 +102,8 @@ mod tests
     use crate::model::youtube::types::YouTubeAccessToken;
     
     use super::*;
-    
+
+
     #[test]
     fn get_save_token()
     {
