@@ -26,7 +26,6 @@ eyre = { version = "0.6.8", features = [] }
 
 #[:: Logging ::]
 log = "0.4.17"
-simple_logger = { version = "4.1.0", features = [] }
 env_logger = { version = "0.10.0", features = [] }
 chrono = { version = "0.4.24", features = [] }
 

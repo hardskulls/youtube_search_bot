@@ -1,3 +1,4 @@
+
 use std::cell::Cell;
 use std::fmt::Debug;
 
@@ -172,19 +173,7 @@ fn find_matches<S>(search_for : &str, search_in : &SearchIn, res_limit : u32, it
 #[cfg(test)]
 mod tests
 {
-    use std::cell::Cell;
-    use crate::model::net::traits::RespTargetSubscriptions;
-    
-    use super::*;
-    
-    #[tokio::test]
-    async fn try_that()
-    {
-        let access_token = "kmkpmpmp";
-        //let mut v = vec![];
-        let f = drop;
-        pagination(RespTargetSubscriptions, access_token, |_| false, f).await;
-    }
+
 }
 
 
