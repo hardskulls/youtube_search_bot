@@ -1,5 +1,5 @@
 
-use std::cell::Cell;
+
 use std::fmt::Debug;
 
 use error_traits::{WrapInErr, WrapInOk};
@@ -41,6 +41,7 @@ pub(crate) fn make_auth_url<V>(client_id : V, redirect_uri : V, response_type : 
     url.in_ok()
 }
 
+#[allow(clippy::unwrap_used)]
 /// Search and filter items (subscriptions, playlists, etc).
 pub(crate) async fn search_items<T>
 (
@@ -58,15 +59,15 @@ pub(crate) async fn search_items<T>
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
     let mut store_in = vec![];
-    let current_cap = Cell::new(store_in.len());
+    let current_cap = std::sync::Arc::new(std::sync::Mutex::new(store_in.len()));
     
-    let stop_if = |_ : &T::Target| current_cap.get() > res_limit as usize;
+    let stop_if = |_ : &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f =
         |search_target : T::Target|
             {
                 if let Some(items) = search_target.items()
                 { find_matches(search_for, search_in, res_limit, items, &mut store_in) }
-                current_cap.set(store_in.len())
+                *current_cap.lock().unwrap() = store_in.len()
             };
     pagination(req_builder, access_token, stop_if, f).await;
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] 'current_cap' is [ '{:?}' ] )", current_cap);
