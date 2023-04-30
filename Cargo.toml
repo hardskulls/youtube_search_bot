@@ -1,6 +1,6 @@
 [workspace]
-members = ["crates/*", "crates/local/*"]
-exclude = ["crates/local"]
+members = ["crates/*"]
+#exclude = ["crates/local"]
 #default-members = ["crates/internal"]
 
 [profile.release]

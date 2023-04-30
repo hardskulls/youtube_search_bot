@@ -28,7 +28,7 @@ async fn params(auth_code : &str) -> StdResult<[(String, String); 5], std::io::E
 async fn access_token_req(auth_code : &str) -> eyre::Result<RequestBuilder>
 {
     let params = params(auth_code).await?;
-    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
+    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", params)?;
     reqwest::Client::new()
         .post(reqwest::Url::parse("https://oauth2.googleapis.com/token")?)
         .header(hyper::header::HOST, "oauth2.googleapis.com")
