@@ -2,16 +2,12 @@
 name = "internal"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[build-dependencies]
-dotenv-build = { version = "0.1.1", features = [] }
 
 [dependencies]
 #[:: Local ::]
-error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"] }
 
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
@@ -35,6 +31,7 @@ redis = { version = "0.23.0", features = ["tokio-comp", "tls", "tokio-native-tls
 #postgres = { version = "0.19.4", features = [] }
 
 #[:: Errors ::]
+error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"] }
 thiserror = "1.0.40"
 #error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
