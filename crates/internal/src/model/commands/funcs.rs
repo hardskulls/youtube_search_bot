@@ -5,7 +5,8 @@ use crate::{FlatRes, StdResult};
 use crate::model::db::{delete_access_token, get_access_token};
 use crate::model::dialogue::funcs::get_dialogue_data;
 use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
-use crate::model::errors::NoTextError;
+use crate::model::net::funcs::build_post_request;
+use crate::model::net::types::REVOKE_ACCESS_TOKEN_URL;
 use crate::model::utils::{HTMLise, maybe_print};
 use crate::model::youtube::types::YouTubeAccessToken;
 
@@ -13,15 +14,9 @@ use crate::model::youtube::types::YouTubeAccessToken;
 fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::build_log_out_req] :: [Started]");
-    let url = "https://oauth2.googleapis.com/revoke";
-    let params : &[(&str, &str)] = &[("token", &token.refresh_token.unwrap_or(token.access_token))];
-    let body = reqwest::Url::parse_with_params(url, params)?.query().ok_or(NoTextError)?.to_owned();
-    reqwest::Client::new()
-        .post(reqwest::Url::parse(url)?)
-        .header(hyper::header::HOST, "oauth2.googleapis.com")
-        .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(body)
-        .in_ok()
+    let token = token.refresh_token.as_deref().unwrap_or(token.access_token.as_str());
+    let params = &[("token", token)];
+    build_post_request(REVOKE_ACCESS_TOKEN_URL, params)
 }
 
 /// Revoke `refresh token` and delete token from db.
@@ -105,10 +100,13 @@ pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, M
 #[cfg(test)]
 mod tests
 {
+    use std::str::{from_utf8, FromStr};
+    use google_youtube3::hyper;
     use crate::model::commands::funcs::{build_log_out_req, print_list_config, print_search_config};
     use crate::model::dialogue::types::{ListCommandSettings, SearchCommandSettings};
     use crate::model::keyboards::types::Requestable;
-    use crate::model::net::traits::RespTargetSubscriptions;
+    use crate::model::net::funcs::build_post_request;
+    use crate::model::net::types::{SubscriptionRequester, REVOKE_ACCESS_TOKEN_URL};
     use crate::model::youtube::types::YouTubeAccessToken;
     
     #[test]
@@ -120,7 +118,7 @@ mod tests
         let mut c = ListCommandSettings::default();
         assert_eq!(print_list_config(&c), "You've activated 'list command' 📃");
         
-        c.target = Requestable::Subscription(RespTargetSubscriptions).into();
+        c.target = Requestable::Subscription(SubscriptionRequester).into();
         assert_eq!(print_list_config(&c), "Your list parameters are\n🎯 <b>Target</b>  =  Subscription");
     }
     
@@ -133,13 +131,61 @@ mod tests
         
         let req = build_log_out_req(token.clone()).unwrap().build().unwrap();
         
-        assert_eq!(req.headers().get(hyper::header::HOST).unwrap().to_str().unwrap(), "oauth2.googleapis.com");
-        assert_eq!(req.headers().get(hyper::header::CONTENT_TYPE).unwrap().to_str().unwrap(), "application/x-www-form-urlencoded");
+        assert_eq!(req.headers().get(reqwest::header::HOST).unwrap().to_str().unwrap(), "oauth2.googleapis.com");
+        assert_eq!(req.headers().get(reqwest::header::CONTENT_TYPE).unwrap().to_str().unwrap(), "application/x-www-form-urlencoded");
         assert_eq!(req.url().as_str(), "https://oauth2.googleapis.com/revoke");
         
         let expected_body = reqwest::Body::from(format!("token={t}", t = token.refresh_token.unwrap()));
         
         assert_eq!(req.body().unwrap().as_bytes().unwrap(), expected_body.as_bytes().unwrap());
+    }
+    
+    trait ShortUnwrap<T>
+    {
+        fn unwr(self) -> T;
+    }
+    
+    impl<T> ShortUnwrap<T> for Option<T>
+    {
+        fn unwr(self) -> T
+        { self.unwrap() }
+    }
+    
+    impl<T, E> ShortUnwrap<T> for Result<T, E>
+        where
+            E : std::fmt::Debug
+    {
+        fn unwr(self) -> T
+        { self.unwrap() }
+    }
+    
+    #[test]
+    fn test_request_builder()
+    {
+        let params : &[(&str, &str)] = &[("token", "HeyHo"), ("answer", "YoHoHo")];
+        let expected_query = "token=HeyHo&answer=YoHoHo";
+        let body_kv_pairs = url::form_urlencoded::Serializer::new(String::new()).extend_pairs(params).finish();
+        
+        assert_eq!(body_kv_pairs, expected_query);
+        
+        let url = reqwest::Url::parse_with_params(REVOKE_ACCESS_TOKEN_URL, params).unwr();
+        
+        assert_eq!(url.domain().unwr(), "oauth2.googleapis.com");
+        assert_eq!(url.host_str().unwr(), "oauth2.googleapis.com");
+        
+        let req_builder = build_post_request(REVOKE_ACCESS_TOKEN_URL, params).unwr();
+        let req = req_builder.build().unwr();
+        let body_as_utf8 = from_utf8(req.body().unwr().as_bytes().unwr()).unwr();
+        
+        assert_eq!(body_as_utf8, expected_query);
+        
+        
+        let url = REVOKE_ACCESS_TOKEN_URL;
+        let u = hyper::http::uri::Uri::from_str(url).unwr();
+        
+        assert_eq!(u.authority().unwr().as_str(), "oauth2.googleapis.com");
+        assert_eq!(u.scheme_str().unwr(), "https");
+        assert_eq!(u.to_string(), url);
     }
 }
 

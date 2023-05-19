@@ -4,7 +4,7 @@ use std::fmt::Display;
 use teloxide::types::InlineKeyboardMarkup;
 use crate::model::keyboards::funcs::{button, inline_button};
 use crate::model::keyboards::types::{Buttons, ListCommandButtons, Requestable, SearchCommandButtons, SearchIn, Sorting};
-use crate::model::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
+use crate::model::net::types::{PlaylistRequester, SubscriptionRequester};
 use crate::model::utils::HTMLise;
 
 
@@ -22,8 +22,8 @@ impl CreateKB for SearchCommandButtons
             SearchCommandButtons::ResultLimit | SearchCommandButtons::TextToSearch => None,
             SearchCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)))))
-                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Playlist(RespTargetPlaylists)))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(SubscriptionRequester)))))
+                    .append_to_row(0, button(SearchButtons(SearchCommandButtons::Target(Requestable::Playlist(PlaylistRequester)))))
                     .append_to_row(1, inline_button("Cancel ❌", SearchButtons(SearchCommandButtons::SearchSettings)))
                     .into(),
             SearchCommandButtons::SearchInOptions =>
@@ -56,8 +56,8 @@ impl CreateKB for ListCommandButtons
             ListCommandButtons::ResultLimit => None,
             ListCommandButtons::TargetOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)))))
-                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Playlist(RespTargetPlaylists)))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Subscription(SubscriptionRequester)))))
+                    .append_to_row(0, button(ListButtons(ListCommandButtons::Target(Requestable::Playlist(PlaylistRequester)))))
                     .append_to_row(1, inline_button("Cancel ❌", ListButtons(ListCommandButtons::ListSettings)))
                     .into(),
             ListCommandButtons::SortingOptions =>

@@ -1,7 +1,9 @@
+
 use serde::Serialize;
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardButtonKind};
 use crate::model::keyboards::traits::ButtonText;
 use crate::model::keyboards::types::Buttons;
+
 
 /// Constructs `inline keyboard` button inner data.
 fn callback_data<D : Serialize>(callback_data : D) -> InlineKeyboardButtonKind

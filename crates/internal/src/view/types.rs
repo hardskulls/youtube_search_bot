@@ -1,6 +1,6 @@
 
 use teloxide::types::{InlineKeyboardMarkup, Message};
-use crate::model::dialogue::types::{DialogueData};
+use crate::model::dialogue::types::DialogueData;
 
 #[derive(Debug, Clone)]
 pub(crate) enum Sendable<T, S>

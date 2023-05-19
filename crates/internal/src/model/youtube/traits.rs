@@ -1,5 +1,7 @@
+
 use google_youtube3::api::{Playlist, Subscription};
 use crate::model::youtube::types::SearchableItem;
+
 
 /// Anything that can be searched on user's YouTube channel.
 pub(crate) trait Searchable

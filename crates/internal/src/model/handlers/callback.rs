@@ -6,7 +6,7 @@ use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::requests::Requester;
 use teloxide::types::{CallbackQuery, ChatId, User};
 
-use crate::model::db::{get_access_token, refresh_access_token, refresh_token_req};
+use crate::model::db::{get_access_token, refresh_access_token, build_refresh_access_token_req};
 use crate::model::dialogue::funcs::{default_auth_url, get_callback_data, get_dialogue_data};
 use crate::model::dialogue::funcs::{list_settings_update_or_default, search_settings_update_or_default};
 use crate::model::dialogue::types::{DialogueData, ListCommandSettings, SearchCommandSettings, TheDialogue};
@@ -229,7 +229,7 @@ pub(crate) async fn execute_search_command
     
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await.map_err(|_| "⚠ Internal error ⚠")?;
-    let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
+    let token_req = build_refresh_access_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
     
     let token = env!("TELEGRAM_BOT_TOKEN");
@@ -271,7 +271,7 @@ pub(crate) async fn execute_list_command
     
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await.map_err(|_| "⚠ Internal error ⚠")?;
-    let token_req = refresh_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
+    let token_req = build_refresh_access_token_req(secret, &token).map_err(|_| "⚠ Internal error ⚠")?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err(|_| "⚠ Internal error ⚠")?.access_token;
     
     let token = env!("TELEGRAM_BOT_TOKEN");
@@ -298,7 +298,7 @@ mod tests
     use std::default::Default;
     use teloxide::types::UserId;
     use crate::model::dialogue::types::State;
-    use crate::model::net::traits::RespTargetSubscriptions;
+    use crate::model::net::types::SubscriptionRequester;
     use super::*;
     
     fn create_user() -> User
@@ -322,7 +322,7 @@ mod tests
     {
         let search_kb = SearchCommandButtons::ResultLimit;
         
-        let target = Some(Requestable::Subscription(RespTargetSubscriptions));
+        let target = Some(Requestable::Subscription(SubscriptionRequester));
         let search_in = Some(SearchIn::Title);
         let search_settings = SearchCommandSettings { target, search_in, ..Default::default() };
         let state : State = SearchCommandActive(search_settings);

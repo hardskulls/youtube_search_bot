@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 use parse_display::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::model::net::traits::{RespTargetPlaylists, RespTargetSubscriptions};
+use crate::model::net::types::{PlaylistRequester, SubscriptionRequester};
 
 
 /*/// Target of `list` or `search` commands.
@@ -22,9 +22,9 @@ pub(crate) enum Target
 pub enum Requestable
 {
     #[display("Subscription 📋")]
-    Subscription(RespTargetSubscriptions),
+    Subscription(SubscriptionRequester),
     #[display("Playlist 📜")]
-    Playlist(RespTargetPlaylists)
+    Playlist(PlaylistRequester)
 }
 
 impl Debug for Requestable
@@ -140,11 +140,11 @@ mod tests
     #[test]
     fn display_derive_for_requestable_test()
     {
-        assert_eq!("Subscription 📋", Requestable::Subscription(RespTargetSubscriptions).button_text());
-        assert_eq!("Subscription 📋", Requestable::Subscription(RespTargetSubscriptions).to_string());
-        let b = Buttons::SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(RespTargetSubscriptions)));
-        assert_eq!(b.button_text(), Requestable::Subscription(RespTargetSubscriptions).button_text());
-        assert_eq!(Requestable::Subscription(RespTargetSubscriptions).to_string(), Requestable::Subscription(RespTargetSubscriptions).button_text());
+        assert_eq!("Subscription 📋", Requestable::Subscription(SubscriptionRequester).button_text());
+        assert_eq!("Subscription 📋", Requestable::Subscription(SubscriptionRequester).to_string());
+        let b = Buttons::SearchButtons(SearchCommandButtons::Target(Requestable::Subscription(SubscriptionRequester)));
+        assert_eq!(b.button_text(), Requestable::Subscription(SubscriptionRequester).button_text());
+        assert_eq!(Requestable::Subscription(SubscriptionRequester).to_string(), Requestable::Subscription(SubscriptionRequester).button_text());
     }
 }
 

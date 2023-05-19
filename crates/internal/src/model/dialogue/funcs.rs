@@ -1,4 +1,5 @@
 
+use error_traits::WrapInOk;
 use google_youtube3::oauth2::read_application_secret;
 use teloxide::types::{CallbackQuery, Message};
 use url::Url;
@@ -7,7 +8,9 @@ use crate::model::dialogue::types::{DialogueData, Either, ListCommandSettings, S
 use crate::model::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
 use crate::model::youtube::funcs::make_auth_url;
 use crate::model::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
+use crate::model::net::types::{QUERY_SEPARATOR, STATE_CODE};
 use crate::StdResult;
+
 
 pub(crate) fn search_settings_update_or_default(d_state : State) -> SearchCommandSettings
 {
@@ -60,11 +63,10 @@ pub(crate) async fn default_auth_url(user_id : &str) -> eyre::Result<Url>
     
     let (client_id, redirect_uri) = (secret.client_id.as_str(), secret.redirect_uris[0].as_str());
     let (scope, response_type) = (&[SCOPE_YOUTUBE_READONLY], RESPONSE_TYPE);
-    let state = format!("for_user={user_id}xplusxstate_code=liuhw9p38y08q302q02h0gp9g0p2923924u0s");
+    let state = format!("for_user={user_id}{QUERY_SEPARATOR}state_code={STATE_CODE}");
     let optional_params = &[("ACCESS_TYPE".to_owned().to_lowercase(), ACCESS_TYPE), ("state".to_owned(), state.as_str())];
     
-    let url = make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?;
-    Ok(url)
+    make_auth_url(client_id, redirect_uri, response_type, scope, optional_params)?.in_ok()
 }
 
 /// Helper function used for `handle_text` handler.

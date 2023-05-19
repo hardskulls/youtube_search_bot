@@ -25,6 +25,7 @@ use internal::errors::NetworkError;
 use internal::handlers::{handle_callback, handle_commands, handle_text, handle_unknown_command, is_other_command};
 
 use app::formatting::format_logs;
+use app::net;
 
 
 #[tokio::main]
@@ -75,7 +76,7 @@ async fn main() -> eyre::Result<()>
             .branch(callback_handler);
     
     // [!!] Must be after `bot.delete_webhook()` [!!]
-    let update_listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, url)).await?;
+    let update_listener = net::webhook_with_custom_server(bot.clone(), webhooks::Options::new(addr, url)).await?;
     let err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
 
     log::info!("[ LOG ] ⚙(✅) <| Build finished |>");

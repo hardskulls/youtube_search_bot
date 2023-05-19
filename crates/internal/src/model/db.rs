@@ -2,8 +2,11 @@
 use error_traits::WrapInOk;
 use google_youtube3::oauth2::ApplicationSecret;
 use redis::Commands;
+use crate::model::net::funcs::build_post_request;
+use crate::model::net::types::GET_ACCESS_TOKEN_URL;
 
 use crate::model::youtube::types::YouTubeAccessToken;
+
 
 /// Required to avoid key collisions.
 const TOKEN_PREFIX : &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
@@ -37,18 +40,20 @@ pub(crate) fn delete_access_token(user_id : &str, db_url : &str) -> eyre::Result
 }
 
 /// Because `refresh token` is received only once, it needs to be moved from old token to a new one.
-pub(crate) fn combine_old_new_tokens(old_token_user_id : &str, new_token : YouTubeAccessToken, db_url : &str) -> YouTubeAccessToken
+pub(crate) fn combine_old_new_tokens(user_id: &str, new_token : YouTubeAccessToken, db_url : &str)
+    -> YouTubeAccessToken
 {
-    match get_access_token(old_token_user_id, db_url)
+    match get_access_token(user_id, db_url)
     {
         Ok(YouTubeAccessToken { refresh_token : Some(ref_token), .. }) =>
-            YouTubeAccessToken { refresh_token : ref_token.into(), ..new_token },
+            YouTubeAccessToken { refresh_token : Some(ref_token), ..new_token },
         _ => new_token
     }
 }
 
 /// Constructs request for acquiring new `access token`.
-pub(crate) fn refresh_token_req(oauth2_secret : ApplicationSecret, token : &YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
+pub(crate) fn build_refresh_access_token_req(oauth2_secret : ApplicationSecret, token : &YouTubeAccessToken)
+    -> eyre::Result<reqwest::RequestBuilder>
 {
     let params =
         [
@@ -57,13 +62,7 @@ pub(crate) fn refresh_token_req(oauth2_secret : ApplicationSecret, token : &YouT
             ("refresh_token", token.refresh_token.as_ref().ok_or(eyre::eyre!("No refresh token"))?),
             ("grant_type", "refresh_token")
         ];
-    let uri = reqwest::Url::parse_with_params("https://oauth2.googleapis.com/token", &params)?;
-    reqwest::Client::new()
-        .post(reqwest::Url::parse("https://oauth2.googleapis.com/token")?)
-        .header(hyper::header::HOST, "oauth2.googleapis.com")
-        .header(hyper::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(uri.query().ok_or(eyre::eyre!("No Query!"))?.to_owned())
-        .in_ok()
+    build_post_request(GET_ACCESS_TOKEN_URL, params)
 }
 
 /// Makes request for new `access token` if needed, then saves and returns it.
@@ -72,15 +71,16 @@ pub(crate) async fn refresh_access_token
     user_id : &str,
     token : YouTubeAccessToken,
     db_url : &str,
-    refresh_token_request : reqwest::RequestBuilder
+    refresh_access_token_req: reqwest::RequestBuilder
 )
     -> eyre::Result<YouTubeAccessToken>
 {
-    let time_remains = (token.expires_in - time::OffsetDateTime::now_utc()).whole_minutes();
-    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{:?}' |] )", &time_remains);
-    if time_remains < 10
+    let time_remains = token.expires_in - time::OffsetDateTime::now_utc();
+    let token_expires_after = time_remains.whole_minutes();
+    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{:?}' |] )", &token_expires_after);
+    if token_expires_after < 10
     {
-        let resp = refresh_token_request.send().await?;
+        let resp = refresh_access_token_req.send().await?;
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'resp.status()' is [| '{:?}' |] )", &resp.status());
         let new_token = resp.json::<YouTubeAccessToken>().await?;
         let combined_token = YouTubeAccessToken { refresh_token : token.refresh_token, ..new_token };
@@ -161,7 +161,7 @@ mod tests
             };
         
         let secret = oauth2::read_application_secret(secret_path).await.unwrap();
-        let mut token_req = refresh_token_req(secret, &token).unwrap();
+        let mut token_req = build_refresh_access_token_req(secret, &token).unwrap();
         token_req = token_req.query(&[("key", &oauth_api_key)]);
         
         let refreshed_access_token =

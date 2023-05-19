@@ -2,28 +2,21 @@
 use error_traits::WrapInOk;
 use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
 use reqwest::{Client, RequestBuilder};
-use serde::{Deserialize, Serialize};
 
+use crate::model::net::types::{PlaylistRequester, SubscriptionRequester, YOUTUBE_PLAYLISTS_API, YOUTUBE_SUBSCRIPTIONS_API};
 use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
 
-// TODO : Choose a better naming and description.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RespTargetSubscriptions;
-
-// TODO : Choose a better naming and description.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RespTargetPlaylists;
 
 // TODO : Choose a better naming.
 /// Trait for building 'list' request in YouTube API.
-pub(crate) trait YouTubeApiListRequestBuilder
+pub(crate) trait YouTubeApiRequestBuilder
 {
     type Target : serde::de::DeserializeOwned;
     
     fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
-impl YouTubeApiListRequestBuilder for RespTargetSubscriptions
+impl YouTubeApiRequestBuilder for SubscriptionRequester
 {
     type Target = SubscriptionListResponse;
     
@@ -31,8 +24,7 @@ impl YouTubeApiListRequestBuilder for RespTargetSubscriptions
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
-            client
-                .get(reqwest::Url::parse("https://www.googleapis.com/youtube/v3/subscriptions")?)
+            client.get(reqwest::Url::parse(YOUTUBE_SUBSCRIPTIONS_API)?)
                 .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
                 .header(reqwest::header::AUTHORIZATION, format!("Bearer {access_token}"))
                 .header(reqwest::header::ACCEPT, "application/json");
@@ -42,7 +34,7 @@ impl YouTubeApiListRequestBuilder for RespTargetSubscriptions
     }
 }
 
-impl YouTubeApiListRequestBuilder for RespTargetPlaylists
+impl YouTubeApiRequestBuilder for PlaylistRequester
 {
     type Target = PlaylistListResponse;
     
@@ -50,8 +42,7 @@ impl YouTubeApiListRequestBuilder for RespTargetPlaylists
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
-            client
-                .get(reqwest::Url::parse("https://youtube.googleapis.com/youtube/v3/playlists")?)
+            client.get(reqwest::Url::parse(YOUTUBE_PLAYLISTS_API)?)
                 .query(&[("part", "snippet,contentDetails"), ("maxResults", "50"), ("mine", "true")])
                 .header(reqwest::header::AUTHORIZATION, format!("Bearer {access_token}"))
                 .header(reqwest::header::ACCEPT, "application/json");

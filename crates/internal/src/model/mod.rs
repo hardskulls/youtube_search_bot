@@ -18,6 +18,7 @@ pub(crate) mod net
 {
     pub(crate) mod funcs;
     pub(crate) mod traits;
+    pub(crate) mod types;
 }
 pub(crate) mod commands
 {

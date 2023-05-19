@@ -1,21 +1,21 @@
 
-
 use std::fmt::Debug;
 
 use error_traits::{WrapInErr, WrapInOk};
 
 use crate::model::keyboards::types::{SearchIn, Sorting};
 use crate::model::net::funcs::join;
-use crate::model::net::traits::{YouTubeApiListRequestBuilder, YouTubeApiResponsePage};
+use crate::model::net::traits::{YouTubeApiRequestBuilder, YouTubeApiResponsePage};
 use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
 use crate::model::youtube::types::{AUTH_URL_BASE, RequiredAuthURLParams, SearchableItem};
 use crate::StdResult;
+
 
 /// Makes a single call to `YouTube API` go get one page of items.
 pub(crate) async fn items_request<T>(client : &reqwest::Client, access_token : &str, req_builder : &T, page_token : Option<String>)
     -> eyre::Result<T::Target>
     where
-        T : YouTubeApiListRequestBuilder
+        T : YouTubeApiRequestBuilder
 {
     let resp = req_builder.build_req(client, access_token, page_token)?.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
@@ -53,7 +53,7 @@ pub(crate) async fn search_items<T>
 )
     -> Vec<SearchableItem>
     where
-        T : YouTubeApiListRequestBuilder,
+        T : YouTubeApiRequestBuilder,
         T::Target : Default + Debug + YouTubeApiResponsePage
 {
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
@@ -75,6 +75,7 @@ pub(crate) async fn search_items<T>
     store_in.into_iter().map(|i| i.into_item()).collect()
 }
 
+#[allow(clippy::unwrap_used)]
 /// Returns all items on user's channel.
 pub(crate) async fn list_items<T>
 (
@@ -85,7 +86,7 @@ pub(crate) async fn list_items<T>
 )
     -> Vec<SearchableItem>
     where
-        T : YouTubeApiListRequestBuilder,
+        T : YouTubeApiRequestBuilder,
         T::Target : Default + Debug + YouTubeApiResponsePage,
 {
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
@@ -93,15 +94,18 @@ pub(crate) async fn list_items<T>
     let client = reqwest::Client::new();
     let resp = items_request(&client, access_token, &req_builder, None).await;
     let search_res = resp.unwrap_or_default();
-    let cap = search_res.total_results().unwrap_or(50) as usize;
     
+    let cap = (search_res.total_results().unwrap()).min(res_limit) as usize;
     let mut store_in = Vec::with_capacity(cap);
-    let stop_if = |_ : &_| false;
+    let current_cap = std::sync::Arc::new(std::sync::Mutex::new(store_in.len()));
+    
+    let stop_if = |_ : &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f =
         |item : T::Target|
             {
                 if let Some(mut i) = item.items()
                 { store_in.append(&mut i) }
+                *current_cap.lock().unwrap() = store_in.len()
             };
     
     pagination(req_builder, access_token, stop_if, f).await;
@@ -118,7 +122,7 @@ pub(crate) async fn list_items<T>
 /// Stop condition can be set using `stop_if`.
 pub(crate) async fn pagination<I, F, S>(req_builder : I, access_token : &str, stop_if : S, f : F)
     where
-        I : YouTubeApiListRequestBuilder,
+        I : YouTubeApiRequestBuilder,
         I::Target : Default + Debug + YouTubeApiResponsePage,
         F : FnMut(I::Target),
         S : Fn(&I::Target) -> bool,

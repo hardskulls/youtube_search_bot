@@ -13,12 +13,11 @@ internal = { path = "../internal" }
 teloxide = { version = "0.12.2", features = ["webhooks-axum", "redis-storage"] }
 
 #[:: Net ::]
-tokio = { version = "1.28.0", features = ["macros", "rt-multi-thread"] }
-reqwest = "0.11.16"
-axum = { version = "0.6.17", features = ["macros", "form", "http1", "http2", "json", "multipart", "query"] }
+tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
+axum = { version = "0.6.18", features = [] }
+reqwest = { version = "0.11.18", features = [] }
 #url = { version = "2.3.1", features = [] }
 #hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
-
 #time = { version = "0.3.17", features = [] }
 
 #[:: Errors ::]

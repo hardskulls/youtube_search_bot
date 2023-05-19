@@ -1,6 +1,8 @@
+
 use parse_display::Display;
 use serde::{Deserialize, Deserializer, Serialize};
 use crate::model::youtube::traits::Searchable;
+
 
 /// Represents a `token` as returned by `OAuth2` servers.
 ///
@@ -26,21 +28,21 @@ pub(crate) struct YouTubeAccessToken
     pub(crate) token_type : String,
 }
 
-/// One of two internal representations of `YouTubeAccessToken` `scope` field.
-#[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
-#[serde(untagged)]
-enum ScopeInternalRepr
-{
-    SpaceSeparatedScopes(String),
-    VecOfScopes(Vec<String>),
-}
-
 /// Custom serde helper for `YouTubeAccessToken` `scope` field.
-/// Serialized representation might be a string of space separated scopes or a vector of scopes.
+/// Serialized representation might be a) string of space separated scopes or b) vector of scopes.
 fn scope_field_deserialize<'de, D>(deserializer : D) -> Result<Vec<String>, D::Error>
     where
         D : Deserializer<'de>,
 {
+    /// One of two internal representations of `YouTubeAccessToken` `scope` field.
+    #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
+    #[serde(untagged)]
+    enum ScopeInternalRepr
+    {
+        SpaceSeparatedScopes(String),
+        VecOfScopes(Vec<String>),
+    }
+    
     match ScopeInternalRepr::deserialize(deserializer)?
     {
         ScopeInternalRepr::VecOfScopes(vec_of_scopes) => Ok(vec_of_scopes),
@@ -52,21 +54,21 @@ fn scope_field_deserialize<'de, D>(deserializer : D) -> Result<Vec<String>, D::E
     }
 }
 
-/// One of two internal representations of `YouTubeAccessToken` `expires_in` field.
-#[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
-#[serde(untagged)]
-enum ExpiresInInternalRepr
-{
-    ExpiresAfterSeconds(i64),
-    ExpiresAt(time::OffsetDateTime)
-}
-
 /// Custom serde helper for `YouTubeAccessToken` `expires_in` field.
 /// Serialized representation might be a string of space separated scopes or vector of scopes.
 fn expires_in_field_deserialize<'de, D>(deserializer : D) -> Result<time::OffsetDateTime, D::Error>
     where
         D : Deserializer<'de>
 {
+    /// One of two internal representations of `YouTubeAccessToken` `expires_in` field.
+    #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
+    #[serde(untagged)]
+    enum ExpiresInInternalRepr
+    {
+        ExpiresAfterSeconds(i64),
+        ExpiresAt(time::OffsetDateTime)
+    }
+    
     let seconds_or_date_time = ExpiresInInternalRepr::deserialize(deserializer)?;
     match seconds_or_date_time
     {
@@ -79,9 +81,11 @@ fn expires_in_field_deserialize<'de, D>(deserializer : D) -> Result<time::Offset
     }
 }
 
+/// Google OAuth2 url.
 pub(crate) const AUTH_URL_BASE : &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
-/// Required in token request to get a code to be exchanged for `access token`.
+/// Required in token request to get exchange code.
+/// The code will be exchanged for an `access token`).
 pub(crate) const RESPONSE_TYPE : &str = "code";
 
 pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
@@ -127,14 +131,6 @@ mod tests
     use time::Duration;
     use super::*;
     
-    #[test]
-    fn enum_deserialize_test()
-    {
-        let s = "3600";
-        let _seconds_or_date_time = dbg!(serde_json::from_str::<ExpiresInInternalRepr>(s).unwrap());
-        let s = "[2022,360,19,23,6,313629700,0,0,0]";
-        let _seconds_or_date_time = dbg!(serde_json::from_str::<ExpiresInInternalRepr>(s).unwrap());
-    }
     
     #[test]
     fn serialize_deserialize_string_test()
@@ -165,15 +161,18 @@ mod tests
                 }
             "#;
         let deserialized_token = serde_json::from_str::<YouTubeAccessToken>(token);
+        
         assert!(matches!(deserialized_token, Ok(_)), "cause: {deserialized_token:?}");
         
         let deserialized_token = dbg!(deserialized_token.unwrap());
+        
         assert!(!deserialized_token.scope.is_empty());
         assert!(deserialized_token.scope.contains(&"https://www.googleapis.com/auth/drive.metadata.readonly".to_owned()));
         assert!(deserialized_token.expires_in > time::OffsetDateTime::now_utc() + Duration::minutes(59));
         assert_eq!(deserialized_token.access_token, "1/fFAGRNJru1FTz70BzhT3Zg");
         assert!(matches!(deserialized_token.refresh_token, Some(_)));
         assert_eq!(deserialized_token.refresh_token.as_ref().unwrap(), "1//xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI");
+        
         let serialized_token = dbg!(serde_json::to_string(&deserialized_token).unwrap());
         let _deserialized_again_token = dbg!(serde_json::from_str::<YouTubeAccessToken>(&serialized_token).unwrap());
     }
@@ -188,6 +187,7 @@ mod tests
         assert!(matches!(subs_list_resp.page_info, Some(..)));
         assert!(matches!(subs_list_resp.kind, Some(..)));
         assert!(matches!(subs_list_resp.etag, Some(..)));
+        
         let s : &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
         
         assert!(matches!(s.snippet, Some(..)));

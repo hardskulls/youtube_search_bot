@@ -1,0 +1,34 @@
+
+use serde::{Deserialize, Serialize};
+
+
+/// Custom query separator to encode multiple key-value pairs.into one url query value (key=value&key=value).
+pub const QUERY_SEPARATOR : &str = "xplusx";
+
+/// State code to check in incoming oauth2 response.
+pub const STATE_CODE : &str = "liuhw9p38y08q302q02h0gp9g0p2923924u0s";
+
+/// Url for acquiring `access token` via
+/// - exchanging `auth code` (first time)
+///
+/// or
+/// - refreshing `access token` using `refresh token`.
+pub const GET_ACCESS_TOKEN_URL : &str = "https://oauth2.googleapis.com/token";
+
+/// Url for revoking `access token.
+pub const REVOKE_ACCESS_TOKEN_URL : &str = "https://oauth2.googleapis.com/revoke";
+
+pub const YOUTUBE_SUBSCRIPTIONS_API: &str = "https://www.googleapis.com/youtube/v3/subscriptions";
+
+pub const YOUTUBE_PLAYLISTS_API: &str = "https://youtube.googleapis.com/youtube/v3/playlists";
+
+
+// TODO : Choose a better naming and description.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SubscriptionRequester;
+
+// TODO : Choose a better naming and description.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PlaylistRequester;
+
+

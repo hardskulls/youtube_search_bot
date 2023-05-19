@@ -12,17 +12,16 @@ edition = "2021"
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
 google-youtube3 = "=4.0.1"
-tokio = { version = "1.28.0", features = ["rt"] }
+#tokio = { version = "1.28.0", features = ["rt"] }
 
 #[:: Net ::]
-axum = { version = "0.6.17", features = ["macros", "form", "json", "headers", "original-uri", "query"] }
+axum = { version = "0.6.18", features = [] }
 url = { version = "2.3.1", features = [] }
-form_urlencoded = { version = "1.1.0", features = [] }
-reqwest = { version = "0.11.16", features = ["blocking", "json", "multipart"] }
-hyper = { version = "0.14.26", features = ["client", "http1", "http2", "runtime"] }
-hyper-rustls = { version = "0.24.0", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
+reqwest = { version = "0.11.18", features = ["json"] }
+time = "0.3.21"
+#hyper = { version = "0.14.26", features = ["client", "http1", "http2", "runtime"] }
+#hyper-rustls = { version = "0.24.0", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
 #yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
-time = "0.3.20"
 #urlencoding = { version = "2.1.2", features = [] }
 
 #[:: DB ::]
@@ -33,23 +32,24 @@ redis = { version = "0.23.0", features = ["tokio-comp", "tls", "tokio-native-tls
 #[:: Errors ::]
 error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"] }
 thiserror = "1.0.40"
-#error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 eyre = { version = "0.6.8", features = [] }
+#error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 
 #[:: Logs ::]
 log = "0.4.17"
 
 #[:: Serialization ::]
+parse-display = { version = "0.8.0", features = [] }
+to_debug = "0.1.0"
+serde = { version  = "1.0.163", features = ["derive"] }
+serde_json = { version = "1.0.96", features = ["std"] }
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
-parse-display = { version = "0.8.0", features = ["std"] }
-to_debug = "0.1.0"
-serde = { version  = "1.0.160", features = ["derive"] }
-serde_json = { version = "1.0.96", features = ["std"] }
 
 [dev-dependencies]
-tokio = { version = "1.28.0", features = ["macros"] }
+tokio = { version = "1.28.1", features = ["macros"] }
 miette = { version = "5.8.0", features = ["fancy"] }
 simple_logger = "4.1.0"
+#yt = { version = "5.0.2+20230123", package = "google-youtube3" }
 
 
