@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub const QUERY_SEPARATOR : &str = "xplusx";
 
 /// State code to check in incoming oauth2 response.
-pub const STATE_CODE : &str = "liuhw9p38y08q302q02h0gp9g0p2923924u0s";
+pub const STATE_CODE : &str = env!("STATE_CODE");
 
 /// Url for acquiring `access token` via
 /// - exchanging `auth code` (first time)
