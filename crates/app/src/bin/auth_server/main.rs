@@ -13,7 +13,9 @@ use app::formatting::format_logs;
 #[tokio::main]
 async fn main() -> eyre::Result<()>
 {
-    env_logger::Builder::from_default_env().format(format_logs).try_init()?;
+    env_logger::Builder::from_default_env()
+        .format(format_logs)
+        .try_init()?;
 
     log::info!(" [:: LOG ::]    ( ⚙ <| Building 'auth_server'... |> ⚙ )");
     let router : Router =
