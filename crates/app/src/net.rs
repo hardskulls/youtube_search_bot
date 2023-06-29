@@ -1,3 +1,4 @@
+
 use std::convert::Infallible;
 use std::future::Future;
 use std::net::SocketAddr;
@@ -6,6 +7,8 @@ use axum::routing::any;
 use teloxide::requests::Requester;
 use teloxide::stop::StopToken;
 use teloxide::update_listeners::{UpdateListener, webhooks};
+
+use internal::auth_server::handle_auth_code;
 
 async fn spawn_background_server
 (
