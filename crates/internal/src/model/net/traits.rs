@@ -1,5 +1,5 @@
 
-use error_traits::WrapInOk;
+use error_traits::WrapInRes;
 use google_youtube3::api::{Playlist, PlaylistListResponse, Subscription, SubscriptionListResponse};
 use reqwest::{Client, RequestBuilder};
 
@@ -11,16 +11,16 @@ use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
 /// Trait for building 'list' request in YouTube API.
 pub(crate) trait YouTubeApiRequestBuilder
 {
-    type Target : serde::de::DeserializeOwned;
+    type Target: serde::de::DeserializeOwned;
     
-    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>) -> eyre::Result<RequestBuilder>;
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>) -> eyre::Result<RequestBuilder>;
 }
 
 impl YouTubeApiRequestBuilder for SubscriptionRequester
 {
     type Target = SubscriptionListResponse;
     
-    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>)
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -38,7 +38,7 @@ impl YouTubeApiRequestBuilder for PlaylistRequester
 {
     type Target = PlaylistListResponse;
     
-    fn build_req(&self, client : &Client, access_token : &str, page_token : Option<String>)
+    fn build_req(&self, client: &Client, access_token: &str, page_token: Option<String>)
         -> eyre::Result<RequestBuilder>
     {
         let mut req =
@@ -61,7 +61,7 @@ impl YouTubeApiRequestBuilder for PlaylistRequester
 /// Trait represents a page of response from request to YouTube API.
 pub(crate) trait YouTubeApiResponsePage
 {
-    type Item : Searchable + IntoSearchableItem;
+    type Item: Searchable + IntoSearchableItem;
     
     fn next_page_token(&self) -> Option<String>;
     

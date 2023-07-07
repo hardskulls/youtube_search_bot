@@ -11,11 +11,11 @@ use internal::commands::Command;
 use internal::dialogue::DialogueData;
 use internal::handlers::{handle_callback, handle_commands, handle_text, handle_unknown_command, is_other_command};
 
-pub async fn schema_and_storage<S>(build_storage : impl Future<Output = Arc<S>>)
+pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
     -> (Handler<'static, DependencyMap, Result<(), ()>, DpHandlerDescription>, Arc<S>)
     where
-        S : Storage<DialogueData> + Send + Sync + ?Sized + 'static,
-        <S as Storage<DialogueData>>::Error : Debug + Send
+        S: Storage<DialogueData> + Send + Sync + ?Sized + 'static,
+        <S as Storage<DialogueData>>::Error: Debug + Send
 {
     let storage = build_storage.await;
     let message_handler =

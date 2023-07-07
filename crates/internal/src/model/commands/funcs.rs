@@ -1,5 +1,5 @@
 
-use error_traits::{LogErr, MapErrBy, WrapInErr, WrapInOk};
+use error_traits::{LogErr, MapErrBy, WrapInRes};
 
 use crate::{FlatRes, StdResult};
 use crate::model::db::{delete_access_token, get_access_token};
@@ -11,7 +11,7 @@ use crate::model::utils::{HTMLise, maybe_print};
 use crate::model::youtube::types::YouTubeAccessToken;
 
 
-fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
+fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::build_log_out_req] :: [Started]");
     let token = token.refresh_token.as_deref().unwrap_or(token.access_token.as_str());
@@ -20,7 +20,7 @@ fn build_log_out_req(token : YouTubeAccessToken) -> eyre::Result<reqwest::Reques
 }
 
 /// Revoke `refresh token` and delete token from db.
-pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTriplet>
+pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
@@ -42,7 +42,7 @@ pub(crate) async fn log_out(user_id : &str, db_url : &str) -> FlatRes<MessageTri
 }
 
 /// Pretty print config.
-fn print_search_config(search_settings : &SearchCommandSettings) -> String
+fn print_search_config(search_settings: &SearchCommandSettings) -> String
 {
     let SearchCommandSettings { target, search_in, .. } = search_settings;
     let SearchCommandSettings { result_limit, text_to_search, .. } = search_settings;
@@ -62,7 +62,7 @@ fn print_search_config(search_settings : &SearchCommandSettings) -> String
 }
 
 /// Pretty print config.
-fn print_list_config(list_settings : &ListCommandSettings) -> String
+fn print_list_config(list_settings: &ListCommandSettings) -> String
 {
     let ListCommandSettings { target, result_limit, sorting } = list_settings;
     let t =
@@ -79,11 +79,11 @@ fn print_list_config(list_settings : &ListCommandSettings) -> String
     { format!("Your list parameters are{t}") }
 }
 
-pub(crate) async fn info(dialogue : &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
+pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
-    let create_msg = |m : &str| (m.to_owned(), None, None);
+    let create_msg = |m: &str| (m.to_owned(), None, None);
     let user_error: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
     
     let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
@@ -153,7 +153,7 @@ mod tests
     
     impl<T, E> ShortUnwrap<T> for Result<T, E>
         where
-            E : std::fmt::Debug
+            E: std::fmt::Debug
     {
         fn unwr(self) -> T
         { self.unwrap() }
@@ -162,7 +162,7 @@ mod tests
     #[test]
     fn test_request_builder()
     {
-        let params : &[(&str, &str)] = &[("token", "HeyHo"), ("answer", "YoHoHo")];
+        let params: &[(&str, &str)] = &[("token", "HeyHo"), ("answer", "YoHoHo")];
         let expected_query = "token=HeyHo&answer=YoHoHo";
         let body_kv_pairs = url::form_urlencoded::Serializer::new(String::new()).extend_pairs(params).finish();
         

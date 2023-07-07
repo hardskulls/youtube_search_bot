@@ -132,8 +132,8 @@ mod tests
     #[test]
     fn display_derive_test()
     {
-        let serialized_enum : String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
-        let deserialized_enum : Buttons = serde_json::from_str(&serialized_enum).unwrap();
+        let serialized_enum: String = serde_json::to_string(&Buttons::SearchButtons(SearchInOptions)).unwrap();
+        let deserialized_enum: Buttons = serde_json::from_str(&serialized_enum).unwrap();
         assert!(matches!(deserialized_enum, Buttons::SearchButtons(SearchInOptions)));
     }
     

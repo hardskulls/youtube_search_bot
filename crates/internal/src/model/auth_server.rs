@@ -1,7 +1,7 @@
 
 use axum::body::BoxBody;
 use axum::http::Request;
-use error_traits::{MapErrToString, WrapInErr, WrapInOk};
+use error_traits::{MapErrToString, WrapInRes};
 use google_youtube3::oauth2::read_application_secret;
 use axum::body::Body;
 use reqwest::RequestBuilder;
@@ -14,7 +14,7 @@ use crate::model::net::types::{GET_ACCESS_TOKEN_URL, QUERY_SEPARATOR, STATE_CODE
 
 
 /// Build request access token using `auth code`.
-async fn request_access_token(auth_code : &str) -> eyre::Result<RequestBuilder>
+async fn request_access_token(auth_code: &str) -> eyre::Result<RequestBuilder>
 {
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
@@ -29,17 +29,17 @@ async fn request_access_token(auth_code : &str) -> eyre::Result<RequestBuilder>
     build_post_request(GET_ACCESS_TOKEN_URL, params)
 }
 
-fn get_query(req : &Request<Body>) -> String
+fn get_query(req: &Request<Body>) -> String
 {
     let url_encoded_query = req.uri().query().unwrap_or("");
-    let decoded_query : String =
+    let decoded_query: String =
         url::form_urlencoded::parse(url_encoded_query.as_bytes())
             .map(|(k, v)| [&k, "=", &v, "&"].concat())
             .collect();
     decoded_query
 }
 
-fn redirect_user(redirect_to : &str) -> StdResult<axum::response::Response<BoxBody>, String>
+fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBody>, String>
 {
     axum::response::Response::builder()
         .header(reqwest::header::LOCATION, redirect_to)
@@ -50,11 +50,11 @@ fn redirect_user(redirect_to : &str) -> StdResult<axum::response::Response<BoxBo
 
 struct CodeAndUserId<'a>
 {
-    for_user : &'a str,
-    auth_code : &'a str
+    for_user: &'a str,
+    auth_code: &'a str
 }
 
-fn get_params_from_query(decoded_query : &'_ str) -> StdResult<CodeAndUserId<'_>, &'static str>
+fn get_params_from_query(decoded_query: &'_ str) -> StdResult<CodeAndUserId<'_>, &'static str>
 {
     let state = find_by_key(decoded_query, "&", "state").map_err(|_| "state not found")?;
     
@@ -67,7 +67,7 @@ fn get_params_from_query(decoded_query : &'_ str) -> StdResult<CodeAndUserId<'_>
     Ok(CodeAndUserId { for_user, auth_code })
 }
 
-pub async fn handle_auth_code(req : Request<Body>) -> axum::response::Result<axum::response::Response>
+pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
     
@@ -90,7 +90,7 @@ pub async fn handle_auth_code(req : Request<Body>) -> axum::response::Result<axu
     redirect.in_ok()
 }
 
-pub async fn serve_all(req : Request<Body>) -> &'static str
+pub async fn serve_all(req: Request<Body>) -> &'static str
 {
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
     

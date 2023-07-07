@@ -113,7 +113,7 @@ impl KeyboardText for ListCommandButtons
 }
 
 
-pub(crate) trait ButtonText : Display
+pub(crate) trait ButtonText: Display
 {
     fn button_text(&self) -> String
     {

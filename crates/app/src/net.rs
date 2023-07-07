@@ -12,10 +12,10 @@ use internal::auth_server::handle_auth_code;
 
 async fn spawn_background_server
 (
-    addr : SocketAddr,
-    router : axum::Router,
-    stop_flag : impl Future<Output = ()> + Send + 'static,
-    stop_token : StopToken
+    addr: SocketAddr,
+    router: axum::Router,
+    stop_flag: impl Future<Output = ()> + Send + 'static,
+    stop_token: StopToken
 )
 {
     let serve =
@@ -31,11 +31,11 @@ async fn spawn_background_server
     tokio::spawn(serve);
 }
 
-pub async fn webhook_with_custom_server<R>(bot : R, options : webhooks::Options)
+pub async fn webhook_with_custom_server<R>(bot: R, options: webhooks::Options)
     -> Result<impl UpdateListener<Err = Infallible>, R::Err>
     where
-        R : Requester + Send + 'static,
-        R::DeleteWebhook : Send,
+        R: Requester + Send + 'static,
+        R::DeleteWebhook: Send,
 {
     let webhooks::Options { address, .. } = options;
     let url = options.url.clone();
@@ -51,7 +51,7 @@ pub async fn webhook_with_custom_server<R>(bot : R, options : webhooks::Options)
     Ok(update_listener)
 }
 
-async fn serve_all(req : axum::http::Request<axum::body::Body>) -> &'static str
+async fn serve_all(req: axum::http::Request<axum::body::Body>) -> &'static str
 {
     log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
 

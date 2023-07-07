@@ -1,5 +1,5 @@
 
-use error_traits::{LogErr, MapErrBy, WrapInErr, WrapInOk};
+use error_traits::{LogErr, MapErrBy, WrapInRes};
 
 use teloxide::types::Message;
 
@@ -11,10 +11,11 @@ use crate::StdResult;
 use crate::view::types::Sendable;
 
 
-pub(crate) async fn get_required_text_state(msg : Message, dialogue : TheDialogue)
+pub(crate) async fn get_required_text_state(msg: Message, dialogue: TheDialogue)
     -> StdResult<(String, DialogueData, Buttons), String>
 {
     log::info!(" [:: LOG ::]     @[fn]:[get_required_text_state] :: [Started]");
+    
     let log_prefix = " [:: LOG ::]    | @:[fn::send_message] error: ";
     let user_error = || "⚠ Internal error ⚠";
     
@@ -24,24 +25,24 @@ pub(crate) async fn get_required_text_state(msg : Message, dialogue : TheDialogu
     
     let callback = dialogue_data.last_callback.as_ref().ok_or_else(user_error).log_err(log_prefix)?;
     let callback_data = get_callback_data(callback).await.log_err(log_prefix).map_err_by(user_error)?;
-    let keyboard : Buttons = serde_json::from_str(&callback_data).log_err(log_prefix).map_err_by(user_error)?;
+    let keyboard: Buttons = serde_json::from_str(&callback_data).log_err(log_prefix).map_err_by(user_error)?;
     let text = get_text(&msg).await.log_err(log_prefix).map_err_by(user_error)?;
     
     (text.into(), dialogue_data, keyboard).in_ok()
 }
 
-pub(crate) async fn handle_text<T>(msg : Message, dialogue : TheDialogue)
-    -> Sendable<T, String>
+pub(crate) async fn handle_text(msg: Message, dialogue: TheDialogue)
+    -> Sendable<String>
 {
     log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_text] :: [Started]");
-    let (text, d_data, buttons) : (String, DialogueData, Buttons) =
+    let (text, d_data, buttons): (String, DialogueData, Buttons) =
         match get_required_text_state(msg, dialogue).await
         {
             Ok(ok) => ok,
             Err(e) => return Sendable::SendError(e)
         };
     
-    let (message_text, opt_dialogue_data) : (&str, Option<DialogueData>) =
+    let (message_text, opt_dialogue_data): (&str, Option<DialogueData>) =
         match (d_data.state.as_ref(), buttons)
         {
             (State::Starting, ..) => ("Bot is running! 🚀 \nSend /start command to start a game 🕹", None),

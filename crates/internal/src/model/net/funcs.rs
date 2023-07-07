@@ -1,18 +1,18 @@
 
 use std::borrow::Borrow;
-use error_traits::WrapInOk;
+use error_traits::WrapInRes;
 use reqwest::RequestBuilder;
 use crate::model::errors::ParseError;
 use crate::StdResult;
 
 
 /// Builds a post request with key-value pairs placed in body.
-pub(crate) fn build_post_request<P, K, V>(url : &str, body_kv_pairs : P) -> eyre::Result<RequestBuilder>
+pub(crate) fn build_post_request<P, K, V>(url: &str, body_kv_pairs: P) -> eyre::Result<RequestBuilder>
     where
-        P : IntoIterator,
-        P::Item : Borrow<(K, V)>,
-        K : AsRef<str>,
-        V : AsRef<str>
+        P: IntoIterator,
+        P::Item: Borrow<(K, V)>,
+        K: AsRef<str>,
+        V: AsRef<str>
 {
     let url = reqwest::Url::parse(url)?;
     let host = url.host_str().ok_or(eyre::eyre!("No host in url string"))?.to_string();
@@ -25,8 +25,8 @@ pub(crate) fn build_post_request<P, K, V>(url : &str, body_kv_pairs : P) -> eyre
         .in_ok()
 }
 
-pub(crate) fn join<T>(pieces : &[T], separator : &str) -> String
-    where T : AsRef<str>,
+pub(crate) fn join<T>(pieces: &[T], separator: &str) -> String
+    where T: AsRef<str>,
 {
     let mut iter = pieces.iter();
     let first =
@@ -36,7 +36,7 @@ pub(crate) fn join<T>(pieces : &[T], separator : &str) -> String
             None => return String::new(),
         };
     let num_separators = pieces.len() - 1;
-    let pieces_size : usize = pieces.iter().map(|p| p.as_ref().len()).sum();
+    let pieces_size: usize = pieces.iter().map(|p| p.as_ref().len()).sum();
     let size = pieces_size + separator.len() * num_separators;
     let mut result = String::with_capacity(size);
     result.push_str(first.as_ref());
@@ -49,10 +49,10 @@ pub(crate) fn join<T>(pieces : &[T], separator : &str) -> String
     result
 }
 
-pub(crate) fn query_pairs<'a, 'b>(url_query : &'a str, sep : &'b str)
+pub(crate) fn query_pairs<'a, 'b>(url_query: &'a str, sep: &'b str)
     -> StdResult<impl Iterator<Item = (&'a str, &'a str)> + 'b, ParseError>
     where
-        'a : 'b
+        'a: 'b
 {
     let res = url_query.split(sep).filter_map(|kv_pair| kv_pair.split_once('='));
     if res.clone().count() < 1 { return Err(ParseError) }
@@ -60,7 +60,7 @@ pub(crate) fn query_pairs<'a, 'b>(url_query : &'a str, sep : &'b str)
 }
 
 /// Returns a certain `value` in a query key-value pairs.
-pub(crate) fn find_by_key<'a>(url_query : &'a str, sep : &str, key : &str) -> StdResult<&'a str, ParseError>
+pub(crate) fn find_by_key<'a>(url_query: &'a str, sep: &str, key: &str) -> StdResult<&'a str, ParseError>
 {
     query_pairs(url_query, sep)?
         .find(|&(k, _)| k == key)
@@ -93,7 +93,7 @@ mod tests
     
     impl<T, E> ShortUnwrap<T> for Result<T, E>
         where
-            E : std::fmt::Debug
+            E: std::fmt::Debug
     {
         fn unwr(self) -> T
         { self.unwrap() }
@@ -103,7 +103,7 @@ mod tests
     #[test]
     fn test_request_builder()
     {
-        let params : &[(&str, &str)] = &[("token", "HeyHo"), ("answer", "YoHoHo")];
+        let params: &[(&str, &str)] = &[("token", "HeyHo"), ("answer", "YoHoHo")];
         let expected_query = "token=HeyHo&answer=YoHoHo";
         let body_kv_pairs = url::form_urlencoded::Serializer::new(String::new()).extend_pairs(params).finish();
         

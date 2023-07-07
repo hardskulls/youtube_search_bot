@@ -1,5 +1,5 @@
 
-use error_traits::WrapInOk;
+use error_traits::WrapInRes;
 use google_youtube3::oauth2::ApplicationSecret;
 use redis::Commands;
 use crate::model::net::funcs::build_post_request;
@@ -9,9 +9,9 @@ use crate::model::youtube::types::YouTubeAccessToken;
 
 
 /// Required to avoid key collisions.
-const TOKEN_PREFIX : &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
+const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_";
 
-pub(crate) fn get_access_token(user_id : &str, db_url : &str) -> eyre::Result<YouTubeAccessToken>
+pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
     log::info!("getting access_token from a database | (silent on failure)");
     let mut con = redis::Client::open(db_url)?.get_connection()?;
@@ -21,7 +21,7 @@ pub(crate) fn get_access_token(user_id : &str, db_url : &str) -> eyre::Result<Yo
     token.in_ok()
 }
 
-pub(crate) fn set_access_token(user_id : &str, token : &str, db_url : &str) -> eyre::Result<()>
+pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!("saving access_token to a database | (silent on failure)");
     let mut con = redis::Client::open(db_url)?.get_connection()?;
@@ -30,7 +30,7 @@ pub(crate) fn set_access_token(user_id : &str, token : &str, db_url : &str) -> e
     ().in_ok()
 }
 
-pub(crate) fn delete_access_token(user_id : &str, db_url : &str) -> eyre::Result<()>
+pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure");
     let mut con = redis::Client::open(db_url)?.get_connection()?;
@@ -40,19 +40,19 @@ pub(crate) fn delete_access_token(user_id : &str, db_url : &str) -> eyre::Result
 }
 
 /// Because `refresh token` is received only once, it needs to be moved from old token to a new one.
-pub(crate) fn combine_old_new_tokens(user_id: &str, new_token : YouTubeAccessToken, db_url : &str)
+pub(crate) fn combine_old_new_tokens(user_id: &str, new_token: YouTubeAccessToken, db_url: &str)
     -> YouTubeAccessToken
 {
     match get_access_token(user_id, db_url)
     {
-        Ok(YouTubeAccessToken { refresh_token : Some(ref_token), .. }) =>
-            YouTubeAccessToken { refresh_token : Some(ref_token), ..new_token },
+        Ok(YouTubeAccessToken { refresh_token: Some(ref_token), .. }) =>
+            YouTubeAccessToken { refresh_token: Some(ref_token), ..new_token },
         _ => new_token
     }
 }
 
 /// Constructs request for acquiring new `access token`.
-pub(crate) fn build_refresh_access_token_req(oauth2_secret : ApplicationSecret, token : &YouTubeAccessToken)
+pub(crate) fn build_refresh_access_token_req(oauth2_secret: ApplicationSecret, token: &YouTubeAccessToken)
     -> eyre::Result<reqwest::RequestBuilder>
 {
     let params =
@@ -68,9 +68,9 @@ pub(crate) fn build_refresh_access_token_req(oauth2_secret : ApplicationSecret, 
 /// Makes request for new `access token` if needed, then saves and returns it.
 pub(crate) async fn refresh_access_token
 (
-    user_id : &str,
-    token : YouTubeAccessToken,
-    db_url : &str,
+    user_id: &str,
+    token: YouTubeAccessToken,
+    db_url: &str,
     refresh_access_token_req: reqwest::RequestBuilder
 )
     -> eyre::Result<YouTubeAccessToken>
@@ -83,7 +83,7 @@ pub(crate) async fn refresh_access_token
         let resp = refresh_access_token_req.send().await?;
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'resp.status()' is [| '{:?}' |] )", &resp.status());
         let new_token = resp.json::<YouTubeAccessToken>().await?;
-        let combined_token = YouTubeAccessToken { refresh_token : token.refresh_token, ..new_token };
+        let combined_token = YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token };
         set_access_token(user_id, &serde_json::to_string(&combined_token)?, db_url)?;
         combined_token.in_ok()
     }
@@ -119,10 +119,10 @@ mod tests
             YouTubeAccessToken
             {
                 access_token,
-                expires_in : time::OffsetDateTime::now_utc(),
+                expires_in: time::OffsetDateTime::now_utc(),
                 refresh_token,
-                scope : vec!["first".to_owned(), "second".to_owned()],
-                token_type : "Bearer".to_owned()
+                scope: vec!["first".to_owned(), "second".to_owned()],
+                token_type: "Bearer".to_owned()
             };
     
         set_access_token(user_id, &serde_json::to_string(&token).unwrap(), redis_url).unwrap();
@@ -154,10 +154,10 @@ mod tests
             YouTubeAccessToken
             {
                 access_token,
-                expires_in : time::OffsetDateTime::now_utc(),
+                expires_in: time::OffsetDateTime::now_utc(),
                 refresh_token,
-                scope : vec!["first".to_owned(), "second".to_owned()],
-                token_type : "Bearer".to_owned()
+                scope: vec!["first".to_owned(), "second".to_owned()],
+                token_type: "Bearer".to_owned()
             };
         
         let secret = oauth2::read_application_secret(secret_path).await.unwrap();

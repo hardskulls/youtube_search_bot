@@ -4,7 +4,7 @@ use env_logger::fmt::Formatter;
 use log::Record;
 
 
-pub fn format_logs(buf : &mut Formatter, record : &Record) -> std::io::Result<()>
+pub fn format_logs(buf: &mut Formatter, record: &Record) -> std::io::Result<()>
 {
 
     let (file, line) = (record.file().unwrap_or("unknown file"), record.line().unwrap_or(0));

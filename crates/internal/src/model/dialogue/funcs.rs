@@ -1,5 +1,5 @@
 
-use error_traits::WrapInOk;
+use error_traits::WrapInRes;
 use google_youtube3::oauth2::read_application_secret;
 use teloxide::types::{CallbackQuery, Message};
 use url::Url;
@@ -12,7 +12,7 @@ use crate::model::net::types::{QUERY_SEPARATOR, STATE_CODE};
 use crate::StdResult;
 
 
-pub(crate) fn search_settings_update_or_default(d_state : State) -> SearchCommandSettings
+pub(crate) fn search_settings_update_or_default(d_state: State) -> SearchCommandSettings
 {
     if let State::SearchCommandActive(search_settings) = d_state
     { search_settings }
@@ -20,7 +20,7 @@ pub(crate) fn search_settings_update_or_default(d_state : State) -> SearchComman
     { SearchCommandSettings::default() }
 }
 
-pub(crate) fn list_settings_update_or_default(d_state : State) -> ListCommandSettings
+pub(crate) fn list_settings_update_or_default(d_state: State) -> ListCommandSettings
 {
     if let State::ListCommandActive(list_settings) = d_state
     { list_settings }
@@ -30,7 +30,7 @@ pub(crate) fn list_settings_update_or_default(d_state : State) -> ListCommandSet
 
 /// Get `state` from dialogue.
 #[inline]
-pub(crate) async fn get_dialogue_data(dialogue : &TheDialogue) -> Result<DialogueData, DialogueStateStorageError>
+pub(crate) async fn get_dialogue_data(dialogue: &TheDialogue) -> Result<DialogueData, DialogueStateStorageError>
 {
     dialogue.get()
         .await
@@ -40,7 +40,7 @@ pub(crate) async fn get_dialogue_data(dialogue : &TheDialogue) -> Result<Dialogu
 
 /// Get `text` from message.
 #[inline]
-pub(crate) async fn get_text(msg : &Message) -> StdResult<&str, NoTextError>
+pub(crate) async fn get_text(msg: &Message) -> StdResult<&str, NoTextError>
 {
     msg.text()
         .ok_or(NoTextError)
@@ -48,7 +48,7 @@ pub(crate) async fn get_text(msg : &Message) -> StdResult<&str, NoTextError>
 
 /// Get `callback` data as a `String`.
 #[inline]
-pub(crate) async fn get_callback_data(callback : &CallbackQuery) -> StdResult<String, NoCallbackDataError>
+pub(crate) async fn get_callback_data(callback: &CallbackQuery) -> StdResult<String, NoCallbackDataError>
 {
     callback.data
         .clone()
@@ -56,7 +56,7 @@ pub(crate) async fn get_callback_data(callback : &CallbackQuery) -> StdResult<St
 }
 
 /// Construct authorization url.
-pub(crate) async fn default_auth_url(user_id : &str) -> eyre::Result<Url>
+pub(crate) async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 {
     let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
     let secret = read_application_secret(secret_path).await?;
@@ -71,18 +71,18 @@ pub(crate) async fn default_auth_url(user_id : &str) -> eyre::Result<Url>
 
 /// Helper function used for `handle_text` handler.
 /// Parses user input as number in order to set it as `result limit` setting.
-pub(crate) fn parse_number(text : &str, configs : Either<&SearchCommandSettings, &ListCommandSettings>, dialogue_data : &DialogueData)
+pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &ListCommandSettings>, dialogue_data: &DialogueData)
     -> (&'static str, Option<DialogueData>)
 {
     log::info!(" [:: LOG ::]     @[fn]:[parse_number] :: [Started]");
     match text.parse::<u16>()
     {
-        Ok(num) if num >= 1 => ("Accepted! ✅", Some(DialogueData { state : save_res_limit(configs, num), ..dialogue_data.clone() })),
+        Ok(num) if num >= 1 => ("Accepted! ✅", Some(DialogueData { state: save_res_limit(configs, num), ..dialogue_data.clone() })),
         _ => ("Send a number greater than 0", None)
     }
 }
 
-fn save_res_limit(configs : Either<&SearchCommandSettings, &ListCommandSettings>, num : u16) -> State
+fn save_res_limit(configs: Either<&SearchCommandSettings, &ListCommandSettings>, num: u16) -> State
 {
     use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive};
     let result_limit = Some(num as u32);
@@ -94,11 +94,11 @@ fn save_res_limit(configs : Either<&SearchCommandSettings, &ListCommandSettings>
 }
 
 /// Save text to search.
-pub(crate) fn save_text(text : &str, search_settings : SearchCommandSettings, dialogue_data : &DialogueData)
+pub(crate) fn save_text(text: &str, search_settings: SearchCommandSettings, dialogue_data: &DialogueData)
     -> (&'static str, Option<DialogueData>)
 {
     log::info!(" [:: LOG ::]     @[fn]:[save_text] :: [Started]");
-    let state = State::SearchCommandActive(SearchCommandSettings { text_to_search : text.to_owned().into(), ..search_settings });
+    let state = State::SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_settings });
     ("Accepted! ✅", Some(DialogueData { state, ..dialogue_data.clone() }))
 }
 

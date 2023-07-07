@@ -18,7 +18,7 @@ async fn main() -> eyre::Result<()>
         .try_init()?;
 
     log::info!(" [:: LOG ::]    ( ⚙ <| Building 'auth_server'... |> ⚙ )");
-    let router : Router =
+    let router: Router =
         Router::new()
             .route("/google_callback_auth_code", any(handle_auth_code))
             .route("/", any(serve_all));

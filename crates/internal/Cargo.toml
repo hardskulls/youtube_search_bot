@@ -16,9 +16,9 @@ google-youtube3 = "=4.0.1"
 
 #[:: Net ::]
 axum = { version = "0.6.18", features = [] }
-url = { version = "2.3.1", features = [] }
+url = { version = "2.4.0", features = [] }
 reqwest = { version = "0.11.18", features = ["json"] }
-time = "0.3.21"
+time = "0.3.22"
 #hyper = { version = "0.14.26", features = ["client", "http1", "http2", "runtime"] }
 #hyper-rustls = { version = "0.24.0", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
 #yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
@@ -30,25 +30,25 @@ redis = { version = "0.23.0", features = ["tokio-comp", "tls", "tokio-native-tls
 #postgres = { version = "0.19.4", features = [] }
 
 #[:: Errors ::]
-error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"] }
+error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"], version = "0.3.0" }
 thiserror = "1.0.40"
 eyre = { version = "0.6.8", features = [] }
 #error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 
 #[:: Logs ::]
-log = "0.4.17"
+log = "0.4.18"
 
 #[:: Serialization ::]
-parse-display = { version = "0.8.0", features = [] }
+parse-display = { version = "0.8.1", features = [] }
 to_debug = "0.1.0"
-serde = { version  = "1.0.163", features = ["derive"] }
+serde = { version  = "1.0.164", features = ["derive"] }
 serde_json = { version = "1.0.96", features = ["std"] }
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
 
 [dev-dependencies]
-tokio = { version = "1.28.1", features = ["macros"] }
-miette = { version = "5.8.0", features = ["fancy"] }
+tokio = { version = "1.28.2", features = ["macros"] }
+miette = { version = "5.9.0", features = ["fancy"] }
 simple_logger = "4.1.0"
 #yt = { version = "5.0.2+20230123", package = "google-youtube3" }
 

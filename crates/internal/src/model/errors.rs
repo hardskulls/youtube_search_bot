@@ -29,7 +29,7 @@ pub struct NoCallbackDataError;
 
 #[derive(Error, Debug, Clone)]
 #[error("[ MissingEnvVarError ] : ( Couldn't find environment variable \"{}\". )", var)]
-pub struct MissingEnvVarError<'a> { pub var : &'a str }
+pub struct MissingEnvVarError<'a> { pub var: &'a str }
 
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( Problem with storage that stores dialogue state. )", Self)]

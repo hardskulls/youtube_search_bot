@@ -1,7 +1,7 @@
 
 use std::fmt::Debug;
 
-use error_traits::{WrapInErr, WrapInOk};
+use error_traits::{WrapInRes};
 
 use crate::model::keyboards::types::{SearchIn, Sorting};
 use crate::model::net::funcs::join;
@@ -12,10 +12,10 @@ use crate::StdResult;
 
 
 /// Makes a single call to `YouTube API` go get one page of items.
-pub(crate) async fn items_request<T>(client : &reqwest::Client, access_token : &str, req_builder : &T, page_token : Option<String>)
+pub(crate) async fn items_request<T>(client: &reqwest::Client, access_token: &str, req_builder: &T, page_token: Option<String>)
     -> eyre::Result<T::Target>
     where
-        T : YouTubeApiRequestBuilder
+        T: YouTubeApiRequestBuilder
 {
     let resp = req_builder.build_req(client, access_token, page_token)?.send().await?;
     log::info!(" [:: LOG ::]    ( @:[fn::list_subscriptions] 'resp' is [| '{:#?}' |] )", (&resp.headers(), &resp.status()));
@@ -27,15 +27,15 @@ pub(crate) async fn items_request<T>(client : &reqwest::Client, access_token : &
 }
 
 /// Authorization url constructor.
-pub(crate) fn make_auth_url<V>(client_id : V, redirect_uri : V, response_type : V, scope : &[V], optional_params : &[(String, V)])
+pub(crate) fn make_auth_url<V>(client_id: V, redirect_uri: V, response_type: V, scope: &[V], optional_params: &[(String, V)])
     -> StdResult<url::Url, url::ParseError>
     where
-        V : AsRef<str> + Clone, /* K : AsRef<str>, I : IntoIterator, I::Item : std::borrow::Borrow<(K, V)> */
+        V: AsRef<str> + Clone, /* K : AsRef<str>, I : IntoIterator, I::Item : std::borrow::Borrow<(K, V)> */
 {
     let keys = (RequiredAuthURLParams::ClientId, RequiredAuthURLParams::RedirectUri, RequiredAuthURLParams::ResponseType);
     let required_params = [(keys.0.to_string(), client_id), (keys.1.to_string(), redirect_uri), (keys.2.to_string(), response_type)];
     let params = [&required_params[..], optional_params].concat();
-    let mut url : url::Url = url::Url::parse_with_params(AUTH_URL_BASE, &params)?;
+    let mut url: url::Url = url::Url::parse_with_params(AUTH_URL_BASE, &params)?;
     let (scope_key, scope_list) = (RequiredAuthURLParams::Scope.to_string(), join(scope, ","));
     url.query_pairs_mut().append_pair(&scope_key, &scope_list);
     url.in_ok()
@@ -45,25 +45,25 @@ pub(crate) fn make_auth_url<V>(client_id : V, redirect_uri : V, response_type : 
 /// Search and filter items (subscriptions, playlists, etc).
 pub(crate) async fn search_items<T>
 (
-    search_in : &SearchIn,
-    req_builder : T,
-    search_for : &str,
-    access_token : &str,
-    res_limit : u32
+    search_in: &SearchIn,
+    req_builder: T,
+    search_for: &str,
+    access_token: &str,
+    res_limit: u32
 )
     -> Vec<SearchableItem>
     where
-        T : YouTubeApiRequestBuilder,
-        T::Target : Default + Debug + YouTubeApiResponsePage
+        T: YouTubeApiRequestBuilder,
+        T::Target: Default + Debug + YouTubeApiResponsePage
 {
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
     log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
     let mut store_in = vec![];
     let current_cap = std::sync::Arc::new(std::sync::Mutex::new(store_in.len()));
     
-    let stop_if = |_ : &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
+    let stop_if = |_: &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f =
-        |search_target : T::Target|
+        |search_target: T::Target|
             {
                 if let Some(items) = search_target.items()
                 { find_matches(search_for, search_in, res_limit, items, &mut store_in) }
@@ -79,15 +79,15 @@ pub(crate) async fn search_items<T>
 /// Returns all items on user's channel.
 pub(crate) async fn list_items<T>
 (
-    req_builder : T,
-    access_token : &str,
-    sorting : &Sorting,
-    res_limit : u32
+    req_builder: T,
+    access_token: &str,
+    sorting: &Sorting,
+    res_limit: u32
 )
     -> Vec<SearchableItem>
     where
-        T : YouTubeApiRequestBuilder,
-        T::Target : Default + Debug + YouTubeApiResponsePage,
+        T: YouTubeApiRequestBuilder,
+        T::Target: Default + Debug + YouTubeApiResponsePage,
 {
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] started )");
     
@@ -99,9 +99,9 @@ pub(crate) async fn list_items<T>
     let mut store_in = Vec::with_capacity(cap);
     let current_cap = std::sync::Arc::new(std::sync::Mutex::new(store_in.len()));
     
-    let stop_if = |_ : &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
+    let stop_if = |_: &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f =
-        |item : T::Target|
+        |item: T::Target|
             {
                 if let Some(mut i) = item.items()
                 { store_in.append(&mut i) }
@@ -112,20 +112,20 @@ pub(crate) async fn list_items<T>
     log::info!(" [:: LOG ::]    ( @:[fn::list_items] ended )");
     match *sorting
     {
-      Sorting::Alphabetical => { store_in.sort_by(|a : _, b : _| a.title().cmp(&b.title())) }
-      Sorting::Date => { store_in.sort_by(|a : _, b : _| a.date().cmp(&b.date())) }
+      Sorting::Alphabetical => { store_in.sort_by(|a: _, b: _| a.title().cmp(&b.title())) }
+      Sorting::Date => { store_in.sort_by(|a: _, b: _| a.date().cmp(&b.date())) }
     }
     store_in.into_iter().take(res_limit as _).map(|i| i.into_item()).collect()
 }
 
 /// Gives full access all pages of request, applying 'f' to each page.
 /// Stop condition can be set using `stop_if`.
-pub(crate) async fn pagination<I, F, S>(req_builder : I, access_token : &str, stop_if : S, f : F)
+pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop_if: S, f: F)
     where
-        I : YouTubeApiRequestBuilder,
-        I::Target : Default + Debug + YouTubeApiResponsePage,
-        F : FnMut(I::Target),
-        S : Fn(&I::Target) -> bool,
+        I: YouTubeApiRequestBuilder,
+        I::Target: Default + Debug + YouTubeApiResponsePage,
+        F: FnMut(I::Target),
+        S: Fn(&I::Target) -> bool,
 {
     log::info!(" [:: LOG ::]    ( @:[fn::pagination] started )");
     let mut f = f;
@@ -150,9 +150,9 @@ pub(crate) async fn pagination<I, F, S>(req_builder : I, access_token : &str, st
 }
 
 /// Find matches in a list of subscriptions.
-fn find_matches<S>(search_for : &str, search_in : &SearchIn, res_limit : u32, items : Vec<S>, store_in : &mut Vec<S>)
+fn find_matches<S>(search_for: &str, search_in: &SearchIn, res_limit: u32, items: Vec<S>, store_in: &mut Vec<S>)
     where
-        S : Searchable
+        S: Searchable
 {
     log::info!(" [:: LOG ::]    ( @:[fn::find_matches] started )");
     let text_to_search = search_for.to_lowercase();

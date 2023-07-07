@@ -8,18 +8,16 @@ use crate::StdResult;
 
 use crate::view::funcs::update_view;
 
-pub async fn handle_callback(bot : Bot, callback : CallbackQuery, dialogue : TheDialogue) -> StdResult<(), ()>
+pub async fn handle_callback(bot: Bot, callback: CallbackQuery, dialogue: TheDialogue) -> StdResult<(), ()>
 {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_callback] :: [Started]");
-    let Some(chat_id) =
-        callback.chat_id()
-        else
-        {
-            log::error!(" [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : 'No 'chat_id' in CallbackQuery') ");
-            return Err(());
-        };
-    let sendable = crate::model::handlers::callback::handle_callback(callback, dialogue.clone()).await;
-    update_view(&bot, chat_id, sendable, dialogue).await;
+
+    let err_msg = " [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : 'No 'chat_id' in CallbackQuery') ";
+    let log_err = || log::error!("{err_msg}");
+    let chat_id = callback.chat_id().ok_or_else(log_err)?;
+
+    let sendable = crate::model::handlers::callback::handle_callback(callback.clone(), dialogue.clone()).await;
+    update_view(&bot, chat_id, sendable, dialogue, callback.into()).await;
     Ok(())
 }
 

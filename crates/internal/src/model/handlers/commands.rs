@@ -10,11 +10,11 @@ use crate::model::keyboards::types::ListCommandButtons::ListSettings;
 use crate::model::keyboards::types::SearchCommandButtons::SearchSettings;
 use crate::view::types::Sendable;
 
-pub(crate) async fn handle_commands<T>(msg : Message, dialogue : TheDialogue, cmd : Command)
-    -> Sendable<T, impl Into<String>>
+pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Command)
+    -> Sendable<impl Into<String>>
 {
     log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_commands] :: [Started]");
-    let (message_text, opt_keyboard, opt_dialogue_data) : MessageTriplet =
+    let (message_text, opt_keyboard, opt_dialogue_data): MessageTriplet =
         match cmd
         {
             Command::Start => ("Bot started, send something ⌨ \n Use /search or /list commands 🚀".into(), None, None),
@@ -38,7 +38,7 @@ pub(crate) async fn handle_commands<T>(msg : Message, dialogue : TheDialogue, cm
                 }
         };
     if let (d, Some(kb)) = (opt_dialogue_data, opt_keyboard)
-    { Sendable::SendKeyboard { text : message_text, kb, save_msg_id : true, d_data : d } }
+    { Sendable::SendKeyboard { text: message_text, kb, save_msg_id: true, d_data: d } }
     else
     { Sendable::SendOrEditMessage(message_text, None, None) }
 }

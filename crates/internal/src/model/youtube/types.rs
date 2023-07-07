@@ -12,27 +12,27 @@ use crate::model::youtube::traits::Searchable;
 pub(crate) struct YouTubeAccessToken
 {
     /// The token that your application sends to authorize a Google API request.
-    pub(crate) access_token : String,
+    pub(crate) access_token: String,
     /// Date and time when access_token expires (it does so after 1 hour).
     #[serde(deserialize_with = "expires_in_field_deserialize")]
-    pub(crate) expires_in : time::OffsetDateTime,
+    pub(crate) expires_in: time::OffsetDateTime,
     /// A token that you can use to obtain a new access token. Refresh tokens are valid until
     /// the user revokes access. Again, this field is only present in this response if you set
     /// the access_type parameter to offline in the initial request to Google's authorization server.
-    pub(crate) refresh_token : Option<String>,
+    pub(crate) refresh_token: Option<String>,
     /// The scopes of access granted by the access_token expressed as a list of
     /// space-delimited, case-sensitive strings.
     #[serde(deserialize_with = "scope_field_deserialize")]
-    pub(crate) scope : Vec<String>,
+    pub(crate) scope: Vec<String>,
     /// The type of token returned. At this time, this field's value is always set to Bearer.
-    pub(crate) token_type : String,
+    pub(crate) token_type: String,
 }
 
 /// Custom serde helper for `YouTubeAccessToken` `scope` field.
 /// Serialized representation might be a) string of space separated scopes or b) vector of scopes.
-fn scope_field_deserialize<'de, D>(deserializer : D) -> Result<Vec<String>, D::Error>
+fn scope_field_deserialize<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
     where
-        D : Deserializer<'de>,
+        D: Deserializer<'de>,
 {
     /// One of two internal representations of `YouTubeAccessToken` `scope` field.
     #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
@@ -56,9 +56,9 @@ fn scope_field_deserialize<'de, D>(deserializer : D) -> Result<Vec<String>, D::E
 
 /// Custom serde helper for `YouTubeAccessToken` `expires_in` field.
 /// Serialized representation might be a string of space separated scopes or vector of scopes.
-fn expires_in_field_deserialize<'de, D>(deserializer : D) -> Result<time::OffsetDateTime, D::Error>
+fn expires_in_field_deserialize<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
     where
-        D : Deserializer<'de>
+        D: Deserializer<'de>
 {
     /// One of two internal representations of `YouTubeAccessToken` `expires_in` field.
     #[derive(Clone, PartialEq, Eq, Debug, Deserialize)]
@@ -82,16 +82,16 @@ fn expires_in_field_deserialize<'de, D>(deserializer : D) -> Result<time::Offset
 }
 
 /// Google OAuth2 url.
-pub(crate) const AUTH_URL_BASE : &str = "https://accounts.google.com/o/oauth2/v2/auth?";
+pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
 /// Required in token request to get exchange code.
 /// The code will be exchanged for an `access token`).
-pub(crate) const RESPONSE_TYPE : &str = "code";
+pub(crate) const RESPONSE_TYPE: &str = "code";
 
-pub(crate) const SCOPE_YOUTUBE_READONLY : &str = "https://www.googleapis.com/auth/youtube.readonly";
+pub(crate) const SCOPE_YOUTUBE_READONLY: &str = "https://www.googleapis.com/auth/youtube.readonly";
 
 /// Required in token request to get optional `refresh token` in addition to `access token`.
-pub(crate) const ACCESS_TYPE : &str = "offline";
+pub(crate) const ACCESS_TYPE: &str = "offline";
 
 #[derive(Debug, Display)]
 #[display(style = "snake_case")]
@@ -101,10 +101,10 @@ pub(crate) enum RequiredAuthURLParams
 #[derive(Default, Debug, Clone)]
 pub(crate) struct SearchableItem
 {
-    pub(crate) title : Option<String>,
-    pub(crate) description : Option<String>,
-    pub(crate) date : Option<String>,
-    pub(crate) link : Option<String>
+    pub(crate) title: Option<String>,
+    pub(crate) description: Option<String>,
+    pub(crate) date: Option<String>,
+    pub(crate) link: Option<String>
 }
 
 impl Searchable for SearchableItem
@@ -188,7 +188,7 @@ mod tests
         assert!(matches!(subs_list_resp.kind, Some(..)));
         assert!(matches!(subs_list_resp.etag, Some(..)));
         
-        let s : &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
+        let s: &Subscription = subs_list_resp.items.as_ref().unwrap().get(0).unwrap();
         
         assert!(matches!(s.snippet, Some(..)));
         assert!(matches!(s.snippet.as_ref().unwrap().resource_id.as_ref(), Some(..)));

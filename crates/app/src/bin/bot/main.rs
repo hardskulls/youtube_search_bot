@@ -9,11 +9,9 @@ use teloxide::
 {
     Bot,
     dispatching::Dispatcher,
-    dispatching::dialogue::{ErasedStorage, InMemStorage, RedisStorage, Storage, TraceStorage},
     dptree,
     error_handlers::LoggingErrorHandler,
     requests::Requester,
-    types::Update,
     utils::command::BotCommands,
 };
 use teloxide::update_listeners::webhooks;

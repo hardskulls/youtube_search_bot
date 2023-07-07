@@ -28,7 +28,7 @@ impl Searchable for Subscription
     
     fn link(&self) -> Option<String>
     {
-        let chan_id : &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
+        let chan_id: &str = self.snippet.as_ref()?.resource_id.as_ref()?.channel_id.as_ref()?;
         if !chan_id.trim().is_empty()
         { format!("https://youtube.com/channel/{chan_id}").into() }
         else
@@ -49,7 +49,7 @@ impl Searchable for Playlist
     
     fn link(&self) -> Option<String>
     {
-        let plist_id : &str = self.id.as_ref()?;
+        let plist_id: &str = self.id.as_ref()?;
         if !plist_id.trim().is_empty()
         { format!("https://youtube.com/playlist?list={plist_id}").into() }
         else
