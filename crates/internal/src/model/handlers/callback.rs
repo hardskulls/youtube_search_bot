@@ -1,5 +1,5 @@
 
-use error_traits::{LogErr, MapErrBy, MergeOkErr, WrapInRes};
+use error_traits::{PassErrWith, MapErrBy, MergeOkErr, WrapInRes};
 use google_youtube3::oauth2::read_application_secret;
 use teloxide::types::{CallbackQuery, User};
 
@@ -122,13 +122,13 @@ pub(crate) async fn exec_search_helper
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
 
-    let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
+    let log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
 
     let (requestable, search_for, res_limit, search_in) =
         (search_config.target, search_config.text_to_search, search_config.result_limit, search_config.search_in);
 
     let res = execute_search_command(callback.from, &search_for, res_limit, &search_in, requestable).await;
-    res.log_err(err_log_prefix)
+    res.pass_err_with(|e| log::error!("{log_prefix}{e}"))
 }
 
 /// Helper function used for `handle_callback_data` handler.
@@ -191,12 +191,12 @@ pub(crate) async fn exec_list_helper
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_list_helper] :: [Started]");
 
-    let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
+    let log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
 
     let (requestable, res_limit, sorting) = (list_config.target, list_config.result_limit, list_config.sorting);
 
     let res = execute_list_command(callback.from, res_limit, &sorting, requestable).await;
-    res.log_err(err_log_prefix)
+    res.pass_err_with(|e| log::error!("{log_prefix}{e}"))
 }
 
 /// Helper function used for `handle_text` handler.

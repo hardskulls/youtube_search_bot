@@ -1,5 +1,5 @@
 
-use error_traits::{LogErr, MapErrBy, WrapInRes};
+use error_traits::{PassErrWith, MapErrBy, WrapInRes};
 
 use teloxide::types::Message;
 
@@ -19,14 +19,14 @@ pub(crate) async fn get_required_text_state(msg: Message, dialogue: TheDialogue)
     let log_prefix = " [:: LOG ::]    | @:[fn::send_message] error: ";
     let user_error = || "⚠ Internal error ⚠";
     
-    let dialogue_data = get_dialogue_data(&dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
+    let dialogue_data = get_dialogue_data(&dialogue).await.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err_by(user_error)?;
     if dialogue_data.last_callback.as_ref().is_none()
     { return "Bot is running! 🚀 \nSend /start command to start a game 🕹".to_owned().in_err() }
     
-    let callback = dialogue_data.last_callback.as_ref().ok_or_else(user_error).log_err(log_prefix)?;
-    let callback_data = get_callback_data(callback).await.log_err(log_prefix).map_err_by(user_error)?;
-    let keyboard: Buttons = serde_json::from_str(&callback_data).log_err(log_prefix).map_err_by(user_error)?;
-    let text = get_text(&msg).await.log_err(log_prefix).map_err_by(user_error)?;
+    let callback = dialogue_data.last_callback.as_ref().ok_or_else(user_error).pass_err_with(|e| log::error!("{log_prefix}{e}"))?;
+    let callback_data = get_callback_data(callback).await.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err_by(user_error)?;
+    let keyboard: Buttons = serde_json::from_str(&callback_data).pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err_by(user_error)?;
+    let text = get_text(&msg).await.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err_by(user_error)?;
     
     (text.into(), dialogue_data, keyboard).in_ok()
 }
