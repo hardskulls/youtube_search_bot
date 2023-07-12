@@ -1,10 +1,7 @@
 
 use error_traits::{LogErr, MapErrBy, MergeOkErr, WrapInRes};
 use google_youtube3::oauth2::read_application_secret;
-use teloxide::Bot;
-use teloxide::dispatching::dialogue::GetChatId;
-use teloxide::requests::Requester;
-use teloxide::types::{CallbackQuery, ChatId, User};
+use teloxide::types::{CallbackQuery, User};
 
 use crate::model::db::{get_access_token, refresh_access_token, build_refresh_access_token_req};
 use crate::model::dialogue::funcs::{default_auth_url, get_callback_data, get_dialogue_data};
@@ -125,15 +122,13 @@ pub(crate) async fn exec_search_helper
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
 
-    let user_err = || "Couldn't execute command ❌".into();
     let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
 
     let (requestable, search_for, res_limit, search_in) =
         (search_config.target, search_config.text_to_search, search_config.result_limit, search_config.search_in);
-    
-    let send_to = callback.chat_id().ok_or_else(user_err)?;
-    let res = execute_search_command(callback.from, &search_for, res_limit, &search_in, requestable, send_to).await;
-    res.log_err(err_log_prefix).map_err_by(user_err)
+
+    let res = execute_search_command(callback.from, &search_for, res_limit, &search_in, requestable).await;
+    res.log_err(err_log_prefix)
 }
 
 /// Helper function used for `handle_callback_data` handler.
@@ -195,15 +190,13 @@ pub(crate) async fn exec_list_helper
     -> StdResult<ResTriplet, String>
 {
     log::info!(" [:: LOG ::]     @[fn]:[exec_list_helper] :: [Started]");
-    
-    let user_err = || "Couldn't execute command ❌".into();
+
     let err_log_prefix = " [:: LOG ::]  :  @fn:[dialogue::callback_handling]  ->  error: ";
 
     let (requestable, res_limit, sorting) = (list_config.target, list_config.result_limit, list_config.sorting);
-    
-    let send_to = callback.chat_id().ok_or_else(user_err)?;
-    let res = execute_list_command(callback.from, res_limit, &sorting, requestable, send_to).await;
-    res.log_err(err_log_prefix).map_err_by(user_err)
+
+    let res = execute_list_command(callback.from, res_limit, &sorting, requestable).await;
+    res.log_err(err_log_prefix)
 }
 
 /// Helper function used for `handle_text` handler.
@@ -215,7 +208,6 @@ pub(crate) async fn execute_search_command
     res_limit: u32,
     search_in: &SearchIn,
     requestable: Requestable,
-    send_to: ChatId
 )
     -> StdResult<ResTriplet, String>
 {
@@ -239,9 +231,6 @@ pub(crate) async fn execute_search_command
     let token_req = build_refresh_access_token_req(secret, &token).map_err_by(err)?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err_by(err)?.access_token;
     
-    let bot = Bot::new(env!("TELEGRAM_BOT_TOKEN"));
-    let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
-    
     let results =
         match requestable
         {
@@ -261,7 +250,6 @@ pub(crate) async fn execute_list_command
     res_limit: u32,
     sorting: &Sorting,
     requestable: Requestable,
-    send_to: ChatId
 )
     -> StdResult<ResTriplet, String>
 {
@@ -283,10 +271,7 @@ pub(crate) async fn execute_list_command
     let secret = read_application_secret(env!("PATH_TO_GOOGLE_OAUTH_SECRET")).await.map_err_by(err)?;
     let token_req = build_refresh_access_token_req(secret, &token).map_err_by(err)?;
     let access_token = refresh_access_token(&user_id, token, db_url, token_req).await.map_err_by(err)?.access_token;
-    
-    let bot = Bot::new(env!("TELEGRAM_BOT_TOKEN"));
-    let _ = bot.send_message(send_to, "Searching, please wait 🕵️‍♂️").await;
-    
+
     let results =
         match requestable
         {
