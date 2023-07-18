@@ -12,8 +12,9 @@ pub async fn handle_callback(bot: Bot, callback: CallbackQuery, dialogue: TheDia
 {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_callback] :: [Started]");
 
-    let err_msg = " [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : 'No 'chat_id' in CallbackQuery') ";
-    let log_err = || log::error!("{err_msg}");
+    let err_msg = eyre::eyre!("No 'chat_id' in CallbackQuery");
+    let log_err = || log::error!(" [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : ( {err_msg} )");
+
     let chat_id = callback.chat_id().ok_or_else(log_err)?;
 
     let sendable = crate::model::handlers::callback::common::handle_callback(callback.clone(), dialogue.clone()).await;

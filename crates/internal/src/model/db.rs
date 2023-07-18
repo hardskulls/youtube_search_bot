@@ -14,28 +14,37 @@ const TOKEN_PREFIX: &str = "youtube_access_token_rand_fuy6776d75ygku8i7_user_id_
 pub(crate) fn get_access_token(user_id: &str, db_url: &str) -> eyre::Result<YouTubeAccessToken>
 {
     log::info!("getting access_token from a database | (silent on failure)");
+
     let mut con = redis::Client::open(db_url)?.get_connection()?;
     let serialized_token = con.get::<_, String>(format!("{TOKEN_PREFIX}{user_id}"))?;
     let token = serde_json::from_str::<YouTubeAccessToken>(&serialized_token)?;
+
     log::info!("access_token acquired!");
+
     token.in_ok()
 }
 
 pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!("saving access_token to a database | (silent on failure)");
+
     let mut con = redis::Client::open(db_url)?.get_connection()?;
     con.set(format!("{TOKEN_PREFIX}{user_id}"), token)?;
+
     log::info!("access_token saved!");
+
     ().in_ok()
 }
 
 pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure");
+
     let mut con = redis::Client::open(db_url)?.get_connection()?;
     con.del(format!("{TOKEN_PREFIX}{user_id}"))?;
+
     log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] access_token deleted!");
+
     ().in_ok()
 }
 
@@ -77,11 +86,15 @@ pub(crate) async fn refresh_access_token
 {
     let time_remains = token.expires_in - time::OffsetDateTime::now_utc();
     let token_expires_after = time_remains.whole_minutes();
-    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{:?}' |] )", &token_expires_after);
+
+    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{time_remains:?}' |] )");
+
     if token_expires_after < 10
     {
         let resp = refresh_access_token_req.send().await?;
+
         log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] 'resp.status()' is [| '{:?}' |] )", &resp.status());
+
         let new_token = resp.json::<YouTubeAccessToken>().await?;
         let combined_token = YouTubeAccessToken { refresh_token: token.refresh_token, ..new_token };
         set_access_token(user_id, &serde_json::to_string(&combined_token)?, db_url)?;

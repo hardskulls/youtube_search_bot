@@ -14,6 +14,7 @@ use crate::model::youtube::types::YouTubeAccessToken;
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::build_log_out_req] :: [Started]");
+
     let token = token.refresh_token.as_deref().unwrap_or(token.access_token.as_str());
     let params = &[("token", token)];
     build_post_request(REVOKE_ACCESS_TOKEN_URL, params)
@@ -23,6 +24,7 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
+
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
     
@@ -30,6 +32,9 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
     {
         let req = build_log_out_req(token).log_err(log_prefix).map_err_by(err)?;
         let resp = req.send().await.log_err(log_prefix).map_err_by(err)?;
+
+        log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( '{:#?}' )", resp);
+
         if !resp.status().is_success()
         { return err().in_err() }
         
