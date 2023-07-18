@@ -6,8 +6,8 @@ members = ["crates/*"]
 [profile.release]
 codegen-units = 1
 lto = true
-strip = true
-panic = "abort"
+#strip = true
+#panic = "abort"
 
 #[workspace.dependencies]
 #conv_to_report = { path = "crates/conv_to_report" }
