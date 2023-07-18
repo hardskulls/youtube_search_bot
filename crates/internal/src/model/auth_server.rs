@@ -57,11 +57,11 @@ struct CodeAndUserId<'a>
 fn get_params_from_query(decoded_query: &'_ str) -> StdResult<CodeAndUserId<'_>, &'static str>
 {
     let state = find_by_key(decoded_query, "&", "state").map_err(|_| "state not found")?;
-    
+
     let state_code = find_by_key(state, QUERY_SEPARATOR, "state_code").map_err(|_| "state code not found")?;
     if !state_code.contains(STATE_CODE)
     { return "state codes don't match".in_err() }
-    
+
     let for_user = find_by_key(state, QUERY_SEPARATOR, "for_user").map_err(|_| "for_user not found")?;
     let auth_code = find_by_key(decoded_query, "&", "code").map_err(|_| "auth_code not found")?;
     Ok(CodeAndUserId { for_user, auth_code })
@@ -70,21 +70,21 @@ fn get_params_from_query(decoded_query: &'_ str) -> StdResult<CodeAndUserId<'_>,
 pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum::response::Response>
 {
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
-    
+    log::info!("req is: {req:?}");
+
     let decoded_query = get_query(&req);
     let CodeAndUserId { for_user, auth_code } = get_params_from_query(&decoded_query)?;
-    
+
     let access_token_request = request_access_token(auth_code).await.map_err(|_| "building token request failed")?;
     let resp = access_token_request.send().await.map_err(|_| "access token request failed")?;
-    
+
     let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
     let db_url = env!("REDIS_URL");
     let combined_token = combine_old_new_tokens(for_user, new_token, db_url);
     let serialized_access_token = serde_json::to_string(&combined_token).map_err(|_| "db error")?;
     set_access_token(for_user, &serialized_access_token, db_url).map_err(|_| "db error")?;
-    
-    let bot_url = env!("BOT_REDIRECT_URL");
-    let redirect = redirect_user(bot_url)?;
+
+    let redirect = redirect_user(env!("BOT_REDIRECT_URL"))?;
     
     log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] finished [ OK ] )");
     redirect.in_ok()

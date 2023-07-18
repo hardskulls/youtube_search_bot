@@ -7,11 +7,13 @@ use teloxide::types::{ChatId, InlineKeyboardMarkup, Message, CallbackQuery};
 use teloxide::types::ParseMode::Html;
 
 use crate::model::dialogue::types::{DialogueData, MessageWithKB, TheDialogue, CommandConfig};
-use crate::model::handlers::callback::{exec_search_helper, exec_list_helper};
+use crate::model::handlers::callback::list_cmd::exec_list_helper;
+use crate::model::handlers::callback::search_cmd::exec_search_helper;
 use crate::model::utils::HTMLise;
 use crate::model::youtube::types::SearchableItem;
 use crate::view::funcs::shorthands::{send_message, update_dialogue};
 use crate::view::types::Sendable;
+
 
 #[allow(clippy::unwrap_used)]
 pub(crate) async fn update_view<S>

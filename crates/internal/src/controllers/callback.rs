@@ -16,7 +16,7 @@ pub async fn handle_callback(bot: Bot, callback: CallbackQuery, dialogue: TheDia
     let log_err = || log::error!("{err_msg}");
     let chat_id = callback.chat_id().ok_or_else(log_err)?;
 
-    let sendable = crate::model::handlers::callback::handle_callback(callback.clone(), dialogue.clone()).await;
+    let sendable = crate::model::handlers::callback::common::handle_callback(callback.clone(), dialogue.clone()).await;
     update_view(&bot, chat_id, sendable, dialogue, callback.into()).await;
     Ok(())
 }

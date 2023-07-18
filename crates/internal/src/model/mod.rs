@@ -35,7 +35,12 @@ pub(crate) mod handlers
 {
     pub(crate) mod text;
     pub(crate) mod commands;
-    pub(crate) mod callback;
+    pub(crate) mod callback
+    {
+        pub(crate) mod common;
+        pub(crate) mod search_cmd;
+        pub(crate) mod list_cmd;
+    }
 }
 
 
