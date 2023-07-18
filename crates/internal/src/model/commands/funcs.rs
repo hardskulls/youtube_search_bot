@@ -34,9 +34,10 @@ pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTripl
         let resp = req.send().await.log_err(log_prefix).map_err_by(err)?;
 
         log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( '{:#?}' )", resp);
+        log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( '{:#?}' )", resp.text().await);
 
-        if !resp.status().is_success()
-        { return err().in_err() }
+        // if !resp.status().is_success()
+        // { return err().in_err() }
         
         delete_access_token(user_id, db_url).log_err(log_prefix).map_err_by(err)?;
         
