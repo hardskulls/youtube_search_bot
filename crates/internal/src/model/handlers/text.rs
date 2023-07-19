@@ -1,5 +1,5 @@
 
-use error_traits::{PassErrWith, MapErrBy, WrapInRes, MapType};
+use error_traits::{PassErrWith, WrapInRes, MapType};
 
 use teloxide::types::Message;
 
@@ -7,7 +7,6 @@ use crate::model::dialogue::funcs::{get_callback_data, get_dialogue_data, get_te
 use crate::model::dialogue::types::{DialogueData, Either, State, TheDialogue};
 use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive};
 use crate::model::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons};
-use crate::StdResult;
 use crate::view::types::Sendable;
 
 
@@ -23,8 +22,8 @@ pub(crate) async fn get_required_text_state(msg: Message, dialogue: TheDialogue)
     { return "Bot is running! 🚀 \nSend /start command to start a game 🕹".map_type(Either::Last).in_ok() }
     
     let callback = dialogue_data.last_callback.as_ref().ok_or_else(user_error)?;
-    let callback_data = get_callback_data(callback).await?;
-    let keyboard: Buttons = serde_json::from_str(&callback_data)?;
+    let callback_data_as_string = get_callback_data(callback).await?;
+    let keyboard = serde_json::from_str::<Buttons>(&callback_data_as_string)?;
     let text = get_text(&msg).await?;
     
     (text.into(), dialogue_data, keyboard).map_type(Either::First).in_ok()

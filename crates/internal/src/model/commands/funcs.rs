@@ -1,7 +1,7 @@
 
 use error_traits::{LogErr, MapErrBy, WrapInRes};
 
-use crate::{FlatRes, StdResult};
+use crate::StdResult;
 use crate::model::db::{delete_access_token, get_access_token};
 use crate::model::dialogue::funcs::get_dialogue_data;
 use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
@@ -21,30 +21,25 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 }
 
 /// Revoke `refresh token` and delete token from db.
-pub(crate) async fn log_out(user_id: &str, db_url: &str) -> FlatRes<MessageTriplet>
+pub(crate) async fn log_out(user_id: &str, db_url: &str) -> eyre::Result<MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
 
-    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
-    let err = || ("Couldn't log out ❌".to_owned(), None, None);
-    
-    if let Ok(token) = get_access_token(user_id, db_url)
+    match get_access_token(user_id, db_url)
     {
-        let req = build_log_out_req(token).log_err(log_prefix).map_err_by(err)?;
-        let resp = req.send().await.log_err(log_prefix).map_err_by(err)?;
+        Ok(token) =>
+            {
+                let resp = build_log_out_req(token)?.send().await?;
 
-        log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( '{:#?}' )", resp);
-        log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( '{:#?}' )", resp.text().await);
+                log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( resp is: '{:#?}' )", resp);
+                log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( body is: '{:#?}' )", resp.text().await);
 
-        // if !resp.status().is_success()
-        // { return err().in_err() }
-        
-        delete_access_token(user_id, db_url).log_err(log_prefix).map_err_by(err)?;
-        
-        ("Logged out successfully ✅".to_owned(), None, None).in_ok()
+                delete_access_token(user_id, db_url)?;
+
+                ("Logged out successfully ✅".to_owned(), None, None).in_ok()
+            }
+        Err(e) => e.in_err()
     }
-    else
-    { err().in_err() }
 }
 
 /// Pretty print config.
@@ -88,9 +83,11 @@ fn print_list_config(list_settings: &ListCommandSettings) -> String
 pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
+
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
-    let create_msg = |m: &str| (m.to_owned(), None, None);
     let user_error: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
+
+    let create_msg = |m: &str| (m.to_owned(), None, None);
     
     let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
     match d_data.state

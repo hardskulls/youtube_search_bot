@@ -1,5 +1,5 @@
 
-use error_traits::MergeOkErr;
+use error_traits::{MapErrBy, MergeOkErr, PassErrWith};
 use teloxide::prelude::Message;
 
 use crate::model::commands::funcs::{info, log_out};
@@ -14,6 +14,10 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
     -> Sendable<impl Into<String>>
 {
     log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_commands] :: [Started]");
+
+    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
+    let err = || ("Couldn't log out ❌".to_owned(), None, None);
+
     let (message_text, opt_keyboard, opt_dialogue_data): MessageTriplet =
         match cmd
         {
@@ -33,8 +37,10 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
                 {
                     let Some(user_id) = msg.from() else { return Sendable::SendError("⚠ Internal error ⚠".to_owned()) };
                     let user_id = user_id.id.to_string();
-                    let db_url = env!("REDIS_URL");
-                    log_out(&user_id, db_url).await.merge_ok_err()
+                    log_out(&user_id, env!("REDIS_URL")).await
+                        .pass_err_with(|e| log::error!("{log_prefix}{e}"))
+                        .map_err_by(err)
+                        .merge_ok_err()
                 }
         };
     if let (d, Some(kb)) = (opt_dialogue_data, opt_keyboard)
