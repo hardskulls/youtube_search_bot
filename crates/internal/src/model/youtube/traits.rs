@@ -74,7 +74,8 @@ impl IntoSearchableItem for Subscription
             item.date = snippet.published_at.filter(|i| !i.trim().is_empty());
             item.link =
                 snippet
-                    .channel_id
+                    .resource_id
+                    .and_then(|r_id| r_id.channel_id)
                     .filter(|i| !i.trim().is_empty())
                     .map(|chan_id| format!("https://youtube.com/channel/{chan_id}"));
         }
