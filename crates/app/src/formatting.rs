@@ -11,7 +11,7 @@ pub fn format_logs(buf: &mut Formatter, record: &Record) -> std::io::Result<()>
     let time = chrono::Local::now().format("Date %Y.%m.%d | Time %H:%M:%S");
     let (level, args) = (record.level(), record.args());
 
-    writeln!(buf, "[:: LOG ::] [ {} ] : \n[Location '{}:{}'] : \n[{}] :: \n          ( {} ) \n", level, file, line, time, args)
+    writeln!(buf, "[ LOG : {level} ] \n   ->   [ {file}:{line} ] \n   ->   [ {time} ] \n   ->   ( {args} ) \n\n\n\n\n ")
 }
 
 
