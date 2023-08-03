@@ -11,7 +11,13 @@ pub(crate) mod dialogue
 pub(crate) mod youtube
 {
     pub(crate) mod types;
-    pub(crate) mod funcs;
+    pub(crate) mod funcs
+    {
+        pub(crate) mod common;
+        pub(crate) mod search_cmd;
+        pub(crate) mod list_cmd;
+        pub(crate) mod search_videos_in_playlists;
+    }
     pub(crate) mod traits;
 }
 pub(crate) mod net
@@ -40,6 +46,7 @@ pub(crate) mod handlers
         pub(crate) mod common;
         pub(crate) mod search_cmd;
         pub(crate) mod list_cmd;
+        pub(crate) mod search_videos_in_playlits;
     }
 }
 

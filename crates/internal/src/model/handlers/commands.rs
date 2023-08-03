@@ -6,8 +6,7 @@ use crate::model::commands::funcs::{info, log_out};
 use crate::model::commands::types::Command;
 use crate::model::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
 use crate::model::keyboards::traits::{CreateKB, KeyboardText};
-use crate::model::keyboards::types::ListCommandButtons::ListSettings;
-use crate::model::keyboards::types::SearchCommandButtons::SearchSettings;
+use crate::model::keyboards::types::{ListCommandButtons, SearchCommandButtons};
 use crate::view::types::Sendable;
 
 pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Command)
@@ -15,7 +14,7 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
 {
     log::info!(" [:: LOG ::]     @[fn]:[handlers::handle_commands] :: [Started]");
 
-    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::log_out]  ->  error: ";
+    let log_prefix = " [:: LOG ::]  :  @fn:[commands::common::log_out]  ->  error: ";
     let err = || ("Couldn't log out ❌".to_owned(), None, None);
 
     let (message_text, opt_keyboard, opt_dialogue_data): MessageTriplet =
@@ -26,12 +25,14 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
             Command::Search =>
                 {
                     let state = State::SearchCommandActive(SearchCommandSettings::default());
-                    (SearchSettings.kb_text(), SearchSettings.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    let d_data = DialogueData { state, ..Default::default() };
+                    (SearchCommandButtons::ButtonList.kb_text(), SearchCommandButtons::ButtonList.create_kb(), d_data.into())
                 }
             Command::List =>
                 {
                     let state = State::ListCommandActive(ListCommandSettings::default());
-                    (ListSettings.kb_text(), ListSettings.create_kb(), DialogueData { state, ..Default::default() }.into())
+                    let d_data = DialogueData { state, ..Default::default() };
+                    (ListCommandButtons::ButtonList.kb_text(), ListCommandButtons::ButtonList.create_kb(), d_data.into())
                 }
             Command::LogOut =>
                 {

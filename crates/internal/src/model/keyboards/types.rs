@@ -1,3 +1,4 @@
+
 use std::fmt::{Debug, Formatter};
 use parse_display::Display;
 use serde::{Deserialize, Serialize};
@@ -53,7 +54,7 @@ pub enum SearchIn
 pub enum SearchCommandButtons
 {
     #[display("{} 🔎")] #[display(style = "Title case")] #[default]
-    SearchSettings,
+    ButtonList,
     #[display("{} ✅")]
     Execute,
     #[display(style = "Title case")] #[display("{} 🧮")]
@@ -85,7 +86,7 @@ pub enum Sorting
 pub enum ListCommandButtons
 {
     #[display("{} 📃")] #[display(style = "Title case")] #[default]
-    ListSettings,
+    ButtonList,
     #[display("{} ✅")]
     Execute,
     #[display(style = "Title case")] #[display("{} 🧮")]
@@ -100,6 +101,24 @@ pub enum ListCommandButtons
     Sorting(Sorting),
 }
 
+/// List of `Inline Keyboard` buttons for `search_videos_in_playlists` bot command.
+#[derive(Debug, Clone, Serialize, Deserialize, Display, Default)]
+pub enum SearchVideoInPlaylistsCommandButtons
+{
+    #[display("{} 📃")] #[display(style = "Title case")] #[default]
+    ButtonList,
+    #[display("{} ✅")]
+    Execute,
+    #[display(style = "Title case")] #[display("{} 🧮")]
+    ResultLimit,
+    #[display("Search in 💳")]
+    SearchInOptions,
+    #[display("{0}")]
+    SearchIn(SearchIn),
+    #[display(style = "Title case")] #[display("{} 💬")]
+    TextToSearch,
+}
+
 /// Main wrapper that includes all available keyboards.
 #[derive(Debug, Clone, Serialize, Deserialize, Display)]
 pub(crate) enum Buttons
@@ -108,6 +127,8 @@ pub(crate) enum Buttons
     SearchButtons(SearchCommandButtons),
     #[display("{0}")]
     ListButtons(ListCommandButtons),
+    #[display("{0}")]
+    SearchVideoInPlaylistsButtons(SearchVideoInPlaylistsCommandButtons),
 }
 
 
@@ -117,7 +138,7 @@ pub(crate) enum Buttons
 mod tests
 {
     use crate::model::keyboards::traits::ButtonText;
-    use crate::model::keyboards::types::SearchCommandButtons::{SearchInOptions, SearchSettings};
+    use crate::model::keyboards::types::SearchCommandButtons::{SearchInOptions, ButtonList};
     
     // use to_debug::ToDebug;
     use super::*;
@@ -126,7 +147,7 @@ mod tests
     fn serialize_enum_test()
     {
         assert_eq!(SearchInOptions.to_string(), "Search in 💳");
-        assert_eq!(SearchSettings.button_text(), "Search settings 🔎");
+        assert_eq!(ButtonList.button_text(), "Button list 🔎");
     }
 
     #[test]

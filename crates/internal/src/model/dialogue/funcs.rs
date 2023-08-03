@@ -4,9 +4,9 @@ use google_youtube3::oauth2::read_application_secret;
 use teloxide::types::{CallbackQuery, Message};
 use url::Url;
 
-use crate::model::dialogue::types::{DialogueData, Either, ListCommandSettings, SearchCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::{DialogueData, Either, ListCommandSettings, SearchCommandSettings, SearchVideosInPlaylistsCommandSettings, State, TheDialogue};
 use crate::model::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
-use crate::model::youtube::funcs::make_auth_url;
+use crate::model::youtube::funcs::common::make_auth_url;
 use crate::model::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
 use crate::model::net::types::{QUERY_SEPARATOR, STATE_CODE};
 use crate::StdResult;
@@ -26,6 +26,14 @@ pub(crate) fn list_settings_update_or_default(d_state: State) -> ListCommandSett
     { list_settings }
     else
     { ListCommandSettings::default() }
+}
+
+pub(crate) fn search_videos_in_playlists_update_or_default(d_state: State) -> SearchVideosInPlaylistsCommandSettings
+{
+    if let State::SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings) = d_state
+    { search_videos_in_playlists_settings }
+    else
+    { SearchVideosInPlaylistsCommandSettings::default() }
 }
 
 /// Get `state` from dialogue.

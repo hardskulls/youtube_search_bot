@@ -23,7 +23,8 @@ pub type TheDialogue = Dialogue<DialogueData, ErasedStorage<DialogueData>>;
 pub(crate) enum CommandConfig
 {
     SearchConfig(SearchConfig),
-    ListConfig(ListConfig)
+    ListConfig(ListConfig),
+    SearchVideosInPlaylistsConfig(SearchVideosInPlaylistsConfig)
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -41,6 +42,14 @@ pub(crate) struct ListConfig
     pub(crate) target: Requestable,
     pub(crate) result_limit: u32,
     pub(crate) sorting: Sorting,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub(crate) struct SearchVideosInPlaylistsConfig
+{
+    pub(crate) result_limit: u32,
+    pub(crate) search_in: SearchIn,
+    pub(crate) text_to_search: String,
 }
 
 /// Stores settings for `search` command (fields may be 'None').
@@ -113,6 +122,37 @@ impl ListCommandSettings
     { self.sorting = Some(sorting) }
 }
 
+/// Stores settings for `list` command (fields may be 'None').
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
+pub struct SearchVideosInPlaylistsCommandSettings
+{
+    pub(crate) result_limit: Option<u32>,
+    pub(crate) search_in: Option<SearchIn>,
+    pub(crate) text_to_search: Option<String>,
+}
+
+impl SearchVideosInPlaylistsCommandSettings
+{
+    pub(crate) fn build_config(self) -> StdResult<SearchVideosInPlaylistsConfig, String>
+    {
+        match self
+        {
+            Self { result_limit: Some(r), search_in: Some(s), text_to_search: Some(text) } =>
+                Ok(SearchVideosInPlaylistsConfig { result_limit: r, search_in: s, text_to_search: text }),
+            Self { result_limit: r, search_in: s, text_to_search: text } =>
+                {
+                    let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
+                    let s = print_if_none(s, format!("\n💳 {}", "Search in".to_bold()));
+                    let text = print_if_none(text, format!("\n💬 {}", "Text to search".to_bold()));
+                    format!("You are missing {r}{s}{text}").in_err()
+                }
+        }
+    }
+    
+    pub(crate) fn update_search_in(&mut self, search_in: SearchIn)
+    { self.search_in = Some(search_in) }
+}
+
 /// Stores `dialogue state`.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub enum State
@@ -121,6 +161,7 @@ pub enum State
     Starting,
     SearchCommandActive(SearchCommandSettings),
     ListCommandActive(ListCommandSettings),
+    SearchVideosInPlaylistsCommandActive(SearchVideosInPlaylistsCommandSettings)
 }
 
 impl AsRef<State> for State

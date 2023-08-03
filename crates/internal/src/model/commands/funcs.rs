@@ -4,7 +4,7 @@ use error_traits::{LogErr, MapErrBy, WrapInRes};
 use crate::StdResult;
 use crate::model::db::{delete_access_token, get_access_token};
 use crate::model::dialogue::funcs::get_dialogue_data;
-use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, SearchVideosInPlaylistsCommandSettings, State, TheDialogue};
 use crate::model::net::funcs::build_post_request;
 use crate::model::net::types::REVOKE_ACCESS_TOKEN_URL;
 use crate::model::utils::{HTMLise, maybe_print};
@@ -80,11 +80,29 @@ fn print_list_config(list_settings: &ListCommandSettings) -> String
     { format!("Your list parameters are{t}") }
 }
 
+/// Pretty print config.
+fn print_search_videos_in_pls_config(list_settings: &SearchVideosInPlaylistsCommandSettings) -> String
+{
+    let SearchVideosInPlaylistsCommandSettings { search_in, text_to_search, result_limit } = list_settings;
+    let t =
+        format!
+        (
+            "{}{}{}",
+            maybe_print(format!("\n💳 {}  =  ", "Search in".to_bold()), search_in, ""),
+            maybe_print(format!("\n🧮 {}  =  ",  "Result limit".to_bold()), result_limit, ""),
+            maybe_print(format!("\n💬 {}  =  ",  "Text to search".to_bold()), text_to_search, "")
+        );
+    if t.is_empty()
+    { "You've activated 'search videos in you playlist' 📃".to_owned() }
+    else
+    { format!("Your search parameters are{t}") }
+}
+
 pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet>
 {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
 
-    let log_prefix = " [:: LOG ::]  :  @fn:[commands::funcs::info]  ->  error: ";
+    let log_prefix = " [:: LOG ::]  :  @fn:[commands::common::info]  ->  error: ";
     let user_error: fn() -> MessageTriplet = || ("Info command failed ❌".to_owned(), None, None);
 
     let create_msg = |m: &str| (m.to_owned(), None, None);
@@ -93,8 +111,12 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
     match d_data.state
     {
         State::Starting => create_msg("Bot just started 🚀").in_ok(),
-        State::SearchCommandActive(search_config) => create_msg(&print_search_config(&search_config)).in_ok(),
-        State::ListCommandActive(list_config) => create_msg(&print_list_config(&list_config)).in_ok()
+        State::SearchCommandActive(search_config) =>
+            create_msg(&print_search_config(&search_config)).in_ok(),
+        State::ListCommandActive(list_config) =>
+            create_msg(&print_list_config(&list_config)).in_ok(),
+        State::SearchVideosInPlaylistsCommandActive(search_vids_in_pls_config) =>
+            create_msg(&print_search_videos_in_pls_config(&search_vids_in_pls_config)).in_ok()
     }
 }
 
