@@ -4,9 +4,9 @@ use teloxide::prelude::Message;
 
 use crate::model::commands::funcs::{info, log_out};
 use crate::model::commands::types::Command;
-use crate::model::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, SearchCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::{DialogueData, ListCommandSettings, MessageTriplet, SearchCommandSettings, SearchVideosInPlaylistsCommandSettings, State, TheDialogue};
 use crate::model::keyboards::traits::{CreateKB, KeyboardText};
-use crate::model::keyboards::types::{ListCommandButtons, SearchCommandButtons};
+use crate::model::keyboards::types::{ListCommandButtons, SearchCommandButtons, SearchVideoInPlaylistsCommandButtons};
 use crate::view::types::Sendable;
 
 pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Command)
@@ -42,6 +42,13 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
                         .pass_err_with(|e| log::error!("{log_prefix}{e}"))
                         .map_err_by(err)
                         .merge_ok_err()
+                }
+            Command::SearchVideosInYourPlaylists =>
+                {
+                    let state = State::SearchVideosInPlaylistsCommandActive(SearchVideosInPlaylistsCommandSettings::default());
+                    let d_data = DialogueData { state, ..Default::default() };
+                    let buttons = SearchVideoInPlaylistsCommandButtons::ButtonList;
+                    (buttons.kb_text(), buttons.create_kb(), d_data.into())
                 }
         };
     if let (d, Some(kb)) = (opt_dialogue_data, opt_keyboard)

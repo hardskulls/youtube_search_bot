@@ -10,6 +10,7 @@ pub fn format_logs(buf: &mut Formatter, record: &Record) -> std::io::Result<()>
     let line = record.line().unwrap_or(0);
     let time = chrono::Local::now().format("DATE ~ %Y/%m/%d || TIME ~ %H:%M:%S");
     let (level, args) = (record.level(), record.args());
+    let middle_separator = "——————————————————————————————";
     let separator = "===================================================================";
     
     writeln!
@@ -20,6 +21,7 @@ pub fn format_logs(buf: &mut Formatter, record: &Record) -> std::io::Result<()>
         \n\nLOG : {level} \
         \n   ->   LOGGED AT ~ {file}:{line} \
         \n   ->   {time} \
+        \n\n{middle_separator} \
         \n\n{args} \
         \n\n{separator}\n\n\n \
         "
