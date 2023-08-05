@@ -20,7 +20,7 @@ pub fn format_logs(buf: &mut Formatter, record: &Record) -> std::io::Result<()>
         \n\nLOG : {level} \
         \n   ->   LOGGED AT ~ {file}:{line} \
         \n   ->   {time} \
-        \n\n{args} \
+        \n\n\n{args} \
         \n\n{separator}\n\n\n \
         "
     )
