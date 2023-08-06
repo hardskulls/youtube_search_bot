@@ -40,7 +40,7 @@ async fn main() -> eyre::Result<()>
     let addr = ([0,0,0,0], port).into();
     let url = reqwest::Url::parse(&format!("{host}/bot{token}"))?;
 
-    bot.delete_webhook().await?;
+    // bot.delete_webhook().await?;
     bot.set_my_commands(Command::bot_commands()).await?;
     
     // [!!] Must be after `bot.delete_webhook()` [!!]
