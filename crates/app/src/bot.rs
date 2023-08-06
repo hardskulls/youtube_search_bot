@@ -36,7 +36,7 @@ pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
 
 pub async fn build_storage() -> Arc<ErasedStorage<DialogueData>>
 {
-    let redis_youtube_access_token_storage = env!("REDIS_BOT_DATA_STORAGE");
+    /*let redis_youtube_access_token_storage = env!("REDIS_BOT_DATA_STORAGE");
     if let Ok(redis_storage) = RedisStorage::open(redis_youtube_access_token_storage, serializer::Json).await
     {
         log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
@@ -47,7 +47,9 @@ pub async fn build_storage() -> Arc<ErasedStorage<DialogueData>>
         log::info!("[ LOG ] 💾(❌) <| Failed to get `RedisStorage` storage and `SqliteStorage` storage. |> ");
         log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
         TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
-    }
+    }*/
+    log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
+    TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
 }
 
 
