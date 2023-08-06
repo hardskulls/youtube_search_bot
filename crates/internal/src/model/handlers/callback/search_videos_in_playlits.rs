@@ -100,7 +100,7 @@ pub(crate) async fn exec_search_videos_in_playlists_helper
     log::info!(" [:: LOG ::]     @[fn]:[execute_search_command] :: [Started]");
     
     let user_id = user_id.id.0.to_string();
-    let db_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
     
     let Ok(token) =
         get_access_token(&user_id, db_url)

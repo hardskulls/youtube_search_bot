@@ -38,7 +38,7 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
                 {
                     let Some(user_id) = msg.from() else { return Sendable::SendError("⚠ Internal error ⚠".to_owned()) };
                     let user_id = user_id.id.to_string();
-                    log_out(&user_id, env!("REDIS_URL")).await
+                    log_out(&user_id, env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE")).await
                         .pass_err_with(|e| log::error!("{log_prefix}{e}"))
                         .map_err_by(err)
                         .merge_ok_err()

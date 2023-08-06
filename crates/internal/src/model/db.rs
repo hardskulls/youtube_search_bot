@@ -122,7 +122,7 @@ mod tests
     {
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
     
-        let redis_url = env!("REDIS_URL");
+        let redis_youtube_access_token_storage = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
         let access_token = env!("TEST_ACCESS_TOKEN").to_owned();
         let refresh_token = env!("TEST_REFRESH_TOKEN").to_owned().into();
         
@@ -138,9 +138,9 @@ mod tests
                 token_type: "Bearer".to_owned()
             };
     
-        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), redis_url).unwrap();
-        let saved_token = get_access_token(user_id, redis_url).unwrap();
-        delete_access_token(user_id, redis_url).unwrap();
+        set_access_token(user_id, &serde_json::to_string(&token).unwrap(), redis_youtube_access_token_storage).unwrap();
+        let saved_token = get_access_token(user_id, redis_youtube_access_token_storage).unwrap();
+        delete_access_token(user_id, redis_youtube_access_token_storage).unwrap();
         
         assert_eq!(token.refresh_token.as_ref().unwrap(), saved_token.refresh_token.as_ref().unwrap());
         assert_eq!(token.access_token, saved_token.access_token);
@@ -154,7 +154,7 @@ mod tests
     {
         simple_logger::init_with_env().or_else(|_| simple_logger::init_with_level(log::Level::Info)).unwrap();
         
-        let redis_url = env!("REDIS_URL");
+        let redis_youtube_access_token_storage = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
         let access_token = env!("TEST_ACCESS_TOKEN").to_owned();
         let refresh_token = env!("TEST_REFRESH_TOKEN").to_owned().into();
         let secret_path = env!("PATH_TO_GOOGLE_OAUTH_SECRET");
@@ -178,7 +178,7 @@ mod tests
         token_req = token_req.query(&[("key", &oauth_api_key)]);
         
         let refreshed_access_token =
-            refresh_access_token(user_id, token.clone(), redis_url, token_req).await.unwrap();
+            refresh_access_token(user_id, token.clone(), redis_youtube_access_token_storage, token_req).await.unwrap();
         
         assert_eq!(token.refresh_token, refreshed_access_token.refresh_token);
         assert_eq!(token.access_token, refreshed_access_token.access_token);
