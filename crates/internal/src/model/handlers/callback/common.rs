@@ -8,8 +8,9 @@ use crate::model::dialogue::funcs::{default_auth_url, get_callback_data, get_dia
 use crate::model::dialogue::types::TheDialogue;
 use crate::model::handlers::callback::list_cmd::callback_helper_for_list_kb;
 use crate::model::handlers::callback::search_cmd::callback_helper_for_search_kb;
+use crate::model::handlers::callback::search_videos_in_playlits::callback_helper_for_search_videos_in_playlists_kb;
 use crate::model::keyboards::types::Buttons;
-use crate::model::keyboards::types::Buttons::{ListButtons, SearchButtons};
+use crate::model::keyboards::types::Buttons::*;
 use crate::model::utils::HTMLise;
 use crate::model::youtube::types::{SearchableItem, YouTubeAccessToken};
 use crate::view::types::Sendable;
@@ -49,7 +50,9 @@ pub(crate) async fn handle_callback(callback: CallbackQuery, dialogue: TheDialog
         match &buttons
         {
             SearchButtons(search_kb) => callback_helper_for_search_kb(search_kb, d_data, callback).await,
-            ListButtons(list_kb) => callback_helper_for_list_kb(list_kb, d_data, callback).await
+            ListButtons(list_kb) => callback_helper_for_list_kb(list_kb, d_data, callback).await,
+            SearchVideoInPlaylistsButtons(search_video_oin_pls_kb) =>
+                callback_helper_for_search_videos_in_playlists_kb(search_video_oin_pls_kb, d_data, callback).await
         };
     res.map_err(Sendable::SendError).merge_ok_err()
 }

@@ -10,7 +10,7 @@ use crate::model::dialogue::types::State::SearchCommandActive;
 use crate::model::handlers::callback::common::{construct_login_url, ResTriplet, update_and_return_access_token};
 use crate::model::keyboards::traits::{CreateKB, KeyboardText};
 use crate::model::keyboards::types::{Requestable, SearchCommandButtons, SearchIn};
-use crate::model::youtube::funcs::search_items;
+use crate::model::youtube::funcs::search_cmd::search_items;
 use crate::StdResult;
 use crate::view::types::Sendable;
 
@@ -72,7 +72,7 @@ pub(crate) async fn callback_helper_for_search_kb
     }
 }
 
-pub(crate) async fn exec_search_helper
+pub(crate) async fn execute_search_command
 (
     search_config: SearchConfig,
     callback: CallbackQuery
@@ -87,14 +87,14 @@ pub(crate) async fn exec_search_helper
     let (requestable, search_for, res_limit, search_in) =
         (search_config.target, search_config.text_to_search, search_config.result_limit, search_config.search_in);
 
-    let res = execute_search_command(callback.from, &search_for, res_limit, &search_in, requestable).await;
+    let res = exec_search_helper(callback.from, &search_for, res_limit, &search_in, requestable).await;
     res.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err(err)
 }
 
 
 /// Helper function used for `handle_text` handler.
 /// Final func that does searching when everything is ready.
-pub(crate) async fn execute_search_command
+pub(crate) async fn exec_search_helper
 (
     user_id: User,
     search_for: &str,
@@ -107,7 +107,7 @@ pub(crate) async fn execute_search_command
     log::info!(" [:: LOG ::]     @[fn]:[execute_search_command] :: [Started]");
 
     let user_id = user_id.id.0.to_string();
-    let db_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
 
     let Ok(token) =
         get_access_token(&user_id, db_url)

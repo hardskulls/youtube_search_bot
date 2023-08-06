@@ -22,6 +22,8 @@ pub const YOUTUBE_SUBSCRIPTIONS_API: &str = "https://www.googleapis.com/youtube/
 
 pub const YOUTUBE_PLAYLISTS_API: &str = "https://youtube.googleapis.com/youtube/v3/playlists";
 
+pub const YOUTUBE_PLAYLIST_ITEMS_API: &str = "https://youtube.googleapis.com/youtube/v3/playlistItems";
+
 
 // TODO : Choose a better naming and description.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -30,5 +32,9 @@ pub struct SubscriptionRequester;
 // TODO : Choose a better naming and description.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlaylistRequester;
+
+// TODO : Choose a better naming and description.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PlaylistItemRequester<'a> { pub playlist_id: &'a str }
 
 

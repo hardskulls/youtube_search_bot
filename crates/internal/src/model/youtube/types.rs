@@ -104,7 +104,8 @@ pub(crate) struct SearchableItem
     pub(crate) title: Option<String>,
     pub(crate) description: Option<String>,
     pub(crate) date: Option<String>,
-    pub(crate) link: Option<String>
+    pub(crate) link: Option<String>,
+    pub(crate) about: Option<String>
 }
 
 impl Searchable for SearchableItem
@@ -119,6 +120,9 @@ impl Searchable for SearchableItem
     { self.date.as_deref()?.into() }
     
     fn link(&self) -> Option<String>
+    { self.link.clone() }
+    
+    fn about(&self) -> Option<String>
     { self.link.clone() }
 }
 

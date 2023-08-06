@@ -1,6 +1,7 @@
 
 use teloxide::macros::BotCommands;
 
+
 /// List of commands available in the bot.
 #[derive(Clone, BotCommands)]
 #[command(rename_rule = "snake_case", description = "These commands are available")]
@@ -16,6 +17,8 @@ pub enum Command
     List,
     #[command(description = "Log Out")]
     LogOut,
+    #[command(description = "Search Videos In Your Playlists")]
+    SearchVideosInYourPlaylists,
 }
 
 

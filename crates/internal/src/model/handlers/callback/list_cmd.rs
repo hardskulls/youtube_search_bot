@@ -10,7 +10,7 @@ use crate::model::dialogue::types::State::ListCommandActive;
 use crate::model::handlers::callback::common::{construct_login_url, ResTriplet, update_and_return_access_token};
 use crate::model::keyboards::traits::{CreateKB, KeyboardText};
 use crate::model::keyboards::types::{ListCommandButtons, Requestable, Sorting};
-use crate::model::youtube::funcs::list_items;
+use crate::model::youtube::funcs::list_cmd::list_items;
 use crate::StdResult;
 use crate::view::types::Sendable;
 
@@ -66,7 +66,7 @@ pub(crate) async fn callback_helper_for_list_kb
     }
 }
 
-pub(crate) async fn exec_list_helper
+pub(crate) async fn execute_list_command
 (
     list_config: ListConfig,
     callback: CallbackQuery
@@ -80,13 +80,13 @@ pub(crate) async fn exec_list_helper
 
     let (requestable, res_limit, sorting) = (list_config.target, list_config.result_limit, list_config.sorting);
 
-    let res = execute_list_command(callback.from, res_limit, &sorting, requestable).await;
+    let res = exec_list_helper(callback.from, res_limit, &sorting, requestable).await;
     res.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err(err)
 }
 
 /// Helper function used for `handle_text` handler.
 /// Final func that does searching when everything is ready.
-pub(crate) async fn execute_list_command
+pub(crate) async fn exec_list_helper
 (
     user_id: User,
     res_limit: u32,
@@ -98,7 +98,7 @@ pub(crate) async fn execute_list_command
     log::info!(" [:: LOG ::]     @[fn]:[execute_search_command] :: [Started]");
 
     let user_id = user_id.id.0.to_string();
-    let db_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
 
     let Ok(token) =
         get_access_token(&user_id, db_url)

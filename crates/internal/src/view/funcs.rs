@@ -7,8 +7,9 @@ use teloxide::types::{ChatId, InlineKeyboardMarkup, Message, CallbackQuery};
 use teloxide::types::ParseMode::Html;
 
 use crate::model::dialogue::types::{DialogueData, MessageWithKB, TheDialogue, CommandConfig};
-use crate::model::handlers::callback::list_cmd::exec_list_helper;
-use crate::model::handlers::callback::search_cmd::exec_search_helper;
+use crate::model::handlers::callback::list_cmd::execute_list_command;
+use crate::model::handlers::callback::search_cmd::execute_search_command;
+use crate::model::handlers::callback::search_videos_in_playlits::execute_search_videos_in_playlists_command;
 use crate::model::utils::HTMLise;
 use crate::model::youtube::types::SearchableItem;
 use crate::view::funcs::shorthands::{send_message, update_dialogue};
@@ -178,8 +179,10 @@ async fn execute_command(bot: &Bot, send_to: ChatId, callback: CallbackQuery, co
     let results =
         match config
         {
-            CommandConfig::SearchConfig(s) => exec_search_helper(s, callback).await,
-            CommandConfig::ListConfig(l) => exec_list_helper(l, callback).await
+            CommandConfig::SearchConfig(s) => execute_search_command(s, callback).await,
+            CommandConfig::ListConfig(l) => execute_list_command(l, callback).await,
+            CommandConfig::SearchVideosInPlaylistsConfig(sv) =>
+                execute_search_videos_in_playlists_command(sv, callback).await
         };
     match results
     {
