@@ -79,7 +79,7 @@ pub async fn handle_auth_code(req: Request<Body>) -> axum::response::Result<axum
     let resp = access_token_request.send().await.map_err(|_| "access token request failed")?;
 
     let new_token = resp.json::<YouTubeAccessToken>().await.map_err(|_| "couldn't deserialize access token")?;
-    let db_url = env!("REDIS_URL");
+    let db_url = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
     let combined_token = combine_old_new_tokens(for_user, new_token, db_url);
     let serialized_access_token = serde_json::to_string(&combined_token).map_err(|_| "db error")?;
     set_access_token(for_user, &serialized_access_token, db_url).map_err(|_| "db error")?;
