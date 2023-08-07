@@ -22,8 +22,8 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
         {
             Command::Start =>
                 (
-                    "Bot started, send something ⌨ \n Use /search, /list or \
-                    /search_videos_in_your_playlists commands 🚀".into(),
+                    "Bot started, send something ⌨ \n Use one of /search, /list or \
+                    /search_videos_in_my_playlists commands 🚀".into(),
                     None,
                     None
                 ),
@@ -54,7 +54,7 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
                         .map_err_by(err)
                         .merge_ok_err()
                 }
-            Command::SearchVideosInYourPlaylists =>
+            Command::SearchVideosInMyPlaylists =>
                 {
                     let state = State::SearchVideosInPlaylistsCommandActive(SearchVideosInPlaylistsCommandSettings::default());
                     let d_data = DialogueData { state, ..Default::default() };
