@@ -181,7 +181,7 @@ async fn execute_command(bot: &Bot, send_to: ChatId, callback: CallbackQuery, co
         {
             CommandConfig::SearchConfig(s) => execute_search_command(s, callback).await,
             CommandConfig::ListConfig(l) => execute_list_command(l, callback).await,
-            CommandConfig::SearchVideosInPlaylistsConfig(sv) =>
+            CommandConfig::SearchVideosInMyPlaylistsConfig(sv) =>
                 execute_search_videos_in_playlists_command(sv, callback).await
         };
     match results

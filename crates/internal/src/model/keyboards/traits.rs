@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 use teloxide::types::InlineKeyboardMarkup;
 use crate::model::keyboards::funcs::{button, inline_button};
-use crate::model::keyboards::types::{Buttons, ListCommandButtons, Requestable, SearchCommandButtons, SearchIn, Sorting, SearchVideoInPlaylistsCommandButtons};
+use crate::model::keyboards::types::{Buttons, ListCommandButtons, Requestable, SearchCommandButtons, SearchIn, Sorting, SearchVideosInMyPlaylistsCommandButtons};
 use crate::model::net::types::{PlaylistRequester, SubscriptionRequester};
 use crate::model::utils::HTMLise;
 
@@ -79,28 +79,28 @@ impl CreateKB for ListCommandButtons
     }
 }
 
-impl CreateKB for SearchVideoInPlaylistsCommandButtons
+impl CreateKB for SearchVideosInMyPlaylistsCommandButtons
 {
     fn create_kb(&self) -> Option<InlineKeyboardMarkup>
     {
-        use crate::model::keyboards::types::Buttons::SearchVideoInPlaylistsButtons;
-        use SearchVideoInPlaylistsCommandButtons::{TextToSearch, Execute, ResultLimit, ButtonList, SearchInOptions};
+        use crate::model::keyboards::types::Buttons::SearchVideosInMyPlaylistsButtons;
+        use SearchVideosInMyPlaylistsCommandButtons::{TextToSearch, Execute, ResultLimit, ButtonList, SearchInOptions};
         match *self
         {
             ResultLimit | TextToSearch => None,
             SearchInOptions =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(SearchVideoInPlaylistsButtons(SearchVideoInPlaylistsCommandButtons::SearchIn(SearchIn::Title))))
-                    .append_to_row(0, button(SearchVideoInPlaylistsButtons(SearchVideoInPlaylistsCommandButtons::SearchIn(SearchIn::Description))))
-                    .append_to_row(1, inline_button("Cancel ❌", SearchVideoInPlaylistsButtons(ButtonList)))
+                    .append_to_row(0, button(SearchVideosInMyPlaylistsButtons(SearchVideosInMyPlaylistsCommandButtons::SearchIn(SearchIn::Title))))
+                    .append_to_row(0, button(SearchVideosInMyPlaylistsButtons(SearchVideosInMyPlaylistsCommandButtons::SearchIn(SearchIn::Description))))
+                    .append_to_row(1, inline_button("Cancel ❌", SearchVideosInMyPlaylistsButtons(ButtonList)))
                     .into(),
-            ButtonList | Execute | SearchVideoInPlaylistsCommandButtons::SearchIn(_) =>
+            ButtonList | Execute | SearchVideosInMyPlaylistsCommandButtons::SearchIn(_) =>
                 InlineKeyboardMarkup::default()
-                    .append_to_row(0, button(SearchVideoInPlaylistsButtons(TextToSearch)))
-                    .append_to_row(0, button(SearchVideoInPlaylistsButtons(SearchInOptions)))
-                    .append_to_row(1, button(SearchVideoInPlaylistsButtons(ResultLimit)))
-                    .append_to_row(2, button(SearchVideoInPlaylistsButtons(Execute)))
-                    .append_to_row(2, inline_button("Cancel ❌", SearchVideoInPlaylistsButtons(ButtonList)))
+                    .append_to_row(0, button(SearchVideosInMyPlaylistsButtons(TextToSearch)))
+                    .append_to_row(0, button(SearchVideosInMyPlaylistsButtons(SearchInOptions)))
+                    .append_to_row(1, button(SearchVideosInMyPlaylistsButtons(ResultLimit)))
+                    .append_to_row(2, button(SearchVideosInMyPlaylistsButtons(Execute)))
+                    .append_to_row(2, inline_button("Cancel ❌", SearchVideosInMyPlaylistsButtons(ButtonList)))
                     .into()
         }
     }
@@ -146,14 +146,14 @@ impl KeyboardText for ListCommandButtons
     }
 }
 
-impl KeyboardText for SearchVideoInPlaylistsCommandButtons
+impl KeyboardText for SearchVideosInMyPlaylistsCommandButtons
 {
     fn kb_text(&self) -> String
     {
         match *self
         {
-            SearchVideoInPlaylistsCommandButtons::ResultLimit => "Choose result limit 🧮".into(),
-            SearchVideoInPlaylistsCommandButtons::TextToSearch =>
+            SearchVideosInMyPlaylistsCommandButtons::ResultLimit => "Choose result limit 🧮".into(),
+            SearchVideosInMyPlaylistsCommandButtons::TextToSearch =>
                 format!("Send the {text} you want to search 💬", text = "text".to_bold()),
             _ => "Search video in playlists command settings ⚙".into(),
         }
@@ -184,7 +184,7 @@ impl ButtonText for ListCommandButtons {}
 impl ButtonText for Sorting {}
 
 
-impl ButtonText for SearchVideoInPlaylistsCommandButtons {}
+impl ButtonText for SearchVideosInMyPlaylistsCommandButtons {}
 
 
 // TODO : This trait gives strange error when used.

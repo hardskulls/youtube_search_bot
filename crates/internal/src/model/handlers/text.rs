@@ -2,11 +2,12 @@
 use error_traits::{PassErrWith, WrapInRes, MapType};
 
 use teloxide::types::Message;
+use CommandSettings::{ListSettings, SearchSettings, SearchVideosInMyPlaylistsSettings};
 
 use crate::model::dialogue::funcs::{get_callback_data, get_dialogue_data, get_text, parse_number, save_text};
-use crate::model::dialogue::types::{DialogueData, Either, State, TheDialogue};
-use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive};
-use crate::model::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons};
+use crate::model::dialogue::types::{CommandSettings, DialogueData, Either, State, TheDialogue};
+use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive, SearchVideosInMyPlaylistsCommandActive};
+use crate::model::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons, SearchVideosInMyPlaylistsCommandButtons};
 use crate::view::types::Sendable;
 
 
@@ -49,18 +50,37 @@ pub(crate) async fn handle_text(msg: Message, dialogue: TheDialogue)
         };
     
     let (message_text, opt_dialogue_data): (&str, Option<DialogueData>) =
-        match (d_data.state.as_ref(), buttons)
+        match (&d_data.state, buttons)
         {
             (State::Starting, ..) => ("Bot is running! 🚀 \nSend /start command to start a game 🕹", None),
-            (SearchCommandActive(search_config), Buttons::SearchButtons(SearchCommandButtons::ResultLimit)) =>
-                parse_number(&text, Either::First(search_config), &d_data),
-            (ListCommandActive(list_config), Buttons::ListButtons(ListCommandButtons::ResultLimit)) =>
-                parse_number(&text, Either::Last(list_config), &d_data),
-            (SearchCommandActive(search_config), Buttons::SearchButtons(SearchCommandButtons::TextToSearch)) =>
-                save_text(&text, (search_config).clone(), &d_data),
+            (
+                SearchCommandActive(settings),
+                Buttons::SearchButtons(SearchCommandButtons::ResultLimit)
+            )
+            => parse_number(&text, SearchSettings(settings.clone()), &d_data),
+            (
+                ListCommandActive(settings),
+                Buttons::ListButtons(ListCommandButtons::ResultLimit)
+            )
+            => parse_number(&text, ListSettings(settings.clone()), &d_data),
+            (
+                SearchVideosInMyPlaylistsCommandActive(settings),
+                Buttons::SearchVideosInMyPlaylistsButtons(SearchVideosInMyPlaylistsCommandButtons::ResultLimit)
+            )
+            => parse_number(&text, SearchVideosInMyPlaylistsSettings(settings.clone()), &d_data),
+            (
+                SearchCommandActive(settings),
+                Buttons::SearchButtons(SearchCommandButtons::TextToSearch)
+            )
+            => save_text(&text, SearchSettings(settings.clone()), &d_data),
+            (
+                SearchVideosInMyPlaylistsCommandActive(settings),
+                Buttons::SearchVideosInMyPlaylistsButtons(SearchVideosInMyPlaylistsCommandButtons::TextToSearch)
+            )
+            => save_text(&text, SearchVideosInMyPlaylistsSettings(settings.clone()), &d_data),
             other =>
                 {
-                    log::info!(" [:: LOG ::] ... ( @[fn]:[handle_text] [:: {:?} ::] )", other);
+                    log::error!("@[fn]:[handle_text] Something went wrong, dialogue <state> is: {other:#?} )");
                     ("Oops! 🤷‍♂️", None)
                 }
         };

@@ -18,11 +18,16 @@ pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
         <S as Storage<DialogueData>>::Error: Debug + Send
 {
     let storage = build_storage.await;
+    
+    let registered_commands = dptree::entry().filter_command::<Command>().endpoint(handle_commands);
+    let unknown_commands = dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command);
+    let text = dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text);
+    
     let message_handler =
         Update::filter_message()
-            .branch(dptree::entry().filter_command::<Command>().endpoint(handle_commands))
-            .branch(dptree::filter(is_other_command::<Command>).endpoint(handle_unknown_command))
-            .branch(dptree::case![DialogueData { state, last_callback, message_with_kb }].endpoint(handle_text));
+            .branch(registered_commands)
+            .branch(unknown_commands)
+            .branch(text);
     let callback_handler =
         Update::filter_callback_query()
             .endpoint(handle_callback);
@@ -36,7 +41,7 @@ pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
 
 pub async fn build_storage() -> Arc<ErasedStorage<DialogueData>>
 {
-    let redis_youtube_access_token_storage = env!("REDIS_BOT_DATA_STORAGE");
+    /*let redis_youtube_access_token_storage = env!("REDIS_BOT_DATA_STORAGE");
     if let Ok(redis_storage) = RedisStorage::open(redis_youtube_access_token_storage, serializer::Json).await
     {
         log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
@@ -47,7 +52,9 @@ pub async fn build_storage() -> Arc<ErasedStorage<DialogueData>>
         log::info!("[ LOG ] 💾(❌) <| Failed to get `RedisStorage` storage and `SqliteStorage` storage. |> ");
         log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
         TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
-    }
+    }*/
+    log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
+    TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
 }
 
 

@@ -24,7 +24,7 @@ pub(crate) enum CommandConfig
 {
     SearchConfig(SearchConfig),
     ListConfig(ListConfig),
-    SearchVideosInPlaylistsConfig(SearchVideosInPlaylistsConfig)
+    SearchVideosInMyPlaylistsConfig(SearchVideosInMyPlaylistsConfig)
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -45,7 +45,7 @@ pub(crate) struct ListConfig
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub(crate) struct SearchVideosInPlaylistsConfig
+pub(crate) struct SearchVideosInMyPlaylistsConfig
 {
     pub(crate) result_limit: u32,
     pub(crate) search_in: SearchIn,
@@ -124,21 +124,21 @@ impl ListCommandSettings
 
 /// Stores settings for `list` command (fields may be 'None').
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
-pub struct SearchVideosInPlaylistsCommandSettings
+pub struct SearchVideosInMyPlaylistsCommandSettings
 {
     pub(crate) result_limit: Option<u32>,
     pub(crate) search_in: Option<SearchIn>,
     pub(crate) text_to_search: Option<String>,
 }
 
-impl SearchVideosInPlaylistsCommandSettings
+impl SearchVideosInMyPlaylistsCommandSettings
 {
-    pub(crate) fn build_config(self) -> StdResult<SearchVideosInPlaylistsConfig, String>
+    pub(crate) fn build_config(self) -> StdResult<SearchVideosInMyPlaylistsConfig, String>
     {
         match self
         {
             Self { result_limit: Some(r), search_in: Some(s), text_to_search: Some(text) } =>
-                Ok(SearchVideosInPlaylistsConfig { result_limit: r, search_in: s, text_to_search: text }),
+                Ok(SearchVideosInMyPlaylistsConfig { result_limit: r, search_in: s, text_to_search: text }),
             Self { result_limit: r, search_in: s, text_to_search: text } =>
                 {
                     let r = print_if_none(r, format!("\n🧮 {}", "Result limit".to_bold()));
@@ -153,6 +153,14 @@ impl SearchVideosInPlaylistsCommandSettings
     { self.search_in = Some(search_in) }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub(crate) enum CommandSettings
+{
+    SearchSettings(SearchCommandSettings),
+    ListSettings(ListCommandSettings),
+    SearchVideosInMyPlaylistsSettings(SearchVideosInMyPlaylistsCommandSettings)
+}
+
 /// Stores `dialogue state`.
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub enum State
@@ -161,7 +169,7 @@ pub enum State
     Starting,
     SearchCommandActive(SearchCommandSettings),
     ListCommandActive(ListCommandSettings),
-    SearchVideosInPlaylistsCommandActive(SearchVideosInPlaylistsCommandSettings)
+    SearchVideosInMyPlaylistsCommandActive(SearchVideosInMyPlaylistsCommandSettings)
 }
 
 impl AsRef<State> for State
