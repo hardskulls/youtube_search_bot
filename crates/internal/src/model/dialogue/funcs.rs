@@ -4,7 +4,8 @@ use google_youtube3::oauth2::read_application_secret;
 use teloxide::types::{CallbackQuery, Message};
 use url::Url;
 
-use crate::model::dialogue::types::{DialogueData, Either, ListCommandSettings, SearchCommandSettings, SearchVideosInPlaylistsCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::{CommandSettings, DialogueData, ListCommandSettings, SearchCommandSettings, SearchVideosInMyPlaylistsCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::State::SearchVideosInMyPlaylistsCommandActive;
 use crate::model::errors::{DialogueStateStorageError, NoCallbackDataError, NoTextError};
 use crate::model::youtube::funcs::common::make_auth_url;
 use crate::model::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
@@ -28,12 +29,12 @@ pub(crate) fn list_settings_update_or_default(d_state: State) -> ListCommandSett
     { ListCommandSettings::default() }
 }
 
-pub(crate) fn search_videos_in_playlists_update_or_default(d_state: State) -> SearchVideosInPlaylistsCommandSettings
+pub(crate) fn search_videos_in_my_playlists_update_or_default(d_state: State) -> SearchVideosInMyPlaylistsCommandSettings
 {
-    if let State::SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings) = d_state
+    if let SearchVideosInMyPlaylistsCommandActive(search_videos_in_playlists_settings) = d_state
     { search_videos_in_playlists_settings }
     else
-    { SearchVideosInPlaylistsCommandSettings::default() }
+    { SearchVideosInMyPlaylistsCommandSettings::default() }
 }
 
 /// Get `state` from dialogue.
@@ -79,34 +80,60 @@ pub(crate) async fn default_auth_url(user_id: &str) -> eyre::Result<Url>
 
 /// Helper function used for `handle_text` handler.
 /// Parses user input as number in order to set it as `result limit` setting.
-pub(crate) fn parse_number(text: &str, configs: Either<&SearchCommandSettings, &ListCommandSettings>, dialogue_data: &DialogueData)
+pub(crate) fn parse_number
+(
+    text: &str,
+    cmd_settings: CommandSettings,
+    dialogue_data: &DialogueData
+)
     -> (&'static str, Option<DialogueData>)
 {
     log::info!(" [:: LOG ::]     @[fn]:[parse_number] :: [Started]");
     match text.parse::<u16>()
     {
-        Ok(num) if num >= 1 => ("Accepted! ✅", Some(DialogueData { state: save_res_limit(configs, num), ..dialogue_data.clone() })),
+        Ok(num) if num >= 1 => ("Accepted! ✅", Some(DialogueData { state: save_res_limit(cmd_settings, num), ..dialogue_data.clone() })),
         _ => ("Send a number greater than 0", None)
     }
 }
 
-fn save_res_limit(configs: Either<&SearchCommandSettings, &ListCommandSettings>, num: u16) -> State
+fn save_res_limit(settings: CommandSettings, num: u16) -> State
 {
     use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive};
     let result_limit = Some(num as u32);
-    match configs
+    match settings
     {
-        Either::First(search_settings) => SearchCommandActive(SearchCommandSettings { result_limit, ..search_settings.clone() }),
-        Either::Last(list_settings) => ListCommandActive(ListCommandSettings { result_limit, ..list_settings.clone() })
+        CommandSettings::ListSettings(settings) =>
+            ListCommandActive(ListCommandSettings { result_limit, ..settings.clone() }),
+        CommandSettings::SearchSettings(settings) =>
+            SearchCommandActive(SearchCommandSettings { result_limit, ..settings.clone() }),
+        CommandSettings::SearchVideosInMyPlaylistsSettings(settings) =>
+            {
+                let s = SearchVideosInMyPlaylistsCommandSettings { result_limit, ..settings };
+                SearchVideosInMyPlaylistsCommandActive(s)
+            }
     }
 }
 
 /// Save text to search.
-pub(crate) fn save_text(text: &str, search_settings: SearchCommandSettings, dialogue_data: &DialogueData)
+pub(crate) fn save_text(text: &str, cmd_settings: CommandSettings, dialogue_data: &DialogueData)
     -> (&'static str, Option<DialogueData>)
 {
     log::info!(" [:: LOG ::]     @[fn]:[save_text] :: [Started]");
-    let state = State::SearchCommandActive(SearchCommandSettings { text_to_search: text.to_owned().into(), ..search_settings });
+    
+    let text_to_search = text.to_owned().into();
+    let state =
+        match cmd_settings
+        {
+            CommandSettings::ListSettings(settings) =>
+                State::ListCommandActive(ListCommandSettings { ..settings }),
+            CommandSettings::SearchSettings(settings) =>
+                State::SearchCommandActive(SearchCommandSettings { text_to_search, ..settings }),
+            CommandSettings::SearchVideosInMyPlaylistsSettings(settings) =>
+                {
+                    let s = SearchVideosInMyPlaylistsCommandSettings { text_to_search, ..settings };
+                    SearchVideosInMyPlaylistsCommandActive(s)
+                },
+        };
     ("Accepted! ✅", Some(DialogueData { state, ..dialogue_data.clone() }))
 }
 

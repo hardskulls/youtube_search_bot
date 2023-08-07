@@ -4,7 +4,7 @@ use error_traits::{LogErr, MapErrBy, WrapInRes};
 use crate::StdResult;
 use crate::model::db::{delete_access_token, get_access_token};
 use crate::model::dialogue::funcs::get_dialogue_data;
-use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, SearchVideosInPlaylistsCommandSettings, State, TheDialogue};
+use crate::model::dialogue::types::{ListCommandSettings, MessageTriplet, SearchCommandSettings, SearchVideosInMyPlaylistsCommandSettings, State, TheDialogue};
 use crate::model::net::funcs::build_post_request;
 use crate::model::net::types::REVOKE_ACCESS_TOKEN_URL;
 use crate::model::utils::{HTMLise, maybe_print};
@@ -81,9 +81,9 @@ fn print_list_config(list_settings: &ListCommandSettings) -> String
 }
 
 /// Pretty print config.
-fn print_search_videos_in_pls_config(list_settings: &SearchVideosInPlaylistsCommandSettings) -> String
+fn print_search_videos_in_pls_config(list_settings: &SearchVideosInMyPlaylistsCommandSettings) -> String
 {
-    let SearchVideosInPlaylistsCommandSettings { search_in, text_to_search, result_limit } = list_settings;
+    let SearchVideosInMyPlaylistsCommandSettings { search_in, text_to_search, result_limit } = list_settings;
     let t =
         format!
         (
@@ -119,7 +119,7 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
             create_msg(&print_search_config(&search_config)).in_ok(),
         State::ListCommandActive(list_config) =>
             create_msg(&print_list_config(&list_config)).in_ok(),
-        State::SearchVideosInPlaylistsCommandActive(search_vids_in_pls_config) =>
+        State::SearchVideosInMyPlaylistsCommandActive(search_vids_in_pls_config) =>
             create_msg(&print_search_videos_in_pls_config(&search_vids_in_pls_config)).in_ok()
     }
 }

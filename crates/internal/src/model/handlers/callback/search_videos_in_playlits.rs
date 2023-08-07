@@ -4,12 +4,12 @@ use teloxide::prelude::CallbackQuery;
 use teloxide::types::User;
 use crate::dialogue::DialogueData;
 use crate::model::db::get_access_token;
-use crate::model::dialogue::funcs::search_videos_in_playlists_update_or_default;
-use crate::model::dialogue::types::{CommandConfig, SearchVideosInPlaylistsConfig};
-use crate::model::dialogue::types::State::SearchVideosInPlaylistsCommandActive;
+use crate::model::dialogue::funcs::search_videos_in_my_playlists_update_or_default;
+use crate::model::dialogue::types::{CommandConfig, SearchVideosInMyPlaylistsConfig};
+use crate::model::dialogue::types::State::SearchVideosInMyPlaylistsCommandActive;
 use crate::model::handlers::callback::common::{construct_login_url, ResTriplet, update_and_return_access_token};
 use crate::model::keyboards::traits::{CreateKB, KeyboardText};
-use crate::model::keyboards::types::{SearchIn, SearchVideoInPlaylistsCommandButtons};
+use crate::model::keyboards::types::{SearchIn, SearchVideosInMyPlaylistsCommandButtons};
 use crate::model::youtube::funcs::search_videos_in_playlists::search_videos_in_playlists;
 use crate::StdResult;
 use crate::view::types::Sendable;
@@ -18,7 +18,7 @@ use crate::view::types::Sendable;
 /// Helper function used for `handle_callback_data` handler.
 pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb
 (
-    search_kb: &SearchVideoInPlaylistsCommandButtons,
+    search_kb: &SearchVideosInMyPlaylistsCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery,
 )
@@ -26,32 +26,32 @@ pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb
 {
     log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_search_kb] :: [Started]");
     
-    use SearchVideoInPlaylistsCommandButtons::{TextToSearch, Execute, ResultLimit};
+    use SearchVideosInMyPlaylistsCommandButtons::{TextToSearch, Execute, ResultLimit};
     let opt_dialogue_data =
         match (search_kb, dialogue_data.state.as_ref())
         {
-            (Execute, SearchVideosInPlaylistsCommandActive(search_settings)) =>
+            (Execute, SearchVideosInMyPlaylistsCommandActive(search_settings)) =>
                 {
                     let config = search_settings.clone().build_config()?;
-                    return Sendable::ExecuteCommand(CommandConfig::SearchVideosInPlaylistsConfig(config)).in_ok()
+                    return Sendable::ExecuteCommand(CommandConfig::SearchVideosInMyPlaylistsConfig(config)).in_ok()
                 }
-            (SearchVideoInPlaylistsCommandButtons::SearchIn(search_in), _) =>
+            (SearchVideosInMyPlaylistsCommandButtons::SearchIn(search_in), _) =>
                 {
-                    let mut search_videos_in_playlists_settings = search_videos_in_playlists_update_or_default(dialogue_data.state);
+                    let mut search_videos_in_playlists_settings = search_videos_in_my_playlists_update_or_default(dialogue_data.state);
                     search_videos_in_playlists_settings.update_search_in(search_in.clone());
-                    Some(DialogueData { state: SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings), ..dialogue_data })
+                    Some(DialogueData { state: SearchVideosInMyPlaylistsCommandActive(search_videos_in_playlists_settings), ..dialogue_data })
                 }
             (ResultLimit, _) =>
                 {
-                    let search_videos_in_playlists_settings = search_videos_in_playlists_update_or_default(dialogue_data.state);
+                    let search_videos_in_playlists_settings = search_videos_in_my_playlists_update_or_default(dialogue_data.state);
                     let last_callback = callback.into();
-                    Some(DialogueData { state: SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings), last_callback, ..dialogue_data })
+                    Some(DialogueData { state: SearchVideosInMyPlaylistsCommandActive(search_videos_in_playlists_settings), last_callback, ..dialogue_data })
                 }
             (TextToSearch, _) =>
                 {
-                    let search_videos_in_playlists_settings = search_videos_in_playlists_update_or_default(dialogue_data.state);
+                    let search_videos_in_playlists_settings = search_videos_in_my_playlists_update_or_default(dialogue_data.state);
                     let last_callback = callback.into();
-                    Some(DialogueData { state: SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings), last_callback, ..dialogue_data })
+                    Some(DialogueData { state: SearchVideosInMyPlaylistsCommandActive(search_videos_in_playlists_settings), last_callback, ..dialogue_data })
                 }
             _ => dialogue_data.into()
         };
@@ -69,7 +69,7 @@ pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb
 
 pub(crate) async fn execute_search_videos_in_playlists_command
 (
-    search_config: SearchVideosInPlaylistsConfig,
+    search_config: SearchVideosInMyPlaylistsConfig,
     callback: CallbackQuery
 )
     -> StdResult<ResTriplet, String>

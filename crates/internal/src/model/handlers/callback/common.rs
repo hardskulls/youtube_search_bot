@@ -51,7 +51,7 @@ pub(crate) async fn handle_callback(callback: CallbackQuery, dialogue: TheDialog
         {
             SearchButtons(search_kb) => callback_helper_for_search_kb(search_kb, d_data, callback).await,
             ListButtons(list_kb) => callback_helper_for_list_kb(list_kb, d_data, callback).await,
-            SearchVideoInPlaylistsButtons(search_video_oin_pls_kb) =>
+            SearchVideosInMyPlaylistsButtons(search_video_oin_pls_kb) =>
                 callback_helper_for_search_videos_in_playlists_kb(search_video_oin_pls_kb, d_data, callback).await
         };
     res.map_err(Sendable::SendError).merge_ok_err()

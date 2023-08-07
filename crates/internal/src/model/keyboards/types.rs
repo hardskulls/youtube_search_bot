@@ -103,7 +103,7 @@ pub enum ListCommandButtons
 
 /// List of `Inline Keyboard` buttons for `search_videos_in_playlists` bot command.
 #[derive(Debug, Clone, Serialize, Deserialize, Display, Default)]
-pub enum SearchVideoInPlaylistsCommandButtons
+pub enum SearchVideosInMyPlaylistsCommandButtons
 {
     #[display("{} 📃")] #[display(style = "Title case")] #[default]
     ButtonList,
@@ -128,7 +128,7 @@ pub(crate) enum Buttons
     #[display("{0}")]
     ListButtons(ListCommandButtons),
     #[display("{0}")]
-    SearchVideoInPlaylistsButtons(SearchVideoInPlaylistsCommandButtons),
+    SearchVideosInMyPlaylistsButtons(SearchVideosInMyPlaylistsCommandButtons),
 }
 
 
