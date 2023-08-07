@@ -1,7 +1,7 @@
 
-
 use error_traits::{PassErrWith, WrapInRes};
 use google_youtube3::api::PlaylistItemListResponse;
+
 use crate::model::keyboards::types::SearchIn;
 use crate::model::net::traits::YouTubeApiResponsePage;
 use crate::model::net::types::{PlaylistItemRequester, PlaylistRequester};
@@ -21,8 +21,8 @@ pub(crate) async fn search_videos_in_playlists
 )
     -> Vec<SearchableItem>
 {
-    log::info!(" [:: LOG ::]    ( @:[fn::search_items] started )");
-    log::info!(" [:: LOG ::]    ( @:[fn::search_items] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
+    log::info!(" [:: LOG ::]    ( @:[fn::search_videos_in_playlists] started )");
+    log::info!(" [:: LOG ::]    ( @:[fn::search_videos_in_playlists] INPUT is [ '{:?}' ] )", (&search_in, &search_for, &res_limit));
     
     let mut store_in: Vec<SearchableItem> = vec![];
     
@@ -35,8 +35,12 @@ pub(crate) async fn search_videos_in_playlists
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
         
+        log::info!("@:[fn::search_videos_in_playlists] <search_res> is: {search_res:#?}");
+        
         for playlist in search_res.items.into_iter().flatten()
         {
+            log::info!("@:[fn::search_videos_in_playlists] <playlist> is: {playlist:#?}");
+            
             let pl_title = playlist.title().unwrap_or("");
             let pl_id = playlist.id.as_deref().unwrap_or("");
             let search_in = search_in.clone();
@@ -48,7 +52,7 @@ pub(crate) async fn search_videos_in_playlists
         { break }
     }
     
-    log::info!(" [:: LOG ::]    ( @:[fn::search_items] ended )");
+    log::info!(" [:: LOG ::]    ( @:[fn::search_videos_in_playlists] ended )");
     
     store_in.into_iter()
         .take(res_limit as usize)
@@ -58,6 +62,8 @@ pub(crate) async fn search_videos_in_playlists
 async fn find_videos_in_playlist(pl_title: &str, pl_id: &str, search_in: SearchIn, search_for: &str, access_token: &str)
     -> Vec<SearchableItem>
 {
+    log::info!(" [:: LOG ::]    ( @:[fn::find_videos_in_playlist] started )");
+    
     find_videos_in_playlist_helper(pl_title, pl_id, search_in, search_for, access_token)
         .await
         .pass_err_with(|e| log::error!("{e:?}"))
@@ -74,6 +80,8 @@ async fn find_videos_in_playlist_helper
 )
     -> eyre::Result<Vec<SearchableItem>>
 {
+    log::info!(" [:: LOG ::]    ( @:[fn::find_videos_in_playlist_helper] started )");
+    
     let mut store_in: Vec<SearchableItem> = vec![];
     let text_to_search = search_for.to_lowercase();
     
