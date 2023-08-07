@@ -35,7 +35,11 @@ pub(crate) async fn search_videos_in_playlists
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
         
-        log::info!("@:[fn::search_videos_in_playlists] <search_res> is: {search_res:#?}");
+        log::info!
+        (
+            "@:[fn::search_videos_in_playlists] <search_res.items.len()> is: {:#?}",
+            search_res.items.as_ref().map(|i| i.len()).unwrap_or(0)
+        );
         
         for playlist in search_res.items.into_iter().flatten()
         {
