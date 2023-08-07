@@ -107,7 +107,11 @@ pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, Me
 
     let create_msg = |m: &str| (m.to_owned(), None, None);
     
-    let d_data = get_dialogue_data(dialogue).await.log_err(log_prefix).map_err_by(user_error)?;
+    let d_data =
+        get_dialogue_data(dialogue)
+            .await
+            .log_err(log_prefix)
+            .map_err_by(user_error)?;
     match d_data.state
     {
         State::Starting => create_msg("Bot just started 🚀").in_ok(),
