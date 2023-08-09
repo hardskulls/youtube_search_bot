@@ -22,7 +22,7 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
         {
             Command::Start =>
                 (
-                    "Bot started, send something ⌨ \n Use one of /search, /list or \
+                    "Bot started, send something ⌨ \nUse one of /search, /list or \
                     /search_videos_in_my_playlists commands 🚀".into(),
                     None,
                     None
@@ -50,7 +50,7 @@ pub(crate) async fn handle_commands(msg: Message, dialogue: TheDialogue, cmd: Co
                         { return Sendable::SendError("⚠ Internal error ⚠".to_owned()) };
                     let user_id = user_id.id.to_string();
                     log_out(&user_id, env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE")).await
-                        .pass_err_with(|e| log::error!("{log_prefix}{e}"))
+                        .pass_err_with(|e| log::error!("{log_prefix}{e:?}"))
                         .map_err_by(err)
                         .merge_ok_err()
                 }

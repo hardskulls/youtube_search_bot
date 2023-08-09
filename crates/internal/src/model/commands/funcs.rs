@@ -23,18 +23,23 @@ fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::Request
 /// Revoke `refresh token` and delete token from db.
 pub(crate) async fn log_out(user_id: &str, db_url: &str) -> eyre::Result<MessageTriplet>
 {
-    log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] :: [Started]");
+    let log_prefix = "@[fn]:[model::commands::log_out] ";
+    log::info!("{log_prefix}:: [Started]");
 
     match get_access_token(user_id, db_url)
     {
         Ok(token) =>
             {
                 let resp = build_log_out_req(token)?.send().await?;
-
-                log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( resp is: '{:#?}' )", resp);
-                log::info!(" [:: LOG ::]     @[fn]:[model::commands::log_out] ( body is: '{:#?}' )", resp.text().await);
+                let revoked_token_successfully = resp.status().is_success();
+                
+                log::info!("{log_prefix}revoked_token_successfully is: {revoked_token_successfully:?}");
+                
+                log::debug!("{log_prefix} ( resp is: '{:#?}' )", resp);
+                log::debug!("{log_prefix} ( body is: '{:#?}' )", resp.text().await);
 
                 delete_access_token(user_id, db_url)?;
+                
 
                 ("Logged out successfully ✅".to_owned(), None, None).in_ok()
             }
