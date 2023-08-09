@@ -1,3 +1,4 @@
+
 use std::fmt::Debug;
 use std::future::Future;
 use std::sync::Arc;
@@ -10,6 +11,7 @@ use teloxide::prelude::{DependencyMap, Handler, Update};
 use internal::commands::Command;
 use internal::dialogue::DialogueData;
 use internal::handlers::{handle_callback, handle_commands, handle_text, handle_unknown_command, is_other_command};
+
 
 pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
     -> (Handler<'static, DependencyMap, Result<(), ()>, DpHandlerDescription>, Arc<S>)
@@ -39,22 +41,58 @@ pub async fn schema_and_storage<S>(build_storage: impl Future<Output = Arc<S>>)
     (main_handler, storage)
 }
 
-pub async fn build_storage() -> Arc<ErasedStorage<DialogueData>>
+pub type WrappedStorage = Arc<ErasedStorage<DialogueData>>;
+
+pub enum BotInternalDataStorage<'a>
 {
-    /*let redis_youtube_access_token_storage = env!("REDIS_BOT_DATA_STORAGE");
-    if let Ok(redis_storage) = RedisStorage::open(redis_youtube_access_token_storage, serializer::Json).await
+    Redis(&'a str)
+}
+
+impl<'a> BotInternalDataStorage<'a>
+{
+    pub async fn build(&self) -> eyre::Result<WrappedStorage>
     {
-        log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
-        TraceStorage::new(redis_storage).erase()
+        let mk_redis =
+            |redis_storage|
+                {
+                    log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
+                    TraceStorage::new(redis_storage).erase()
+                };
+        match *self
+        {
+            BotInternalDataStorage::Redis(url) =>
+                RedisStorage::open(url, serializer::Json)
+                    .await
+                    .map(mk_redis)
+                    .map_err(<_>::into)
+                
+        }
+    }
+}
+
+pub async fn build_storage(primary_storage: Option<BotInternalDataStorage<'_>>) -> WrappedStorage
+{
+    let default_s =
+        ||
+            {
+                log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
+                TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
+            };
+    if let Some(s) = primary_storage
+    {
+        if let Ok(redis_storage) = s.build().await
+        {
+            log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
+            redis_storage
+        }
+        else
+        {
+            log::info!("[ LOG ] 💾(❌) <| Failed to get `RedisStorage` storage and `SqliteStorage` storage. |> ");
+            default_s()
+        }
     }
     else
-    {
-        log::info!("[ LOG ] 💾(❌) <| Failed to get `RedisStorage` storage and `SqliteStorage` storage. |> ");
-        log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
-        TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
-    }*/
-    log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
-    TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
+    { default_s() }
 }
 
 

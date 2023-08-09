@@ -181,19 +181,19 @@ fn construct_about_for_pl_item
     let form = |vid_id| format!("https://youtube.com/channel/{vid_id}");
     let video_owner_chan_link = video_owner_channel_id.map(form);
     
-    let mut about = format!("{about} \n\n", about = "About:".to_bold());
+    let mut about = format!("{about}\n\n--------------------", about = "About".to_bold());
     
     if let Some(pl_link) = pl_link
-    { about += &*format!("Playlist: \n\nlink: {pl_link} \n\n") }
+    { about += &*format!("\n\n[Playlist] \n{pl_link}") }
     
     if video_owner_title.is_some() || video_owner_chan_link.is_some()
-    { about += "Published by: \n\n" }
+    { about += "\n\n[Published by] \n\n" }
     
     if let Some(vid_owner_title) = video_owner_title
-    { about += &*format!("title: {vid_owner_title} \n\n") }
+    { about += &*format!("\n\n{vid_owner_title}") }
     
     if let Some(owner_chan_link) = video_owner_chan_link
-    { about += &*format!("link: {owner_chan_link} \n\n") }
+    { about += &*format!("\n{owner_chan_link}") }
     
     about
 }

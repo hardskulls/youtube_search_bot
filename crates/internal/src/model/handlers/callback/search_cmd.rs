@@ -88,7 +88,7 @@ pub(crate) async fn execute_search_command
         (search_config.target, search_config.text_to_search, search_config.result_limit, search_config.search_in);
 
     let res = exec_search_helper(callback.from, &search_for, res_limit, &search_in, requestable).await;
-    res.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err(err)
+    res.pass_err_with(|e| log::error!("{log_prefix}{e:?}")).map_err(err)
 }
 
 
