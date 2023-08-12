@@ -81,7 +81,7 @@ pub(crate) async fn execute_list_command
     let (requestable, res_limit, sorting) = (list_config.target, list_config.result_limit, list_config.sorting);
 
     let res = exec_list_helper(callback.from, res_limit, &sorting, requestable).await;
-    res.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err(err)
+    res.pass_err_with(|e| log::error!("{log_prefix}{e:?}")).map_err(err)
 }
 
 /// Helper function used for `handle_text` handler.

@@ -83,7 +83,7 @@ pub(crate) async fn execute_search_videos_in_playlists_command
         (search_config.text_to_search, search_config.result_limit, search_config.search_in);
     
     let res = exec_search_videos_in_playlists_helper(callback.from, &search_for, res_limit, &search_in).await;
-    res.pass_err_with(|e| log::error!("{log_prefix}{e}")).map_err(err)
+    res.pass_err_with(|e| log::error!("{log_prefix}{e:?}")).map_err(err)
 }
 
 /// Helper function used for `handle_text` handler.
@@ -107,6 +107,7 @@ pub(crate) async fn exec_search_videos_in_playlists_helper
         else
         { return (construct_login_url(&user_id).await?.into(), vec![], None).in_ok() };
     
+    // let access_token = token.access_token;
     let access_token = update_and_return_access_token(&user_id, token, db_url).await?;
     
     let results = search_videos_in_playlists(search_in, search_for, &access_token, res_limit).await;
