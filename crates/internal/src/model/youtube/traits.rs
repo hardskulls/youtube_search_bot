@@ -184,13 +184,13 @@ fn construct_about_for_pl_item
     let mut about = format!("{about}\n\n--------------------", about = "About".to_bold());
     
     if let Some(pl_link) = pl_link
-    { about += &*format!("\n\n[Playlist] \n{pl_link}") }
+    { about += &*format!("\n\n[Playlist]\n \n{pl_link}") }
     
     if video_owner_title.is_some() || video_owner_chan_link.is_some()
-    { about += "\n\n[Published by] \n\n" }
+    { about += "\n\n[Published by]\n" }
     
     if let Some(vid_owner_title) = video_owner_title
-    { about += &*format!("\n\n{vid_owner_title}") }
+    { about += &*format!("\n{vid_owner_title}") }
     
     if let Some(owner_chan_link) = video_owner_chan_link
     { about += &*format!("\n{owner_chan_link}") }

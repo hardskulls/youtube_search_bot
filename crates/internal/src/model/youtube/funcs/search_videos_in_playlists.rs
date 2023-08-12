@@ -136,7 +136,7 @@ async fn find_videos_in_playlist_helper
 
         let opt_about = i.about.as_mut();
         if let Some(about) = opt_about
-        { *about = about.replace("[Playlist] \n\n", &format!("[Playlist] \n\n{pl_title}")); }
+        { *about = about.replace("[Playlist]\n", &format!("[Playlist]\n \n{pl_title}")); }
     }
     
     store_in.in_ok()
