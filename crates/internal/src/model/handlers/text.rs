@@ -37,7 +37,9 @@ pub(crate) async fn handle_text(msg: Message, dialogue: TheDialogue)
     let log_prefix = " [:: LOG ::]    | @:[fn::send_message] error: ";
 
     let (text, d_data, buttons): (String, DialogueData, Buttons) =
-        match get_required_text_state(msg, dialogue).await.pass_err_with(|e| log::error!("{log_prefix}{e}"))
+        match get_required_text_state(msg, dialogue)
+            .await
+            .pass_err_with(|e| log::error!("{log_prefix}{e:?}"))
         {
             Ok(ok) =>
                 match ok

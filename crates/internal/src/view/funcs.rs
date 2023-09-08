@@ -155,7 +155,8 @@ async fn send_results
                 let title = i.title.as_deref().unwrap_or("No title 🤷‍♂️");
                 let descr = i.description.as_deref().unwrap_or("No description 🤷‍♂️");
                 let link = i.link.as_deref().unwrap_or("No link 🤷‍♂️");
-                format!("{}{}{}", title.to_bold() + " \n\n", descr.to_owned() + " \n\n", link)
+                let about = i.about.as_deref().map(|s| format!("\n\n{s}")).unwrap_or_default();
+                format!("{}{}{}{}", title.to_bold() + " \n\n", descr.to_owned() + " \n\n", link, about)
             };
 
     if let Some(p) = prefix

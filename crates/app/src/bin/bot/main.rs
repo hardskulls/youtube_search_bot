@@ -47,7 +47,7 @@ async fn main() -> eyre::Result<()>
     let update_listener = net::webhook_with_custom_server(bot.clone(), webhooks::Options::new(addr, url)).await?;
     let err_handler = LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
 
-    let (schema, storage) = schema_and_storage(build_storage()).await;
+    let (schema, storage) = schema_and_storage(build_storage(None)).await;
 
     log::info!("[ LOG ] ⚙(✅) <| Build finished |>");
     log::info!("[ LOG ] 🚀 <| Bot is running |> ");

@@ -17,8 +17,8 @@ pub enum Command
     List,
     #[command(description = "Log Out")]
     LogOut,
-    #[command(description = "Search Videos In Your Playlists")]
-    SearchVideosInYourPlaylists,
+    #[command(description = "Search Videos In My Playlists")]
+    SearchVideosInMyPlaylists,
 }
 
 

@@ -41,7 +41,7 @@ pub(crate) async fn handle_callback(callback: CallbackQuery, dialogue: TheDialog
 
     let res = get_required_callback_data(&callback, dialogue).await;
     let (d_data, buttons) =
-        match res.pass_err_with(|e| log::error!("{log_prefix}{e}"))
+        match res.pass_err_with(|e| log::error!("{log_prefix}{e:?}"))
         {
             Ok(ok) => ok,
             Err(_) => return Sendable::SendError("⚠ Internal error ⚠".to_owned())

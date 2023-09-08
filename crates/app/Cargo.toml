@@ -13,8 +13,8 @@ internal = { path = "../internal" }
 teloxide = { version = "0.12.2", features = ["webhooks-axum", "redis-storage"] }
 
 #[:: Net ::]
-tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
-axum = { version = "0.6.18", features = [] }
+tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
+axum = { version = "0.6.20", features = [] }
 reqwest = { version = "0.11.18", features = [] }
 #url = { version = "2.3.1", features = [] }
 #hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
@@ -24,7 +24,7 @@ reqwest = { version = "0.11.18", features = [] }
 eyre = { version = "0.6.8", features = [] }
 
 #[:: Logging ::]
-log = "0.4.18"
+log = "0.4.19"
 env_logger = { version = "0.10.0", features = [] }
 chrono = { version = "0.4.26", features = [] }
 
