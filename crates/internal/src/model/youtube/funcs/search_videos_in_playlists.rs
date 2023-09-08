@@ -108,7 +108,7 @@ async fn find_videos_in_playlist_helper
         |search_target: PlaylistItemListResponse|
             for i in search_target.items.into_iter().flatten()
             {
-                log::debug!("@:[fn::find_videos_in_playlist_helper] <playlistItem> is: {i:#?}");
+                log::info!("@:[fn::find_videos_in_playlist_helper] <playlistItem> is: {i:#?}");
 
                 let compare_by =
                     match search_in
@@ -116,8 +116,8 @@ async fn find_videos_in_playlist_helper
                         SearchIn::Title => i.title(),
                         SearchIn::Description => i.description()
                     };
-                log::debug!("@:[fn::find_videos_in_playlist_helper] <compare_by> is: {compare_by:?}");
-                log::debug!("@:[fn::find_videos_in_playlist_helper] <text_to_search> is: {text_to_search:?}");
+                log::info!("@:[fn::find_videos_in_playlist_helper] <compare_by> is: {compare_by:?}");
+                log::info!("@:[fn::find_videos_in_playlist_helper] <text_to_search> is: {text_to_search:?}");
                 if let Some(compare_by) = compare_by
                 {
                     if compare_by.to_lowercase().contains(&text_to_search)
@@ -128,11 +128,11 @@ async fn find_videos_in_playlist_helper
     let access_token = access_token.to_string();
     pagination(PlaylistItemRequester { playlist_id: &playlist_id }, &access_token, stop_if, f).await;
     
-    log::debug!("@:[fn::find_videos_in_playlist_helper] <store_in.len()> is: {:?}", store_in.len());
+    log::info!("@:[fn::find_videos_in_playlist_helper] <store_in.len()> is: {:?}", store_in.len());
     
     for i in store_in.iter_mut()
     {
-        log::debug!("@:[fn::find_videos_in_playlist_helper] <searchableItem> is: {i:#?}");
+        log::info!("@:[fn::find_videos_in_playlist_helper] <searchableItem> is: {i:#?}");
 
         let opt_about = i.about.as_mut();
         if let Some(about) = opt_about

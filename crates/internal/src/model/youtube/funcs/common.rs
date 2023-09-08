@@ -27,12 +27,12 @@ pub(crate) async fn items_request<T>
             .await?;
     
     let f = |s| format!(" [:: LOG ::]    ( @:[fn::items_request] 'resp' is [| '{s:#?}' |] )");
-    log::debug!("{}", f((&resp.headers(), &resp.status())));
+    log::info!("{}", f((&resp.headers(), &resp.status())));
     
     let status_is_failure = !resp.status().is_success();
     let body = resp.text().await;
     
-    log::debug!("@:[fn::items_request] <body> is: {body:#?}");
+    log::info!("@:[fn::items_request] <body> is: {body:#?}");
     
     if status_is_failure
     { return eyre::eyre!("status code is not a success").in_err() }
@@ -76,7 +76,7 @@ pub(crate) async fn pagination<I, F, S>(req_builder: I, access_token: &str, stop
     {
         let resp = items_request(&client, access_token, &req_builder, next_page_token).await;
         
-        log::debug!("@:[fn::pagination] <resp> is: {resp:?}");
+        log::info!("@:[fn::pagination] <resp> is: {resp:?}");
         
         let search_res = resp.unwrap_or_default();
         next_page_token = search_res.next_page_token();
