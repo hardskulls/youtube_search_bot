@@ -25,7 +25,7 @@ impl YouTubeApiRequestBuilder for SubscriptionRequester
     {
         let mut req =
             client.get(reqwest::Url::parse(YOUTUBE_SUBSCRIPTIONS_API)?)
-                .query(&[("part", "contentDetails,id,snippet,status")])
+                .query(&[("part", "contentDetails,id,snippet")])
                 .query(&[("maxResults", "50"), ("mine", "true")])
                 .header(reqwest::header::AUTHORIZATION, format!("Bearer {access_token}"))
                 .header(reqwest::header::ACCEPT, "application/json");
