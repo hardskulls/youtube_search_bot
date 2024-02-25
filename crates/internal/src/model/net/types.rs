@@ -1,6 +1,4 @@
-
 use serde::{Deserialize, Serialize};
-
 
 /// Custom query separator to encode multiple key-value pairs.into one url query value (key=value&key=value).
 pub const QUERY_SEPARATOR: &str = "xplusx";
@@ -22,8 +20,8 @@ pub const YOUTUBE_SUBSCRIPTIONS_API: &str = "https://www.googleapis.com/youtube/
 
 pub const YOUTUBE_PLAYLISTS_API: &str = "https://youtube.googleapis.com/youtube/v3/playlists";
 
-pub const YOUTUBE_PLAYLIST_ITEMS_API: &str = "https://youtube.googleapis.com/youtube/v3/playlistItems";
-
+pub const YOUTUBE_PLAYLIST_ITEMS_API: &str =
+    "https://youtube.googleapis.com/youtube/v3/playlistItems";
 
 // TODO : Choose a better naming and description.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -35,6 +33,6 @@ pub struct PlaylistRequester;
 
 // TODO : Choose a better naming and description.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PlaylistItemRequester<'a> { pub playlist_id: &'a str }
-
-
+pub struct PlaylistItemRequester<'a> {
+    pub playlist_id: &'a str,
+}
