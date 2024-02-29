@@ -16,8 +16,7 @@ pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool {
     let bot_name = me.username();
     let is_not_that_cmd = |t, b_name| B::parse(t, b_name).is_err();
     msg.text()
-        .map(|t| t.starts_with('/') && is_not_that_cmd(t, bot_name))
-        .unwrap_or(false)
+        .is_some_and(|t| t.starts_with('/') && is_not_that_cmd(t, bot_name))
 }
 
 /// Tell user that an unknown command was received.

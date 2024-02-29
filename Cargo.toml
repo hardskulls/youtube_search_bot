@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = ["crates/*"]
 #exclude = ["crates/local"]
 #default-members = ["crates/internal"]
@@ -12,5 +13,3 @@ lto = true
 #[workspace.dependencies]
 #conv_to_report = { path = "crates/conv_to_report" }
 #internal = { path = "crates/internal" }
-
-

@@ -16,7 +16,7 @@ pub async fn handle_callback(
 
     let err_msg = eyre::eyre!("No 'chat_id' in CallbackQuery");
     let log_err = || {
-        log::error!(" [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : ( {err_msg} )")
+        log::error!(" [:: LOG ::]   (@[fn]:[controllers::handle_callback] error : ( {err_msg} )");
     };
 
     let chat_id = callback.chat_id().ok_or_else(log_err)?;

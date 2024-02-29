@@ -1,9 +1,13 @@
 [package]
 name = "app"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
 
 [dependencies]
 #[:: Local ::]
@@ -14,30 +18,30 @@ teloxide = { version = "0.12.2", features = ["webhooks-axum", "redis-storage"] }
 
 #[:: Net ::]
 tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
-axum = { version = "0.6.20", features = [] }
+axum = { version = "<0.7.0", features = [] }
 reqwest = { version = "0.11.18", features = [] }
-#url = { version = "2.3.1", features = [] }
-#hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
-#time = { version = "0.3.17", features = [] }
 
 #[:: Errors ::]
+error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"], version = "0.5" }
 eyre = { version = "0.6.8", features = [] }
 
 #[:: Logging ::]
 log = "0.4.19"
-env_logger = { version = "0.10.0", features = [] }
+env_logger = { version = "0.11.2", features = [] }
 chrono = { version = "0.4.26", features = [] }
 
-#[:: DB ::]
+# Currently unused.
+# - [Net]
+#url = { version = "2.3.1", features = [] }
+#hyper = { version = "0.14.23", features = ["client", "http2", "http1", "server", "tcp"] }
+#time = { version = "0.3.17", features = [] }
+# - [DB]
 #redis = { version = "0.22.1", features = ["tokio-comp"] }
 #redis-derive = { version = "0.1.6", features = [] }
-
-#[:: Serialization ::]
+# - [Serialization]
 #derive_tools = { version = "0.1.5", features = ["default"] }
 #enum_variants = "1.0.0"
 #parse-display = { version = "0.7.0", features = ["std"] }
 #to_debug = "0.1.0"
 #serde = { version = "1.0.151", features = ["derive"] }
 #serde_json = { version = "1.0.89", features = ["std"] }
-
-

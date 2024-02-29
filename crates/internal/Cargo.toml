@@ -1,58 +1,67 @@
 [package]
 name = "internal"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+
 
 [dependencies]
-#[:: Local ::]
-
 #[:: Main ::]
 teloxide = { version = "0.12.2", features = ["macros"] }
 google-youtube3 = "=4.0.1"
-#tokio = { version = "1.28.0", features = ["rt"] }
 
 #[:: Net ::]
 tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
-axum = { version = "0.6.20", features = [] }
+axum = { version = "<0.7.0", features = [] }
 url = { version = "2.4.0", features = [] }
 reqwest = { version = "0.11.18", features = ["json"] }
 time = "0.3.25"
-#hyper = { version = "0.14.26", features = ["client", "http1", "http2", "runtime"] }
-#hyper-rustls = { version = "0.24.0", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
-#yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
-#urlencoding = { version = "2.1.2", features = [] }
 
 #[:: DB ::]
-redis = { version = "0.23.1", features = ["tokio-comp", "tls", "tokio-native-tls-comp"] }
-#redis-derive = { version = "0.1.6", features = [] }
-#postgres = { version = "0.19.4", features = [] }
+redis = { version = "0.24.0", features = ["tokio-comp", "tls", "tokio-native-tls-comp"] }
 
 #[:: Errors ::]
-error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"], version = "0.3.0" }
+error_traits = { git = "https://github.com/hardskulls/error_traits", features = ["log_err"], version = "0.5" }
+maptypings = { git = "https://github.com/hardskulls/maptypings", version = "0.1" }
 thiserror = "1.0.44"
 eyre = { version = "0.6.8", features = [] }
-#error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
 
 #[:: Logs ::]
 log = "0.4.19"
 
 #[:: Serialization ::]
-parse-display = { version = "0.8.2", features = [] }
+parse-display = { version = "0.9.0", features = [] }
 to_debug = "0.1.0"
-serde = { version  = "1.0.182", features = ["derive"] }
+serde = { version = "1.0.182", features = ["derive"] }
 serde_json = { version = "1.0.104", features = ["std"] }
-#derive_tools = { version = "0.1.5", features = ["default"] }
-#enum_variants = "1.0.0"
 
 [dev-dependencies]
+# - [Net]
 tokio = { version = "1.29.1", features = ["macros"] }
-miette = { version = "5.10.0", features = ["fancy"] }
+# - [Errors]
+miette = { version = "7.1.0", features = ["fancy"] }
+# - [Logging]
 simple_logger = "4.2.0"
-env_logger = { version = "0.10.0", features = [] }
+env_logger = { version = "0.11.2", features = [] }
+# - [Time]
 chrono = { version = "0.4.26", features = [] }
-#yt = { version = "5.0.2+20230123", package = "google-youtube3" }
 
-
+# Currently unused.
+# - [Net]
+#hyper = { version = "0.14.26", features = ["client", "http1", "http2", "runtime"] }
+#hyper-rustls = { version = "0.24.0", features = ["http1", "http2", "tokio-runtime", "log", "logging", "native-tokio"] }
+#yup-oauth2 = { version = "8.0.0", features = ["hyper-rustls"] }
+#urlencoding = { version = "2.1.2", features = [] }
+# - [DB]
+#redis-derive = { version = "0.1.6", features = [] }
+#postgres = { version = "0.19.4", features = [] }
+# - [Errors]
+#error-stack = { version = "0.2.4", features = ["std", "anyhow", "spantrace"] }
+# - [Serialization]
+#derive_tools = { version = "0.1.5", features = ["default"] }
+#enum_variants = "1.0.0"

@@ -1,5 +1,5 @@
-use error_traits::WrapInRes;
 use google_youtube3::oauth2::read_application_secret;
+use maptypings::WrapInRes;
 use teloxide::types::{CallbackQuery, Message};
 use url::Url;
 
@@ -115,7 +115,7 @@ fn save_res_limit(
     num: u16,
 ) -> State {
     use crate::model::dialogue::types::State::{ListCommandActive, SearchCommandActive};
-    let result_limit = Some(num as u32);
+    let result_limit = Some(u32::from(num));
     match configs {
         Either::First(search_settings) => SearchCommandActive(SearchCommandSettings {
             result_limit,

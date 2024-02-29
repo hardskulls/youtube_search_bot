@@ -3,16 +3,16 @@ use crate::model::net::types::{
     YOUTUBE_PLAYLIST_ITEMS_API, YOUTUBE_SUBSCRIPTIONS_API,
 };
 use crate::model::youtube::traits::{IntoSearchableItem, Searchable};
-use error_traits::WrapInRes;
 use google_youtube3::api::{
     Playlist, PlaylistItem, PlaylistItemListResponse, PlaylistListResponse, Subscription,
     SubscriptionListResponse,
 };
+use maptypings::WrapInRes;
 use reqwest::{Client, RequestBuilder};
 use std::any::type_name;
 
 // TODO : Choose a better naming.
-/// Trait for building 'list' request in YouTube API.
+/// Trait for building 'list' request in `YouTube` API.
 pub(crate) trait YouTubeApiRequestBuilder {
     type Target: serde::de::DeserializeOwned;
 
@@ -43,7 +43,7 @@ impl YouTubeApiRequestBuilder for SubscriptionRequester {
             )
             .header(reqwest::header::ACCEPT, "application/json");
         if let Some(page) = page_token {
-            req = req.query(&[("pageToken", &page)])
+            req = req.query(&[("pageToken", &page)]);
         }
         req.in_ok()
     }
@@ -68,7 +68,7 @@ impl YouTubeApiRequestBuilder for PlaylistRequester {
             )
             .header(reqwest::header::ACCEPT, "application/json");
         if let Some(page) = page_token {
-            req = req.query(&[("pageToken", &page)])
+            req = req.query(&[("pageToken", &page)]);
         }
         req.in_ok()
     }
@@ -99,7 +99,7 @@ impl<'a> YouTubeApiRequestBuilder for PlaylistItemRequester<'a> {
             )
             .header(reqwest::header::ACCEPT, "application/json");
         if let Some(page) = page_token {
-            req = req.query(&[("pageToken", &page)])
+            req = req.query(&[("pageToken", &page)]);
         }
 
         log::debug!("@:[fn::build_req] <req> is: {:?}", req);
@@ -114,7 +114,7 @@ impl<'a> YouTubeApiRequestBuilder for PlaylistItemRequester<'a> {
 //    pub(crate) next_page_token : Option<String>
 //}
 
-/// Trait represents a page of response from request to YouTube API.
+/// Trait represents a page of response from request to `YouTube` API.
 pub(crate) trait YouTubeApiResponsePage {
     type Item: Searchable + IntoSearchableItem;
 

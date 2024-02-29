@@ -6,12 +6,15 @@ use crate::model::handlers::callback::list_cmd::callback_helper_for_list_kb;
 use crate::model::handlers::callback::search_cmd::callback_helper_for_search_kb;
 use crate::model::handlers::callback::search_videos_in_playlits::callback_helper_for_search_videos_in_playlists_kb;
 use crate::model::keyboards::types::Buttons;
-use crate::model::keyboards::types::Buttons::*;
+use crate::model::keyboards::types::Buttons::{
+    ListButtons, SearchButtons, SearchVideoInPlaylistsButtons,
+};
 use crate::model::utils::HTMLise;
 use crate::model::youtube::types::{SearchableItem, YouTubeAccessToken};
 use crate::view::types::Sendable;
-use error_traits::{MergeOkErr, PassErrWith, WrapInRes};
+use error_traits::{MergeOkErr, PassErrWith};
 use google_youtube3::oauth2::read_application_secret;
+use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
 
 pub(crate) type ResTriplet = (Option<String>, Vec<SearchableItem>, Option<String>);
@@ -39,9 +42,8 @@ pub(crate) async fn handle_callback(
     let log_prefix = " [:: LOG ::]     @[fn]:[handlers::handle_callback]";
 
     let res = get_required_callback_data(&callback, dialogue).await;
-    let (d_data, buttons) = match res.pass_err_with(|e| log::error!("{log_prefix}{e:?}")) {
-        Ok(ok) => ok,
-        Err(_) => return Sendable::SendError("⚠ Internal error ⚠".to_owned()),
+    let Ok((d_data, buttons)) = res.pass_err_with(|e| log::error!("{log_prefix}{e:?}")) else {
+        return Sendable::SendError("⚠ Internal error ⚠".to_owned());
     };
     let res = match &buttons {
         SearchButtons(search_kb) => {

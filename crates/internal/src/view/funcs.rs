@@ -1,4 +1,5 @@
-use error_traits::{LogErr, ToEmpty};
+use error_traits::LogErr;
+use maptypings::ForgetValue;
 use teloxide::payloads::{EditMessageTextSetters, SendMessageSetters};
 use teloxide::requests::Requester;
 use teloxide::types::ParseMode::Html;
@@ -35,7 +36,7 @@ pub(crate) async fn update_view<S>(
                 dialogue.into(),
                 opd_dialogue_data,
             )
-            .await
+            .await;
         }
         Sendable::SendKeyboard {
             text,
@@ -53,17 +54,17 @@ pub(crate) async fn update_view<S>(
                 dialogue.into(),
                 opd_dialogue_data,
             )
-            .await
+            .await;
         }
         Sendable::ExecuteCommand(command_config) => {
-            execute_command(bot, send_to, opt_callback.unwrap(), command_config).await
+            execute_command(bot, send_to, opt_callback.unwrap(), command_config).await;
         }
     }
 }
 
 async fn send_user_error(bot: &Bot, send_to: ChatId, text: impl Into<String>) {
     let log_prefix = " [:: LOG ::]    | @:[fn::send_user_error] error: ";
-    send_message(bot, send_to, text, log_prefix).await
+    send_message(bot, send_to, text, log_prefix).await;
 }
 
 async fn send_or_edit_message(
@@ -80,13 +81,13 @@ async fn send_or_edit_message(
             .parse_mode(Html)
             .await
             .log_err(log_prefix)
-            .to_empty()
+            .forget_val();
     } else {
-        send_message(bot, send_to, text, log_prefix).await
+        send_message(bot, send_to, text, log_prefix).await;
     }
 
     if let (Some(dialogue), Some(d_data)) = (opt_dialogue, opt_d_data) {
-        update_dialogue(dialogue, d_data, log_prefix).await
+        update_dialogue(dialogue, d_data, log_prefix).await;
     }
 }
 
@@ -138,16 +139,16 @@ async fn edit_message_and_keyboard(
             .parse_mode(Html)
             .await
             .log_err(log_prefix)
-            .to_empty()
+            .forget_val();
     } else {
         bot.edit_message_reply_markup(send_to, msg.id)
             .await
             .log_err(log_prefix)
-            .to_empty()
+            .forget_val();
     }
 
     if let (Some(dialogue), Some(d_data)) = (opt_dialogue, opt_d_data) {
-        update_dialogue(dialogue, d_data, log_prefix).await
+        update_dialogue(dialogue, d_data, log_prefix).await;
     }
 }
 
@@ -187,7 +188,7 @@ async fn send_results(
     }
 
     if let Some(p) = postfix {
-        send_message(bot, send_to, p, log_prefix).await
+        send_message(bot, send_to, p, log_prefix).await;
     }
 }
 
@@ -210,20 +211,27 @@ async fn execute_command(
     match results {
         Err(e) => send_message(bot, send_to, e, log_prefix).await,
         Ok((prefix, results, postfix)) => {
-            send_results(bot, prefix, postfix, send_to, results).await
+            send_results(bot, prefix, postfix, send_to, results).await;
         }
     };
 }
 
 mod shorthands {
-    use super::*;
+    use super::{
+        Bot, ChatId, DialogueData, ForgetValue, Html, LogErr, Requester, SendMessageSetters,
+        TheDialogue,
+    };
 
     pub(super) async fn update_dialogue(
         dialogue: TheDialogue,
         d_data: DialogueData,
         log_prefix: &str,
     ) {
-        dialogue.update(d_data).await.log_err(log_prefix).to_empty()
+        dialogue
+            .update(d_data)
+            .await
+            .log_err(log_prefix)
+            .forget_val();
     }
 
     pub(super) async fn send_message(
@@ -236,6 +244,6 @@ mod shorthands {
             .parse_mode(Html)
             .await
             .log_err(log_prefix)
-            .to_empty()
+            .forget_val();
     }
 }

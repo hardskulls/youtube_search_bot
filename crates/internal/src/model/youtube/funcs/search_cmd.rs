@@ -30,9 +30,9 @@ where
     let stop_if = |_: &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f = |search_target: T::Target| {
         if let Some(items) = search_target.items() {
-            find_matches(search_for, search_in, res_limit, items, &mut store_in)
+            find_matches(search_for, search_in, res_limit, items, &mut store_in);
         }
-        *current_cap.lock().unwrap() = store_in.len()
+        *current_cap.lock().unwrap() = store_in.len();
     };
     pagination(req_builder, access_token, stop_if, f).await;
 
@@ -82,7 +82,7 @@ fn find_matches<S>(
             if store_in.len() < res_limit as usize
                 && title_or_descr.to_lowercase().contains(&text_to_search)
             {
-                store_in.push(item)
+                store_in.push(item);
             }
         }
     }

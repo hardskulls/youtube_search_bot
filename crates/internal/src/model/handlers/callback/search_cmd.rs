@@ -11,7 +11,8 @@ use crate::model::keyboards::types::{Requestable, SearchCommandButtons, SearchIn
 use crate::model::youtube::funcs::search_cmd::search_items;
 use crate::view::types::Sendable;
 use crate::StdResult;
-use error_traits::{PassErrWith, WrapInRes};
+use error_traits::PassErrWith;
+use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
 use teloxide::types::User;
 
@@ -21,6 +22,8 @@ pub(crate) async fn callback_helper_for_search_kb(
     dialogue_data: DialogueData,
     callback: CallbackQuery,
 ) -> StdResult<Sendable<String>, String> {
+    use SearchCommandButtons::{ResultLimit, TextToSearch};
+
     log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_search_kb] :: [Started]");
 
     let opt_dialogue_data = match (search_kb, dialogue_data.state.as_ref()) {
@@ -44,16 +47,7 @@ pub(crate) async fn callback_helper_for_search_kb(
                 ..dialogue_data
             })
         }
-        (SearchCommandButtons::ResultLimit, _) => {
-            let search_settings = search_settings_update_or_default(dialogue_data.state);
-            let last_callback = callback.into();
-            Some(DialogueData {
-                state: SearchCommandActive(search_settings),
-                last_callback,
-                ..dialogue_data
-            })
-        }
-        (SearchCommandButtons::TextToSearch, _) => {
+        (ResultLimit | TextToSearch, _) => {
             let search_settings = search_settings_update_or_default(dialogue_data.state);
             let last_callback = callback.into();
             Some(DialogueData {

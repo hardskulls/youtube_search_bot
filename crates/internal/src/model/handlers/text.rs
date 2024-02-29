@@ -1,4 +1,6 @@
-use error_traits::{MapType, PassErrWith, WrapInRes};
+use error_traits::PassErrWith;
+use maptypings::MapType;
+use maptypings::WrapInRes;
 
 use teloxide::types::Message;
 

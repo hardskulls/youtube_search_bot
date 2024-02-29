@@ -30,9 +30,9 @@ where
     let stop_if = |_: &T::Target| *current_cap.lock().unwrap() > res_limit as usize;
     let f = |item: T::Target| {
         if let Some(mut i) = item.items() {
-            store_in.append(&mut i)
+            store_in.append(&mut i);
         }
-        *current_cap.lock().unwrap() = store_in.len()
+        *current_cap.lock().unwrap() = store_in.len();
     };
 
     pagination(req_builder, access_token, stop_if, f).await;

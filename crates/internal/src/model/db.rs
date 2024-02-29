@@ -1,7 +1,9 @@
 use crate::model::net::funcs::build_post_request;
 use crate::model::net::types::GET_ACCESS_TOKEN_URL;
-use error_traits::WrapInRes;
+use crate::model::utils::log;
 use google_youtube3::oauth2::ApplicationSecret;
+use log::Level;
+use maptypings::WrapInRes;
 use redis::Commands;
 
 use crate::model::youtube::types::YouTubeAccessToken;
@@ -33,14 +35,14 @@ pub(crate) fn set_access_token(user_id: &str, token: &str, db_url: &str) -> eyre
 }
 
 pub(crate) fn delete_access_token(user_id: &str, db_url: &str) -> eyre::Result<()> {
-    log::info!(
-        " [:: LOG ::]    ( @:[fn::delete_access_token] deleting access_token | silent on failure"
-    );
+    let op = "crates/internal/src/model/db.rs:delete_access_token";
+
+    log::info!("[LOG]  loc: '{op}'  ( deleting access token... | silent on failure )");
 
     let mut con = redis::Client::open(db_url)?.get_connection()?;
     con.del(format!("{TOKEN_PREFIX}{user_id}"))?;
 
-    log::info!(" [:: LOG ::]    ( @:[fn::delete_access_token] access_token deleted!");
+    log::info!("[LOG]  loc: '{op}'  ( access token deleted! )");
 
     ().in_ok()
 }
@@ -90,29 +92,28 @@ pub(crate) async fn refresh_access_token(
     db_url: &str,
     refresh_access_token_req: reqwest::RequestBuilder,
 ) -> eyre::Result<YouTubeAccessToken> {
+    let op = "crates/internal/src/model/db.rs:refresh_access_token";
+
     let time_remains = token.expires_in - time::OffsetDateTime::now_utc();
     let token_expires_after = time_remains.whole_minutes();
 
-    log::info!(" [:: LOG ::]    ( @:[fn::refresh_access_token] (token is valid for) 'time_remains' is [| '{time_remains:?}' |] )");
+    log(Level::Info, op, "token is valid for", time_remains);
 
-    if token_expires_after < 10 {
-        let resp = refresh_access_token_req.send().await?;
-
-        log::info!(
-            " [:: LOG ::]    ( @:[fn::refresh_access_token] 'resp.status()' is [| '{:?}' |] )",
-            &resp.status()
-        );
-
-        let new_token = resp.json::<YouTubeAccessToken>().await?;
-        let combined_token = YouTubeAccessToken {
-            refresh_token: token.refresh_token,
-            ..new_token
-        };
-        set_access_token(user_id, &serde_json::to_string(&combined_token)?, db_url)?;
-        combined_token.in_ok()
-    } else {
-        token.in_ok()
+    if token_expires_after > 10 {
+        return token.in_ok();
     }
+
+    let resp = refresh_access_token_req.send().await?;
+
+    log(Level::Info, op, "resp status is", resp.status());
+
+    let new_token = resp.json::<YouTubeAccessToken>().await?;
+    let combined_token = YouTubeAccessToken {
+        refresh_token: token.refresh_token,
+        ..new_token
+    };
+    set_access_token(user_id, &serde_json::to_string(&combined_token)?, db_url)?;
+    combined_token.in_ok()
 }
 
 // This tests require a valid `db` link, so for now they are allowed to fail.
@@ -129,7 +130,7 @@ mod tests {
     #[test]
     fn get_save_token() {
         simple_logger::init_with_env()
-            .or_else(|_| simple_logger::init_with_level(log::Level::Info))
+            .or_else(|_| simple_logger::init_with_level(Level::Info))
             .unwrap();
 
         let redis_youtube_access_token_storage = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");
@@ -168,7 +169,7 @@ mod tests {
     #[tokio::test]
     async fn get_set_from_to_db() {
         simple_logger::init_with_env()
-            .or_else(|_| simple_logger::init_with_level(log::Level::Info))
+            .or_else(|_| simple_logger::init_with_level(Level::Info))
             .unwrap();
 
         let redis_youtube_access_token_storage = env!("REDIS_YOUTUBE_ACCESS_TOKEN_STORAGE");

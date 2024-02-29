@@ -1,4 +1,4 @@
-use error_traits::WrapInRes;
+use maptypings::WrapInRes;
 use serde::{Deserialize, Serialize};
 use teloxide::dispatching::dialogue::ErasedStorage;
 use teloxide::prelude::{CallbackQuery, Dialogue, Message};
@@ -85,11 +85,11 @@ impl SearchCommandSettings {
     }
 
     pub(crate) fn update_target(&mut self, target: Requestable) {
-        self.target = Some(target)
+        self.target = Some(target);
     }
 
     pub(crate) fn update_search_in(&mut self, search_in: SearchIn) {
-        self.search_in = Some(search_in)
+        self.search_in = Some(search_in);
     }
 }
 
@@ -127,11 +127,11 @@ impl ListCommandSettings {
     }
 
     pub(crate) fn update_target(&mut self, target: Requestable) {
-        self.target = Some(target)
+        self.target = Some(target);
     }
 
     pub(crate) fn update_sorting(&mut self, sorting: Sorting) {
-        self.sorting = Some(sorting)
+        self.sorting = Some(sorting);
     }
 }
 
@@ -169,7 +169,7 @@ impl SearchVideosInPlaylistsCommandSettings {
     }
 
     pub(crate) fn update_search_in(&mut self, search_in: SearchIn) {
-        self.search_in = Some(search_in)
+        self.search_in = Some(search_in);
     }
 }
 
@@ -205,6 +205,7 @@ pub struct DialogueData {
     pub last_callback: Option<CallbackQuery>,
 }
 
+#[derive(Copy, Clone)]
 pub(crate) enum Either<F, L> {
     First(F),
     Last(L),

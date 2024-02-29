@@ -2,7 +2,7 @@ use crate::model::utils::HTMLise;
 use crate::model::youtube::types::SearchableItem;
 use google_youtube3::api::{Playlist, PlaylistItem, Subscription};
 
-/// Anything that can be searched on user's YouTube channel.
+/// Anything that can be searched on user's `YouTube` channel.
 pub(crate) trait Searchable {
     fn title(&self) -> Option<&str>;
 
@@ -120,7 +120,7 @@ impl Searchable for PlaylistItem {
                 (self.id.as_ref(), video_id, index_in_pl)
             {
                 let id = pl_item_id;
-                link = format!("https://www.youtube.com/watch?v={v}&list={id}&index={idx}").into()
+                link = format!("https://www.youtube.com/watch?v={v}&list={id}&index={idx}").into();
             }
         }
         link
@@ -181,7 +181,7 @@ impl IntoSearchableItem for PlaylistItem {
             if let (Some(pl_item_id), Some(v), Some(idx)) = (self.id, video_id, index_in_pl) {
                 let id = pl_item_id;
                 item.link =
-                    format!("https://www.youtube.com/watch?v={v}&list={id}&index={idx}").into()
+                    format!("https://www.youtube.com/watch?v={v}&list={id}&index={idx}").into();
             }
             let (playlist_id, video_owner_channel_title, video_owner_channel_id) = (
                 snippet.playlist_id,
@@ -193,7 +193,7 @@ impl IntoSearchableItem for PlaylistItem {
                 video_owner_channel_title,
                 video_owner_channel_id,
             )
-            .into()
+            .into();
         }
         item
     }
@@ -215,19 +215,19 @@ fn construct_about_for_pl_item(
     let mut about = format!("{about}\n\n--------------------", about = "About".to_bold());
 
     if let Some(pl_link) = pl_link {
-        about += &*format!("\n\n[Playlist]\n \n{pl_link}")
+        about += &*format!("\n\n[Playlist]\n \n{pl_link}");
     }
 
     if video_owner_title.is_some() || video_owner_chan_link.is_some() {
-        about += "\n\n[Published by]\n"
+        about += "\n\n[Published by]\n";
     }
 
     if let Some(vid_owner_title) = video_owner_title {
-        about += &*format!("\n{vid_owner_title}")
+        about += &*format!("\n{vid_owner_title}");
     }
 
     if let Some(owner_chan_link) = video_owner_chan_link {
-        about += &*format!("\n{owner_chan_link}")
+        about += &*format!("\n{owner_chan_link}");
     }
 
     about

@@ -1,4 +1,9 @@
+use log::Level;
 use std::fmt::{Debug, Display};
+
+pub fn log(lvl: Level, op: &str, msg: &str, p: impl Debug) {
+    log::log!(lvl, "[LOG]  loc: '{op}'  ( {msg} '{p:?}' )");
+}
 
 pub(crate) fn maybe_print<T, P, D>(prefix: P, printable: &Option<T>, default: D) -> String
 where
@@ -6,19 +11,16 @@ where
     P: Display,
     D: Display,
 {
-    if let Some(p) = printable {
-        format!("{prefix}{p:#?}")
-    } else {
-        default.to_string()
-    }
+    printable
+        .as_ref()
+        .map(|p| format!("{prefix}{p:#?}"))
+        .unwrap_or_else(|| default.to_string())
 }
 
 pub(crate) fn print_if_none<T>(option: Option<T>, text: impl Display) -> String {
-    if option.is_none() {
-        text.to_string()
-    } else {
-        "".to_string()
-    }
+    option
+        .map(|_| String::new())
+        .unwrap_or_else(|| text.to_string())
 }
 
 pub(crate) trait HTMLise

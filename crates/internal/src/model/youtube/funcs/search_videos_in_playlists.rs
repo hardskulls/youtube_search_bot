@@ -1,5 +1,6 @@
-use error_traits::{PassErrWith, WrapInRes};
+use error_traits::PassErrWith;
 use google_youtube3::api::PlaylistItemListResponse;
+use maptypings::WrapInRes;
 use std::fmt::Display;
 use tokio::task::JoinHandle;
 
@@ -35,7 +36,7 @@ pub(crate) async fn search_videos_in_playlists(
             .flatten()
             .map(|playlist| {
                 let pl_title = playlist.title().unwrap_or_default().to_owned();
-                let pl_id = playlist.id.to_owned().unwrap_or_default();
+                let pl_id = playlist.id.clone().unwrap_or_default();
                 let search_in = search_in.clone();
                 let (access_token, search_for) = (access_token.to_owned(), search_for.to_owned());
                 tokio::spawn(find_videos_in_playlist(
@@ -106,7 +107,7 @@ async fn find_videos_in_playlist_helper(
             );
             if let Some(compare_by) = compare_by {
                 if compare_by.to_lowercase().contains(&text_to_search) {
-                    store_in.push(i.into_item())
+                    store_in.push(i.into_item());
                 }
             }
         }
@@ -128,7 +129,7 @@ async fn find_videos_in_playlist_helper(
         store_in.len()
     );
 
-    for i in store_in.iter_mut() {
+    for i in &mut store_in {
         log::info!("@:[fn::find_videos_in_playlist_helper] <searchableItem> is: {i:#?}");
 
         let opt_about = i.about.as_mut();

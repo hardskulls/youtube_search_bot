@@ -1,6 +1,3 @@
-#![deny(clippy::unwrap_used)]
-#![deny(clippy::expect_used)]
-
 use std::env;
 
 use teloxide::update_listeners::webhooks;
@@ -11,7 +8,6 @@ use teloxide::{
 
 use app::bot::{build_storage, schema_and_storage};
 use app::formatting::format_logs;
-use app::net;
 use internal::commands::Command;
 use internal::errors::NetworkError;
 
@@ -40,7 +36,8 @@ async fn main() -> eyre::Result<()> {
 
     // [!!] Must be after `bot.delete_webhook()` [!!]
     let update_listener =
-        net::webhook_with_custom_server(bot.clone(), webhooks::Options::new(addr, url)).await?;
+        app::net::webhook_with_custom_server(bot.clone(), webhooks::Options::new(addr, url))
+            .await?;
     let err_handler =
         LoggingErrorHandler::with_custom_text(NetworkError::UpdateListenerError.to_string());
 

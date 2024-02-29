@@ -11,7 +11,8 @@ use crate::model::keyboards::types::{SearchIn, SearchVideoInPlaylistsCommandButt
 use crate::model::youtube::funcs::search_videos_in_playlists::search_videos_in_playlists;
 use crate::view::types::Sendable;
 use crate::StdResult;
-use error_traits::{PassErrWith, WrapInRes};
+use error_traits::PassErrWith;
+use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
 use teloxide::types::User;
 
@@ -39,17 +40,7 @@ pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb(
                 ..dialogue_data
             })
         }
-        (ResultLimit, _) => {
-            let search_videos_in_playlists_settings =
-                search_videos_in_playlists_update_or_default(dialogue_data.state);
-            let last_callback = callback.into();
-            Some(DialogueData {
-                state: SearchVideosInPlaylistsCommandActive(search_videos_in_playlists_settings),
-                last_callback,
-                ..dialogue_data
-            })
-        }
-        (TextToSearch, _) => {
+        (ResultLimit | TextToSearch, _) => {
             let search_videos_in_playlists_settings =
                 search_videos_in_playlists_update_or_default(dialogue_data.state);
             let last_callback = callback.into();

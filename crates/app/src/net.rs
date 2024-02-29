@@ -9,7 +9,8 @@ use teloxide::update_listeners::{webhooks, UpdateListener};
 
 use internal::auth_server::handle_auth_code;
 
-async fn spawn_background_server(
+#[allow(clippy::expect_used)]
+fn spawn_background_server(
     addr: SocketAddr,
     router: axum::Router,
     stop_flag: impl Future<Output = ()> + Send + 'static,
@@ -46,7 +47,7 @@ where
     let app = app.route(url.path(), any(serve_all));
     let app = app.route("/google_callback_auth_code", any(handle_auth_code));
 
-    spawn_background_server(address, app, stop_flag, stop_token).await;
+    spawn_background_server(address, app, stop_flag, stop_token);
 
     Ok(update_listener)
 }

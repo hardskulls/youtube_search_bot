@@ -1,4 +1,5 @@
-use error_traits::{LogErr, MapErrBy, WrapInRes};
+use error_traits::{LogErr, MapErrBy};
+use maptypings::WrapInRes;
 
 use crate::model::db::{delete_access_token, get_access_token};
 use crate::model::dialogue::funcs::get_dialogue_data;

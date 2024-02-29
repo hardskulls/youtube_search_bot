@@ -15,6 +15,8 @@ use internal::handlers::{
     handle_callback, handle_commands, handle_text, handle_unknown_command, is_other_command,
 };
 
+use error_traits::MergeOkErr;
+
 pub async fn schema_and_storage<S>(
     build_storage: impl Future<Output = Arc<S>>,
 ) -> (
@@ -59,33 +61,37 @@ pub enum BotInternalDataStorage<'a> {
 
 impl<'a> BotInternalDataStorage<'a> {
     pub async fn build(&self) -> eyre::Result<WrappedStorage> {
-        let mk_redis = |redis_storage| {
-            log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
-            TraceStorage::new(redis_storage).erase()
-        };
         match *self {
             BotInternalDataStorage::Redis(url) => RedisStorage::open(url, serializer::Json)
                 .await
-                .map(mk_redis)
+                .map(|redis_storage| {
+                    log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
+                    TraceStorage::new(redis_storage).erase()
+                })
                 .map_err(<_>::into),
         }
     }
 }
 
 pub async fn build_storage(primary_storage: Option<BotInternalDataStorage<'_>>) -> WrappedStorage {
-    let default_s = || {
-        log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
-        TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
-    };
-    if let Some(s) = primary_storage {
-        if let Ok(redis_storage) = s.build().await {
+    build_stor_internal(primary_storage)
+        .await
+        .ok_or_else(|| {
+            log::info!("[ LOG ] 💾(✅) <| Using `InMemStorage` to store dialogue state. |> ");
+            TraceStorage::new(InMemStorage::<DialogueData>::new()).erase()
+        })
+        .merge_ok_err()
+}
+
+async fn build_stor_internal(
+    prim_stor: Option<BotInternalDataStorage<'_>>,
+) -> Option<WrappedStorage> {
+    prim_stor
+        .map(|s| async move { s.build().await })?
+        .await
+        .ok()
+        .map(|redis_storage| {
             log::info!("[ LOG ] 💾 <| Using `RedisStorage` to store dialogue state. |> ");
             redis_storage
-        } else {
-            log::info!("[ LOG ] 💾(❌) <| Failed to get `RedisStorage` storage and `SqliteStorage` storage. |> ");
-            default_s()
-        }
-    } else {
-        default_s()
-    }
+        })
 }

@@ -13,7 +13,7 @@ pub const STATE_CODE: &str = env!("STATE_CODE");
 /// - refreshing `access token` using `refresh token`.
 pub const GET_ACCESS_TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 
-/// Url for revoking `access token.
+/// Url for revoking `access token`.
 pub const REVOKE_ACCESS_TOKEN_URL: &str = "https://oauth2.googleapis.com/revoke";
 
 pub const YOUTUBE_SUBSCRIPTIONS_API: &str = "https://www.googleapis.com/youtube/v3/subscriptions";

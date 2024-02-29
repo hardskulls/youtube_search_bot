@@ -11,7 +11,8 @@ use crate::model::keyboards::types::{ListCommandButtons, Requestable, Sorting};
 use crate::model::youtube::funcs::list_cmd::list_items;
 use crate::view::types::Sendable;
 use crate::StdResult;
-use error_traits::{PassErrWith, WrapInRes};
+use error_traits::PassErrWith;
+use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
 use teloxide::types::User;
 

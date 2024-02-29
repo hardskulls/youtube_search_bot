@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use error_traits::WrapInRes;
+use maptypings::WrapInRes;
 
 use crate::model::net::funcs::join;
 use crate::model::net::traits::{YouTubeApiRequestBuilder, YouTubeApiResponsePage};

@@ -42,7 +42,7 @@ where
     match ScopeInternalRepr::deserialize(deserializer)? {
         ScopeInternalRepr::VecOfScopes(vec_of_scopes) => Ok(vec_of_scopes),
         ScopeInternalRepr::SpaceSeparatedScopes(s) => {
-            let vec_of_str = s.split(' ').map(|item| item.to_owned()).collect();
+            let vec_of_str = s.split(' ').map(<_>::to_owned).collect();
             Ok(vec_of_str)
         }
     }
@@ -72,7 +72,7 @@ where
     }
 }
 
-/// Google OAuth2 url.
+/// Google `OAuth2` url.
 pub(crate) const AUTH_URL_BASE: &str = "https://accounts.google.com/o/oauth2/v2/auth?";
 
 /// Required in token request to get exchange code.

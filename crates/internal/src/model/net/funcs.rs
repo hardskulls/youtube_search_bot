@@ -1,6 +1,6 @@
 use crate::model::errors::ParseError;
 use crate::StdResult;
-use error_traits::WrapInRes;
+use maptypings::WrapInRes;
 use reqwest::RequestBuilder;
 use std::borrow::Borrow;
 
@@ -39,9 +39,8 @@ where
     T: AsRef<str>,
 {
     let mut iter = pieces.iter();
-    let first = match iter.next() {
-        Some(p) => p,
-        None => return String::new(),
+    let Some(first) = iter.next() else {
+        return String::new();
     };
     let num_separators = pieces.len() - 1;
     let pieces_size: usize = pieces.iter().map(|p| p.as_ref().len()).sum();

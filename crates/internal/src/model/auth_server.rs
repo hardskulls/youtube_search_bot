@@ -1,8 +1,9 @@
 use axum::body::Body;
 use axum::body::BoxBody;
 use axum::http::Request;
-use error_traits::{MapErrToString, WrapInRes};
+use error_traits::MapErrToString;
 use google_youtube3::oauth2::read_application_secret;
+use maptypings::{ErrIf, MapType, WrapInRes};
 use reqwest::RequestBuilder;
 
 use crate::model::db::{combine_old_new_tokens, set_access_token};
@@ -35,7 +36,7 @@ fn get_query(req: &Request<Body>) -> String {
 
 fn redirect_user(redirect_to: &str) -> StdResult<axum::response::Response<BoxBody>, String> {
     axum::response::Response::builder()
-        .header(reqwest::header::LOCATION, redirect_to)
+        .header(axum::http::header::LOCATION, redirect_to)
         .status(axum::http::status::StatusCode::PERMANENT_REDIRECT)
         .body(BoxBody::default())
         .map_err_to_str()
@@ -49,11 +50,9 @@ struct CodeAndUserId<'a> {
 fn get_params_from_query(decoded_query: &'_ str) -> StdResult<CodeAndUserId<'_>, &'static str> {
     let state = find_by_key(decoded_query, "&", "state").map_err(|_| "state not found")?;
 
-    let state_code =
-        find_by_key(state, QUERY_SEPARATOR, "state_code").map_err(|_| "state code not found")?;
-    if !state_code.contains(STATE_CODE) {
-        return "state codes don't match".in_err();
-    }
+    find_by_key(state, QUERY_SEPARATOR, "state_code")
+        .map_err(|_| "state code not found")?
+        .err_if(|s| !s.contains(STATE_CODE), "state codes don't match")?;
 
     let for_user =
         find_by_key(state, QUERY_SEPARATOR, "for_user").map_err(|_| "for_user not found")?;
@@ -67,7 +66,9 @@ fn get_params_from_query(decoded_query: &'_ str) -> StdResult<CodeAndUserId<'_>,
 pub async fn handle_auth_code(
     req: Request<Body>,
 ) -> axum::response::Result<axum::response::Response> {
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] started [ OK ] )");
+    let op = "crates/internal/src/model/auth_server.rs:handle_auth_code";
+
+    log::info!("[LOG]  op: '{op}'  ( started [ OK ] )");
     log::info!("req is: {req:?}");
 
     let decoded_query = get_query(&req);
@@ -95,23 +96,20 @@ pub async fn handle_auth_code(
 
     let redirect = redirect_user(env!("BOT_REDIRECT_URL"))?;
 
-    log::info!(" [:: LOG ::]    ( @:[fn::handle_auth_code] finished [ OK ] )");
+    log::info!("[LOG]  op: '{op}'  ( finished [ OK ] )");
     redirect.in_ok()
 }
 
 pub async fn serve_all(req: Request<Body>) -> &'static str {
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] started [ OK ] )");
+    let op = "crates/internal/src/model/auth_server.rs:serve_all";
+
+    log::info!(" [LOG]  op: '{op}'  (  started [ OK ] )");
 
     let (parts, body) = req.into_parts();
-    log::info!(
-        " [:: LOG ::]    ( @:[fn::serve_all] 'parts' is [| '{:#?}' |] )",
-        &parts
-    );
-    log::info!(
-        " [:: LOG ::]    ( @:[fn::serve_all] 'body' is [| '{:#?}' |] )",
-        &body
-    );
+    log::info!(" [LOG]  op: '{op}'  ( 'parts' is '{:#?}' )", &parts);
+    log::info!(" [LOG]  op: '{op}'  ( 'body' is '{:#?}' )", &body);
 
-    log::info!(" [:: LOG ::]    ( @:[fn::serve_all] finished [ OK ] )");
+    log::info!(" [LOG]  op: '{op}'  (  finished [ OK ] )");
+
     "server is up ✔"
 }
