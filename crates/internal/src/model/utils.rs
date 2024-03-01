@@ -5,6 +5,17 @@ pub fn log(lvl: Level, op: &str, msg: &str, p: impl Debug) {
     log::log!(lvl, "[LOG]  loc: '{op}'  ( {msg} '{p:?}' )");
 }
 
+pub(crate) trait PassWith<T> {
+    fn pass_with<R>(self, f: impl FnOnce() -> R) -> T;
+}
+
+impl<T> PassWith<T> for T {
+    fn pass_with<R>(self, f: impl FnOnce() -> R) -> T {
+        f();
+        self
+    }
+}
+
 pub(crate) fn maybe_print<T, P, D>(prefix: P, printable: &Option<T>, default: D) -> String
 where
     T: Display + Debug,

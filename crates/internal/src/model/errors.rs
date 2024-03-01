@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use thiserror::Error;
 
@@ -18,6 +18,16 @@ pub enum NetworkError {
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( Failed to parse value. )", Self)]
 pub struct ParseError;
+
+#[derive(Debug, Error)]
+#[error("<{}> not found", self.0)]
+pub struct NotFound(String);
+
+impl NotFound {
+    pub fn new<T: Display>(t: T) -> Self {
+        NotFound(t.to_string())
+    }
+}
 
 #[derive(Error, Debug, Clone)]
 #[error("[ {:?} ] : ( Text is missing. )", Self)]

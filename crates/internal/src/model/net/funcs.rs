@@ -1,5 +1,6 @@
+use crate::errors::NotFound;
 use crate::model::errors::ParseError;
-use crate::{errors, StdRes};
+use crate::{errors, Res, StdRes};
 use maptypings::WrapInRes;
 use reqwest::RequestBuilder;
 use std::borrow::Borrow;
@@ -72,15 +73,11 @@ where
 }
 
 /// Returns a certain `value` in a query key-value pairs.
-pub(crate) fn find_by_key<'a>(
-    url_query: &'a str,
-    sep: &str,
-    key: &str,
-) -> StdRes<&'a str, ParseError> {
+pub(crate) fn find_by_key<'a>(url_query: &'a str, sep: &str, key: &str) -> Res<&'a str> {
     query_pairs(url_query, sep)?
         .find(|&(k, _)| k == key)
         .map(|(_, v)| v)
-        .ok_or(ParseError)
+        .ok_or(NotFound::new(key).into())
 }
 
 #[allow(clippy::unwrap_used)]

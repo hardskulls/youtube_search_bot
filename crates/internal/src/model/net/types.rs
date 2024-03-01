@@ -6,6 +6,12 @@ pub const QUERY_SEPARATOR: &str = "xplusx";
 /// State code to check in incoming oauth2 response.
 pub const STATE_CODE: &str = env!("STATE_CODE");
 
+/// Separator placed between key and value.
+pub const KV_SEP: &str = "=";
+
+/// Separator placed between key-value pairs.
+pub const PAIR_SEP: &str = "&";
+
 /// Url for acquiring `access token` via
 /// - exchanging `auth code` (first time)
 ///
