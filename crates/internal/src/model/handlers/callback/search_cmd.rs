@@ -10,7 +10,7 @@ use crate::model::keyboards::traits::{CreateKB, KeyboardText};
 use crate::model::keyboards::types::{Requestable, SearchCommandButtons, SearchIn};
 use crate::model::youtube::funcs::search_cmd::search_items;
 use crate::view::types::Sendable;
-use crate::StdResult;
+use crate::StdRes;
 use error_traits::PassErrWith;
 use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
@@ -21,7 +21,7 @@ pub(crate) async fn callback_helper_for_search_kb(
     search_kb: &SearchCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery,
-) -> StdResult<Sendable<String>, String> {
+) -> StdRes<Sendable<String>, String> {
     use SearchCommandButtons::{ResultLimit, TextToSearch};
 
     log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_search_kb] :: [Started]");
@@ -76,7 +76,7 @@ pub(crate) async fn callback_helper_for_search_kb(
 pub(crate) async fn execute_search_command(
     search_config: SearchConfig,
     callback: CallbackQuery,
-) -> StdResult<ResTriplet, String> {
+) -> StdRes<ResTriplet, String> {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
 
     let err = |_| "⚠ Internal error ⚠".to_owned();

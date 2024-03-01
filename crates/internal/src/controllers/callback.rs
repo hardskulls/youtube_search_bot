@@ -2,7 +2,7 @@ use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::Bot;
 
 use crate::model::dialogue::types::TheDialogue;
-use crate::StdResult;
+use crate::StdRes;
 use teloxide::types::CallbackQuery;
 
 use crate::view::funcs::update_view;
@@ -11,7 +11,7 @@ pub async fn handle_callback(
     bot: Bot,
     callback: CallbackQuery,
     dialogue: TheDialogue,
-) -> StdResult<(), ()> {
+) -> StdRes<(), ()> {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_callback] :: [Started]");
 
     let err_msg = eyre::eyre!("No 'chat_id' in CallbackQuery");

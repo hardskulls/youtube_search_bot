@@ -10,7 +10,7 @@ use crate::model::keyboards::traits::{CreateKB, KeyboardText};
 use crate::model::keyboards::types::{ListCommandButtons, Requestable, Sorting};
 use crate::model::youtube::funcs::list_cmd::list_items;
 use crate::view::types::Sendable;
-use crate::StdResult;
+use crate::StdRes;
 use error_traits::PassErrWith;
 use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
@@ -21,7 +21,7 @@ pub(crate) async fn callback_helper_for_list_kb(
     list_kb: &ListCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery,
-) -> StdResult<Sendable<String>, String> {
+) -> StdRes<Sendable<String>, String> {
     log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_list_kb] :: [Started]");
 
     let opt_dialogue_data = match (list_kb, dialogue_data.state.as_ref()) {
@@ -74,7 +74,7 @@ pub(crate) async fn callback_helper_for_list_kb(
 pub(crate) async fn execute_list_command(
     list_config: ListConfig,
     callback: CallbackQuery,
-) -> StdResult<ResTriplet, String> {
+) -> StdRes<ResTriplet, String> {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
 
     let err = |_| "⚠ Internal error ⚠".to_owned();

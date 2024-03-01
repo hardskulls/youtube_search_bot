@@ -10,7 +10,7 @@ use crate::model::keyboards::traits::{CreateKB, KeyboardText};
 use crate::model::keyboards::types::{SearchIn, SearchVideoInPlaylistsCommandButtons};
 use crate::model::youtube::funcs::search_videos_in_playlists::search_videos_in_playlists;
 use crate::view::types::Sendable;
-use crate::StdResult;
+use crate::StdRes;
 use error_traits::PassErrWith;
 use maptypings::WrapInRes;
 use teloxide::prelude::CallbackQuery;
@@ -21,7 +21,7 @@ pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb(
     search_kb: &SearchVideoInPlaylistsCommandButtons,
     dialogue_data: DialogueData,
     callback: CallbackQuery,
-) -> StdResult<Sendable<String>, String> {
+) -> StdRes<Sendable<String>, String> {
     log::info!(" [:: LOG ::]     @[fn]:[callback_helper_for_search_kb] :: [Started]");
 
     use SearchVideoInPlaylistsCommandButtons::{Execute, ResultLimit, TextToSearch};
@@ -70,7 +70,7 @@ pub(crate) async fn callback_helper_for_search_videos_in_playlists_kb(
 pub(crate) async fn execute_search_videos_in_playlists_command(
     search_config: SearchVideosInPlaylistsConfig,
     callback: CallbackQuery,
-) -> StdResult<ResTriplet, String> {
+) -> StdRes<ResTriplet, String> {
     log::info!(" [:: LOG ::]     @[fn]:[exec_search_helper] :: [Started]");
 
     let err = |_| "⚠ Internal error ⚠".to_owned();

@@ -5,7 +5,7 @@ use maptypings::WrapInRes;
 use crate::model::net::funcs::join;
 use crate::model::net::traits::{YouTubeApiRequestBuilder, YouTubeApiResponsePage};
 use crate::model::youtube::types::{RequiredAuthURLParams, AUTH_URL_BASE};
-use crate::StdResult;
+use crate::StdRes;
 
 /// Makes a single call to `YouTube API` go get one page of items.
 pub(crate) async fn items_request<T>(
@@ -45,7 +45,7 @@ pub(crate) fn make_auth_url<V>(
     response_type: V,
     scope: &[V],
     optional_params: &[(String, V)],
-) -> StdResult<url::Url, url::ParseError>
+) -> StdRes<url::Url, url::ParseError>
 where
     V: AsRef<str> + Clone, /* K : AsRef<str>, I : IntoIterator, I::Item : std::borrow::Borrow<(K, V)> */
 {

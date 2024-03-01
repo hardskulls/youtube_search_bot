@@ -1,6 +1,10 @@
-pub(crate) type StdResult<T, E> = Result<T, E>;
+pub type StdRes<T, E> = Result<T, E>;
 
-pub(crate) type FlatRes<T> = StdResult<T, T>;
+pub type MonoRes<T> = StdRes<T, T>;
+
+pub type DefaultError = String;
+
+pub type Res<T, E = eyre::Report> = eyre::Result<T, E>;
 
 pub mod auth_server {
     pub use crate::model::auth_server::{handle_auth_code, serve_all};

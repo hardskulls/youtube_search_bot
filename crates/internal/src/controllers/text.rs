@@ -3,9 +3,9 @@ use teloxide::Bot;
 
 use crate::model::dialogue::types::TheDialogue;
 use crate::view::funcs::update_view;
-use crate::StdResult;
+use crate::StdRes;
 
-pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> StdResult<(), ()> {
+pub async fn handle_text(bot: Bot, msg: Message, dialogue: TheDialogue) -> StdRes<(), ()> {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_text] :: [Started]");
     let chat_id = msg.chat.id;
     let sendable = crate::model::handlers::text::handle_text(msg, dialogue.clone()).await;

@@ -11,7 +11,7 @@ use crate::model::errors::{DialogueStateStorageError, NoCallbackDataError, NoTex
 use crate::model::net::types::{QUERY_SEPARATOR, STATE_CODE};
 use crate::model::youtube::funcs::common::make_auth_url;
 use crate::model::youtube::types::{ACCESS_TYPE, RESPONSE_TYPE, SCOPE_YOUTUBE_READONLY};
-use crate::StdResult;
+use crate::StdRes;
 
 pub(crate) fn search_settings_update_or_default(d_state: State) -> SearchCommandSettings {
     if let State::SearchCommandActive(search_settings) = d_state {
@@ -55,7 +55,7 @@ pub(crate) async fn get_dialogue_data(
 
 /// Get `text` from message.
 #[inline]
-pub(crate) async fn get_text(msg: &Message) -> StdResult<&str, NoTextError> {
+pub(crate) async fn get_text(msg: &Message) -> StdRes<&str, NoTextError> {
     msg.text().ok_or(NoTextError)
 }
 
@@ -63,7 +63,7 @@ pub(crate) async fn get_text(msg: &Message) -> StdResult<&str, NoTextError> {
 #[inline]
 pub(crate) async fn get_callback_data(
     callback: &CallbackQuery,
-) -> StdResult<String, NoCallbackDataError> {
+) -> StdRes<String, NoCallbackDataError> {
     callback.data.clone().ok_or(NoCallbackDataError)
 }
 

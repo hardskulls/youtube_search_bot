@@ -11,7 +11,7 @@ use crate::model::net::funcs::build_post_request;
 use crate::model::net::types::REVOKE_ACCESS_TOKEN_URL;
 use crate::model::utils::{maybe_print, HTMLise};
 use crate::model::youtube::types::YouTubeAccessToken;
-use crate::StdResult;
+use crate::StdRes;
 
 fn build_log_out_req(token: YouTubeAccessToken) -> eyre::Result<reqwest::RequestBuilder> {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::build_log_out_req] :: [Started]");
@@ -141,7 +141,7 @@ fn print_search_videos_in_pls_config(
     }
 }
 
-pub(crate) async fn info(dialogue: &TheDialogue) -> StdResult<MessageTriplet, MessageTriplet> {
+pub(crate) async fn info(dialogue: &TheDialogue) -> StdRes<MessageTriplet, MessageTriplet> {
     log::info!(" [:: LOG ::]     @[fn]:[model::commands::info] :: [Started]");
 
     let log_prefix = " [:: LOG ::]  :  @fn:[commands::common::info]  ->  error: ";

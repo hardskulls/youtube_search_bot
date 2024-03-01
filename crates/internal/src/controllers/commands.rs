@@ -7,7 +7,7 @@ use crate::model::commands::types::Command;
 use crate::model::dialogue::types::TheDialogue;
 use crate::view::funcs::update_view;
 use crate::view::types::Sendable;
-use crate::StdResult;
+use crate::StdRes;
 
 #[inline]
 pub fn is_other_command<B: BotCommands>(msg: Message, me: Me) -> bool {
@@ -25,7 +25,7 @@ pub async fn handle_unknown_command(
     bot: Bot,
     msg: Message,
     dialogue: TheDialogue,
-) -> StdResult<(), ()> {
+) -> StdRes<(), ()> {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_unknown_command] :: [Started]");
 
     update_view(
@@ -44,7 +44,7 @@ pub async fn handle_commands(
     msg: Message,
     dialogue: TheDialogue,
     cmd: Command,
-) -> StdResult<(), ()> {
+) -> StdRes<(), ()> {
     log::info!(" [:: LOG ::]     @[fn]:[controllers::handle_commands] :: [Started]");
 
     let chat_id = msg.chat.id;

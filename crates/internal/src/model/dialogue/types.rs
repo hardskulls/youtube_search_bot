@@ -6,7 +6,7 @@ use teloxide::types::InlineKeyboardMarkup;
 
 use crate::model::keyboards::types::{Requestable, SearchIn, Sorting};
 use crate::model::utils::{print_if_none, HTMLise};
-use crate::StdResult;
+use crate::StdRes;
 
 /// A type that is returned in the end of handlers.
 pub(crate) type MessageTriplet = (String, Option<InlineKeyboardMarkup>, Option<DialogueData>);
@@ -56,7 +56,7 @@ pub struct SearchCommandSettings {
 }
 
 impl SearchCommandSettings {
-    pub(crate) fn build_config(self) -> StdResult<SearchConfig, String> {
+    pub(crate) fn build_config(self) -> StdRes<SearchConfig, String> {
         match self {
             Self {
                 target: Some(t),
@@ -102,7 +102,7 @@ pub struct ListCommandSettings {
 }
 
 impl ListCommandSettings {
-    pub(crate) fn build_config(self) -> StdResult<ListConfig, String> {
+    pub(crate) fn build_config(self) -> StdRes<ListConfig, String> {
         match self {
             Self {
                 target: Some(t),
@@ -144,7 +144,7 @@ pub struct SearchVideosInPlaylistsCommandSettings {
 }
 
 impl SearchVideosInPlaylistsCommandSettings {
-    pub(crate) fn build_config(self) -> StdResult<SearchVideosInPlaylistsConfig, String> {
+    pub(crate) fn build_config(self) -> StdRes<SearchVideosInPlaylistsConfig, String> {
         match self {
             Self {
                 result_limit: Some(r),

@@ -1,5 +1,5 @@
 use crate::model::errors::ParseError;
-use crate::StdResult;
+use crate::{errors, StdRes};
 use maptypings::WrapInRes;
 use reqwest::RequestBuilder;
 use std::borrow::Borrow;
@@ -58,7 +58,7 @@ where
 pub(crate) fn query_pairs<'a, 'b>(
     url_query: &'a str,
     sep: &'b str,
-) -> StdResult<impl Iterator<Item = (&'a str, &'a str)> + 'b, ParseError>
+) -> StdRes<impl Iterator<Item = (&'a str, &'a str)> + 'b, ParseError>
 where
     'a: 'b,
 {
@@ -76,7 +76,7 @@ pub(crate) fn find_by_key<'a>(
     url_query: &'a str,
     sep: &str,
     key: &str,
-) -> StdResult<&'a str, ParseError> {
+) -> StdRes<&'a str, ParseError> {
     query_pairs(url_query, sep)?
         .find(|&(k, _)| k == key)
         .map(|(_, v)| v)
