@@ -12,6 +12,9 @@ use crate::model::dialogue::types::{DialogueData, Either, State, TheDialogue};
 use crate::model::keyboards::types::{Buttons, ListCommandButtons, SearchCommandButtons};
 use crate::view::types::Sendable;
 
+const GREETING: &str = "Bot started, send something ⌨ \nUse one of \
+    /search, /list or /search_videos_in_my_playlists commands 🚀";
+
 pub(crate) async fn get_required_text_state(
     msg: Message,
     dialogue: TheDialogue,
@@ -22,9 +25,7 @@ pub(crate) async fn get_required_text_state(
 
     let dialogue_data = get_dialogue_data(&dialogue).await?;
     if dialogue_data.last_callback.as_ref().is_none() {
-        return "Bot is running! 🚀 \nSend /start command to start a game 🕹"
-            .map_type(Either::Last)
-            .in_ok();
+        return GREETING.map_type(Either::Last).in_ok();
     }
 
     let callback = dialogue_data
@@ -59,10 +60,7 @@ pub(crate) async fn handle_text(msg: Message, dialogue: TheDialogue) -> Sendable
 
     let (message_text, opt_dialogue_data): (&str, Option<DialogueData>) =
         match (d_data.state.as_ref(), buttons) {
-            (State::Starting, ..) => (
-                "Bot is running! 🚀 \nSend /start command to start a game 🕹",
-                None,
-            ),
+            (State::Starting, ..) => (GREETING, None),
             (
                 SearchCommandActive(search_config),
                 Buttons::SearchButtons(SearchCommandButtons::ResultLimit),
@@ -74,7 +72,7 @@ pub(crate) async fn handle_text(msg: Message, dialogue: TheDialogue) -> Sendable
             (
                 SearchCommandActive(search_config),
                 Buttons::SearchButtons(SearchCommandButtons::TextToSearch),
-            ) => save_text(&text, (search_config).clone(), &d_data),
+            ) => save_text(&text, search_config.clone(), &d_data),
             other => {
                 log::info!(
                     " [:: LOG ::] ... ( @[fn]:[handle_text] [:: {:?} ::] )",
